@@ -10,17 +10,18 @@ Background
    :align: center
    :alt: The DFRobot Brushless DC Motor with Encoder 12V 159RPM
 
-   The DFRobot Brushless DC Motor with Encoder 12V 159RPM
+   The test rig: a Raspberry Pi, brushless motor, digital pot and PWM controller board
 
-DFRobot recently released a small (24mm diameter, 40mm length) 12V DC brushless
-motor with its own internal controller, and I was looking for a controller to
-integrate it with the rest of my Python-based robot OS.
+DFRobot recently released a small (24mm diameter, 40mm length), relatively
+inexpensive 12V DC brushless motor with its own internal controller, and I 
+was looking for a controller to integrate it with the rest of my Python-based 
+robot OS (`KROS <https://github.com/ifurusato/krzos>`__.
 
-The motor is controlled by three pins: a PWM pin, a direction pin, and an FG
-pin providing feedback from its internal encoder, permitting closed-loop
-control.
+The motor is controlled by three pins: a pulse-width-modulated (PWM) pin, 
+a direction pin, and an ``FG`` pin providing feedback from its internal 
+motor encoder, permitting closed-loop control.
 
-Note that its PWM is inverted: 100% is stopped, 0% is full speed.
+Note that its PWM is *inverted*: 100% is stopped, 0% is full speed.
 
 
 Features
@@ -28,7 +29,7 @@ Features
 
 This motor controller includes support for open- or closed-loop control,
 stall-and-recovery, deadband control, and control by target RPM when operating
-in closed-loop mode. Given a wheel diameter this also provides for odometric
+in closed-loop mode. Provided a wheel diameter this also provides for odometric
 distance and speed measurements.
 
 There are three PWM controller implementations: software PWM, hardware PWM,
@@ -45,18 +46,34 @@ This uses a YAML configuration file.
 Software Requirements
 *********************
 
-A requirements.txt file is provided.
+A requirements.txt file is provided. There are four dependencies::
 
-colorama==0.4.6
-pigpio==1.78
-PyYAML==6.0.2
-spidev==3.5
+    colorama==0.4.6
+    pigpio==1.78
+    PyYAML==6.0.2
+    spidev==3.5
 
+The implementation uses `pigpio <https://abyz.me.uk/rpi/pigpio/>`__, which 
+requires running a daemon, so if you are not familiar please read the 
+available `pigpiod documentation <https://abyz.me.uk/rpi/pigpio/pigpiod.html>`__.
+If running a daemon isn't your cup of tea, it probably wouldn't be horribly 
+difficult to replace pigpio with a different Raspberry Pi GPIO support library, 
+but pigpio provides a reliable and high-performance API over the hardware PWM pins.
 
-The implementation uses pigpio, which requires running a daemon. It
-probably wouldn't be horribly difficult to replace this with a different
-Raspberry Pi GPIO support library, but pigpio provides a reliable and
-high-performance API over the hardware PWM pins.
+In a nutshell, once installed, to start the pigpiod daemon, type:
+
+.. code::
+   sudo systemctl start pigpiod
+
+You can also check its status with:
+.. code::
+   sudo systemctl status pigpiod
+
+and stop it with:
+.. code::
+   sudo systemctl stop pigpiod
+
+Not so bad, really...
 
 
 Hardware Requirements
