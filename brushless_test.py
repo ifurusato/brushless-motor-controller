@@ -35,7 +35,7 @@ from hardware.brushless_motor import BrushlessMotor
 from hardware.digital_pot_async import DigitalPotentiometer
 from hardware.tlc59711 import TLC59711
 
-USE_DIGITAL_POT      = False  # if available use the digital potentiometer
+USE_DIGITAL_POT      = True   # if available use the digital potentiometer
 TARGET_DISTANCE_TEST = False  # untested as of yet
 
 # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈

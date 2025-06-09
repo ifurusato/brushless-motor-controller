@@ -85,9 +85,9 @@ with two pins (on standard, one alternate) for each. Hardware PWM will provide a
 much more stable, reliable signal than the software PWM, which can wobble due to
 system load.
 
-If your project requires two motors then just use the hardware PWM pins. But if
-your project requires four motors, you can either use the software PWM pins or
-the external PWM board.
+If your project requires two motors then just use the hardware PWM pins, but if
+your project requires four motors, you can either use the software PWM pins (less
+than ideal) or the external PWM controller board.
 
 The direction and FG (encoder feedback) pins can be configured to use any
 available GPIO pins.
@@ -133,8 +133,8 @@ your own risk.
 Copyright & License
 *******************
 
-All contents, including software, documentation and images (though not of the
-motor itself) Copyright 2020-2025 by Murray Altheim. All rights reserved.
+All contents (including software, documentation and images)
+Copyright 2020-2025 by Murray Altheim. All rights reserved.
 
 Software and documentation are distributed under the MIT License, see LICENSE
 file included with project.
