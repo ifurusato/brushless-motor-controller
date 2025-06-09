@@ -124,7 +124,7 @@ This is a first release and the motor has only been tested on the bench, with
 the motor spinning free, so it's expected that PID tuning, deadband configuration,
 etc. will be necessary once the motor has been installed and is running under load.
 
-.. note:: Note
+.. note::
     The project is being exposed publicly so that those interested can follow its progress.
     It is not remotely considered production quality and there are very likely bugs that
     have not yet been uncovered, and a few that are known but have not been fixed†.
