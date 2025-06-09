@@ -16,8 +16,8 @@ Background
 DFRobot recently released the `Brushless DC Motor with Encoder 12V 159RPM (FIT0441) <https://www.dfrobot.com/product-1364.html>`__,
 a small (24mm diameter, 40mm length), relatively inexpensive 12V DC brushless motor
 with its own internal controller. I've been looking for a controller to integrate it
-with the rest of my Python-based robot OS (`KROS <https://github.com/ifurusato/krzos>`__,
-and couldn't find anything suitable so decided to make my own.
+with the rest of my Python-based robot OS (`KROS <https://github.com/ifurusato/krzos>`__),
+and couldn't find anything suitable.
 
 The motor is controlled by three pins: a pulse-width-modulated (PWM) pin, a direction
 pin, and an ``FG`` pin providing feedback from its internal motor encoder, permitting
@@ -61,17 +61,16 @@ If running a daemon isn't your cup of tea, it probably wouldn't be horribly
 difficult to replace pigpio with a different Raspberry Pi GPIO support library,
 but pigpio provides a reliable and high-performance API over the hardware PWM pins.
 
-In a nutshell, once installed, to start the pigpiod daemon, type:
+In a nutshell, once installed, to start the pigpiod daemon, type::
 
-.. code::
    sudo systemctl start pigpiod
 
-You can also check its status with:
-.. code::
+You can also check its status with::
+
    sudo systemctl status pigpiod
 
-and stop it with:
-.. code::
+and stop it with::
+
    sudo systemctl stop pigpiod
 
 Not so bad, really...
