@@ -79,12 +79,11 @@ Not so bad, really...
 Hardware Requirements
 *********************
 
-The motor is available from vendors selling DFRobot products.
-
-The product page for the is `DFRobot Brushless DC Motor with Encoder 12V 159RPM (FIT0441) <https://www.dfrobot.com/product-1364.html>`__
+The motor is available from vendors selling DFRobot products. The product page for motor is
+`DFRobot Brushless DC Motor with Encoder 12V 159RPM (FIT0441) <https://www.dfrobot.com/product-1364.html>`__
 with the support wiki page at `FIT0441 Brushless DC Motor with Encoder 12V 159RPM <https://wiki.dfrobot.com/FIT0441_Brushless_DC_Motor_with_Encoder_12V_159RPM>`__
 
-If you choose to use the TCL59711, one option is the
+If you choose to use the TCL59711 as a PWM controller, one option is the
 `Adafruit 12-Channel 16-bit PWM LED Driver - SPI Interface - TLC59711 <https://www.adafruit.com/product/1455>`__
 with support documentation at `TLC5947 and TLC59711 PWM LED Driver Breakouts <https://learn.adafruit.com/tlc5947-tlc59711-pwm-led-driver-breakout>`__
 
@@ -125,11 +124,10 @@ This is a first release and the motor has only been tested on the bench, with
 the motor spinning free, so it's expected that PID tuning, deadband configuration,
 etc. will be necessary once the motor has been installed and is running under load.
 
-.. note::
-
-   The project is being exposed publicly so that those interested can follow its progress.
-   It is not remotely considered production quality and there are very likely bugs that
-   have not yet been uncovered, and a few that are known but have not been fixed†.
+.. note:: Note
+    The project is being exposed publicly so that those interested can follow its progress.
+    It is not remotely considered production quality and there are very likely bugs that
+    have not yet been uncovered, and a few that are known but have not been fixed†.
 
 † e.g., you can fool the controller by rapidly switching from high speed positive to
    high speed negative, as the FG encoder feedback pin is not directional. So far,
