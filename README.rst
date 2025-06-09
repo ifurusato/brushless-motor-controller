@@ -130,11 +130,11 @@ etc. will be necessary once the motor has been installed and is running under lo
     have not yet been uncovered, and a few that are known but have not been fixed†.
 
 † e.g., you can fool the controller by rapidly switching from high speed positive to
-   high speed negative, as the FG encoder feedback pin is not directional. So far,
-   some mitigations have been attempted but if the change happens fast enough the
-   motor will just continue rotating in its current direction. Either tuning the
-   ramp function or the slew limiter may help, but a higher-level control should not
-   permit such fast changes anyway, so this is a low priority bug.
+high speed negative, as the FG encoder feedback pin is not directional. So far,
+some mitigations have been attempted but if the change happens fast enough the
+motor will just continue rotating in its current direction. Either tuning the
+ramp function or the slew limiter may help, but a higher-level control should not
+permit such fast changes anyway, so this is a low priority bug.
 
 
 Support & Liability
