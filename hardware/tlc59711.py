@@ -10,12 +10,12 @@
 # modified: 2025-06-09
 #
 # This is a CPython module for the TLC59711 16-bit 12 channel PWM LED Driver,
-# originally designed to drive four RGB LEDs with 16-bit PWM per Color. This is
-# a highly-simplified adaptation for single-channel PWM control of a brushless
-# motor. The original source is Tony DiCola and Stefan Kruger, distributed
-# under the MIT license (see LICENSE-tlc59711.txt).
+# originally designed to drive four RGB LEDs with 16-bit PWM per Color.
 #
-# For detailed documentation, see the original.
+# This is a highly-simplified derivation (18% the size of the original source)
+# for single-channel PWM control of a brushless motor. The original source by
+# Tony DiCola and Stefan Kruger is distributed under the MIT license (see
+# LICENSE-tlc59711.txt). For detailed documentation, see the original.
 #
 # Product page:
 #
