@@ -1,5 +1,5 @@
 *********************************************************************************
-A controller for the DFRobot Brushless DC Motor with Encoder 12V 159RPM (FIT0441)
+A Python Controller for the DFRobot Brushless DC Motor with Encoder 12V 159RPM (FIT0441)
 *********************************************************************************
 
 Background
@@ -12,14 +12,16 @@ Background
 
    The test rig: a Raspberry Pi, brushless motor, digital pot and PWM controller board
 
-DFRobot recently released a small (24mm diameter, 40mm length), relatively
-inexpensive 12V DC brushless motor with its own internal controller, and I 
-was looking for a controller to integrate it with the rest of my Python-based 
-robot OS (`KROS <https://github.com/ifurusato/krzos>`__.
 
-The motor is controlled by three pins: a pulse-width-modulated (PWM) pin, 
-a direction pin, and an ``FG`` pin providing feedback from its internal 
-motor encoder, permitting closed-loop control.
+DFRobot recently released the *`Brushless DC Motor with Encoder 12V 159RPM (FIT0441) <https://www.dfrobot.com/product-1364.html>`__*,
+a small (24mm diameter, 40mm length), relatively inexpensive 12V DC brushless motor
+with its own internal controller. I've been looking for a controller to integrate it
+with the rest of my Python-based robot OS (`KROS <https://github.com/ifurusato/krzos>`__,
+and couldn't find anything suitable so decided to make my own.
+
+The motor is controlled by three pins: a pulse-width-modulated (PWM) pin, a direction
+pin, and an ``FG`` pin providing feedback from its internal motor encoder, permitting
+closed-loop control.
 
 Note that its PWM is *inverted*: 100% is stopped, 0% is full speed.
 
@@ -28,17 +30,16 @@ Features
 ********
 
 This motor controller includes support for open- or closed-loop control,
-stall-and-recovery, deadband control, and control by target RPM when operating
-in closed-loop mode. Provided a wheel diameter this also provides for odometric
+stall-and-recovery, deadband control, and control by target RPM when operating in
+closed-loop mode. Provided a wheel diameter this also provides for odometric
 distance and speed measurements.
 
-There are three PWM controller implementations: software PWM, hardware PWM,
-and using a TI TLC59711 PWM controller (supplied by an Adafruit board, see
-below).
+There are three PWM controller implementations: software PWM, hardware PWM, and
+using a TI TLC59711 PWM controller (supplied by an Adafruit board, see below).
 
-The TLC69711 is usually designed to control up to 12 channels of LEDs, or
-four RGB LEDs. In our case we only need a much smaller number of channels,
-on per motor. These channels are enumerated in the ControllerChannel Enum.
+The TLC69711 is usually designed to control up to 12 channels of LEDs, or four
+RGB LEDs. In our case we only need a much smaller number of channels, on per
+motor. These channels are enumerated in ControllerChannel.
 
 This uses a YAML configuration file.
 
@@ -53,11 +54,11 @@ A requirements.txt file is provided. There are four dependencies::
     PyYAML==6.0.2
     spidev==3.5
 
-The implementation uses `pigpio <https://abyz.me.uk/rpi/pigpio/>`__, which 
-requires running a daemon, so if you are not familiar please read the 
+The implementation uses `pigpio <https://abyz.me.uk/rpi/pigpio/>`__, which
+requires running a daemon, so if you are not familiar please read the
 available `pigpiod documentation <https://abyz.me.uk/rpi/pigpio/pigpiod.html>`__.
-If running a daemon isn't your cup of tea, it probably wouldn't be horribly 
-difficult to replace pigpio with a different Raspberry Pi GPIO support library, 
+If running a daemon isn't your cup of tea, it probably wouldn't be horribly
+difficult to replace pigpio with a different Raspberry Pi GPIO support library,
 but pigpio provides a reliable and high-performance API over the hardware PWM pins.
 
 In a nutshell, once installed, to start the pigpiod daemon, type:
@@ -81,16 +82,12 @@ Hardware Requirements
 
 The motor is available from vendors selling DFRobot products.
 
-The product page for the is:
-`DFRobot Brushless DC Motor with Encoder 12V 159RPM (FIT0441) <https://www.dfrobot.com/product-1364.html>`__
-with the support wiki page at:
-`FIT0441 Brushless DC Motor with Encoder 12V 159RPM <https://wiki.dfrobot.com/FIT0441_Brushless_DC_Motor_with_Encoder_12V_159RPM>`__
+The product page for the is `DFRobot Brushless DC Motor with Encoder 12V 159RPM (FIT0441) <https://www.dfrobot.com/product-1364.html>`__
+with the support wiki page at `FIT0441 Brushless DC Motor with Encoder 12V 159RPM <https://wiki.dfrobot.com/FIT0441_Brushless_DC_Motor_with_Encoder_12V_159RPM>`__
 
-If you choose to use the TCL59711, one option is the:
+If you choose to use the TCL59711, one option is the
 `Adafruit 12-Channel 16-bit PWM LED Driver - SPI Interface - TLC59711 <https://www.adafruit.com/product/1455>`__
-
-with support documentation at:
-`TLC5947 and TLC59711 PWM LED Driver Breakouts <https://learn.adafruit.com/tlc5947-tlc59711-pwm-led-driver-breakout>`__
+with support documentation at `TLC5947 and TLC59711 PWM LED Driver Breakouts <https://learn.adafruit.com/tlc5947-tlc59711-pwm-led-driver-breakout>`__
 
 
 Hardware Configuration
@@ -113,8 +110,11 @@ available GPIO pins.
 | Pin             |  GPIO pin/alt   | Notes         |
 +=================+=================+===============+
 | PWM Channel 0   |  GPIO 18 / 12   | hardware PWM  |
++-----------------+-----------------+---------------+
 | PWM Channel 1   |  GPIO 19 / 13   | hardware PWM  |
++-----------------+-----------------+---------------+
 | Direction       |  GPIO 23        | any GPIO pin  |
++-----------------+-----------------+---------------+
 | FG (encoder)    |  GPIO 24        | any GPIO pin  |
 +-----------------+-----------------+---------------+
 
