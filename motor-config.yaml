@@ -1,0 +1,39 @@
+# Copyright 2020-2025 by Murray Altheim. All rights reserved. This file is part
+# of the Robot Operating System project, released under the MIT License. Please
+# see the LICENSE file included as part of this package.
+#
+# ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+#       YAML configuration for K-Series Robot Operating System (KROS)
+# ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+kros:
+    hardware:
+        motor_controller:
+            verbose:                          False        # noisy
+            closed_loop_enabled:               True        # open- or closed-loop control
+            pwm_controller_impl:         "tlc59711"        # PWMController impl class: "software" | "hardware" | "tlc59711"
+            pwm_pin:                             18        # GPIO pin used for PWM control
+            dir_pin:                             23        # GPIO pin used for motor direction
+            encoder_pin:                         24        # GPIO pin used for motor feedback from motor FG pin
+            pwm_freq:                         25000        # PWM frequency (used on GPIO only)
+            accel_delay_sec:                    0.1        # delay used for acceleration
+            enable_ramping:                    True        # enable ramping when changing speeds
+            ramp_step:                           20        # step used for ramping
+            kickstart_speed:                     14        # speed threshold to kickstart motor from zero
+            feedback_interval:                 0.05        # seconds between corrections
+            kp:                                 0.1        # proportional
+            ki:                                 0.0        # integral
+            kd:                                 0.0        # derivative
+            gear_ratio:                          45        # motor gear ratio (1:45)
+            pulses_per_motor_rev:                 6        # pulses per motor rotation
+            motor_max_rpm:                      159        # from motor spec
+            wheel_diameter_mm:                   48        # wheel diameter in mm
+            max_delta_rpm_per_sec:              120.0      # slew limiter for RPM
+            max_delta_speed_per_sec:            100.0      # slew limiter for speed
+            slew_limiter_enabled:              True        # use rpm and speed slew limiters
+            stall_grace_period_ms:              400        # how many milliseconds before we consider it stalled?
+            stall_timeout_ms:                   300        # duration with no pulses to declare stall (in ms)
+            deadband_rpm:                         6        # we don't try speeds less than this
+            fixed_deadband:                    True        # fixed or dynamic deadband
+            dynamic_deadband:                     5        # dynamic deadband as percentage
+#EOF

@@ -1,0 +1,4 @@
+colorama==0.4.6
+pigpio==1.78
+PyYAML==6.0.2
+spidev==3.5
