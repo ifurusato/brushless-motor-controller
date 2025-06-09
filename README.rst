@@ -5,8 +5,8 @@ A controller for the DFRobot Brushless DC Motor with Encoder 12V 159RPM (FIT0441
 Background
 **********
 
-.. figure:: img/FIT0441_Main_01.jpg
-   :width: 1000px
+.. figure:: img/brushless-motor.jpg
+   :width: 1200px
    :align: center
    :alt: The DFRobot Brushless DC Motor with Encoder 12V 159RPM
 
