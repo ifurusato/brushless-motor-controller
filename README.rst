@@ -13,7 +13,7 @@ Background
    The test rig: a Raspberry Pi, brushless motor, digital pot and PWM controller board
 
 
-DFRobot recently released the *`Brushless DC Motor with Encoder 12V 159RPM (FIT0441) <https://www.dfrobot.com/product-1364.html>`__*,
+DFRobot recently released the `Brushless DC Motor with Encoder 12V 159RPM (FIT0441) <https://www.dfrobot.com/product-1364.html>`__,
 a small (24mm diameter, 40mm length), relatively inexpensive 12V DC brushless motor
 with its own internal controller. I've been looking for a controller to integrate it
 with the rest of my Python-based robot OS (`KROS <https://github.com/ifurusato/krzos>`__,
