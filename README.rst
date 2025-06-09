@@ -91,7 +91,7 @@ with support documentation at `TLC5947 and TLC59711 PWM LED Driver Breakouts <ht
 Hardware Configuration
 **********************
 
-Depending on your choise of software PWM, hardware PWM, or a TLC59711 the wiring
+Depending on your choice of software PWM, hardware PWM, or a TLC59711 the wiring
 will be different. The Raspberry Pi has two channels available for hardware PWM,
 with two pins (on standard, one alternate) for each. Hardware PWM will provide a
 much more stable, reliable signal than the software PWM, which can wobble due to
