@@ -76,10 +76,12 @@ class MotorController:
             _log_timer_number  = _cfg['log_timer_number']
             _log_timer_freq    = _cfg['log_timer_frequency']
             self._logging_task = None # store the logging task to manage it
+            self._logging_enabled = False
             self._loop         = None # asyncio loop instance
             self._timer        = None # timer for logging
             self._asyncio_event_from_isr = asyncio.Event() # Event to signal asyncio from ISR
             # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+            self._needs_pid_update = False
             self._pid_task     = None
             self._log.info('ready.')
 
@@ -90,8 +92,8 @@ class MotorController:
     def _rpm_timer_callback(self, timer):
         for motor in self.motors:
             motor._calculate_rpm()
-        motor._pid_needs_update = True # flag for PID update in async task
-        self.tick() # advance asyncio event loop
+            motor._pid_needs_update = True # flag for PID update in async task
+        self._needs_pid_update = True
 
     # properties ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 
@@ -121,137 +123,64 @@ class MotorController:
         """     
         self._log.info("PID control coroutine started, running every {}ms".format(interval_ms))
         try:
-            while True: 
-                for motor in self.motors:
-                    if getattr(motor, '_pid_needs_update', False):
-                        # --- Your PID logic goes here ---
-                        # Example: motor.apply_pid()
-                        # For now, just clear the flag.
-                        # Replace with real PID code!
-                        motor._pid_needs_update = False
+            while True:
+                if self._needs_pid_update:
+                    for motor in self.motors:
+                        if motor._pid_needs_update:
+                            # Do PID logic here
+                            motor._pid_needs_update = False
+                    self._needs_pid_update = False  # Reset controller flag
                 await asyncio.sleep_ms(interval_ms)
         except asyncio.CancelledError:
             self._log.info("PID control coroutine cancelled.")
 
     # logging ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 
-    def enable_rpm_logger(self, interval_ms: int = 1000, timer_freq_hz: int = 100):
-        '''
-        Enables the RPM logger. This method manages the logger task's
-        lifecycle and the pyb.Timer that drives the asyncio loop.
-
-        Args:
-            interval_ms (int): The logging interval in milliseconds.
-            timer_freq_hz (int): Frequency at which the internal timer ticks (e.g., 100 Hz = every 10ms).
-                                 This determines how often asyncio tasks are given a chance to run.
-        '''
-        # If the asyncio loop hasn't been obtained yet, get it and start the ISR event processor.
+    def enable_rpm_logger(self, interval_ms: int = 1000):
+        """
+        Starts the asynchronous RPM logger.
+        """
         if self._loop is None:
             self._loop = asyncio.get_event_loop()
-            self._log.info("Main: asyncio event loop obtained.")
-            # Start the internal ISR event processor task
-            self._loop.create_task(self._isr_event_processor_coro())
-            self._log.info("Main: Internal ISR event processor task started.")
-        if self._logging_task is None:
-            self._log.info("Main: Creating RPM logger task...")
+        if not self._logging_enabled:
+            self._log.info(Fore.MAGENTA + "starting RPM logger with interval: {}ms.".format(interval_ms))
             self._logging_task = self._loop.create_task(self._rpm_logger_coro(interval_ms))
-            self._log.info("Main: RPM logger task created.")
+            self._logging_enabled = True
         else:
-            self._log.info("Main: RPM logger is already running.")
-        if self._timer is None: # Use self._timer
-            self._log.info("Main: Starting Timer(6) at {} Hz to drive asyncio loop...".format(timer_freq_hz))
-            self._timer = Timer(6, freq=timer_freq_hz) # Use self._timer
-            self._timer.callback(self._timer_callback_isr) # Attach ISR to self._timer
-            self._log.info("Main: Timer(6) started.")
-        else:
-            self._log.info("Main: Timer(6) is already running.")
+            self._log.info("RPM logger already running.")
 
     def disable_rpm_logger(self):
-        '''
-        Disables the RPM logger. This method manages stopping the logger task
-        and the Timer that drives the asyncio loop for logging.
-        '''
-        if self._logging_task is not None:
-            self._log.info("Main: Cancelling RPM logger task...")
+        """
+        Cancels the RPM logger task if running.
+        """
+        if self._logging_enabled and self._logging_task is not None:
             self._logging_task.cancel()
             self._logging_task = None
-            self._log.info("Main: RPM logger task cancelled.")
+            self._logging_enabled = False
+            self._log.info("RPM logger stopped.")
         else:
-            self._log.info("Main: RPM logger is already stopped.")
-
-        if self._timer is not None: # Use self._timer
-            self._log.info("Main: Stopping Timer(6)...")
-            self._timer.callback(None) # Detach ISR from self._timer
-            self._timer.deinit() # De-initialize self._timer
-            self._timer = None # Clear reference
-            self._log.info("Main: Timer(6) stopped.")
-        else:
-            self._log.info("Main: Timer(6) is already stopped.")
+            self._log.info("RPM logger was not running.")
 
     async def _rpm_logger_coro(self, interval_ms: int):
-        '''
-        The asynchronous coroutine that performs the RPM logging.
-        This runs within the asyncio event loop.
-        It now formats the log message using the self._motor_list.
-        '''
-        self._log.info("logger task started, logging every {}ms".format(interval_ms))
+        """
+        Periodically logs the current RPM and tick count for all motors.
+        """
+        self._log.info(Fore.MAGENTA + "called RPM logger coroa with interval: {}ms.".format(interval_ms))
         try:
-            while True:
-                if self._motor_list: # Iterate over the populated list
-                    # log the RPM values
+            while self._logging_enabled:
+                if self._motor_list:
                     rpm_values = ", ".join(
-                        "{}: {:.2f} RPM; {} ticks; ".format(motor.name, motor.rpm, motor.tick_count)
-                        for motor in self.motors
+                        "{}: {:.2f} RPM; {} ticks".format(motor.name, motor.rpm, motor.tick_count)
+                        for motor in self._motor_list
                     )
-                    self._log.info(Fore.MAGENTA + "current RPM: {}".format(rpm_values))
+                    self._log.info(Fore.MAGENTA + "🍆 current RPM: {}".format(rpm_values))
                 else:
-                    self._log.warning('no motors configured for RPM logging.')
-                await asyncio.sleep_ms(interval_ms) # Wait asynchronously
+                    self._log.warning("no motors configured for RPM logging.")
+                await asyncio.sleep_ms(interval_ms)
         except asyncio.CancelledError:
-            self._log.info(Style.DIM + "asyncio: logger task cancelled.")
-        except Exception as e:
-            self._log.error("Asyncio: Logger task error: {}".format(e))
+            self._log.info("RPM logger task cancelled.")
         finally:
-            self._log.info("Asyncio: Logger task finished.")
-
-    def _timer_callback_isr(self, timer):
-        '''
-        This is the Interrupt Service Routine (ISR) for Timer 6.
-        It signals the asyncio event, which is then handled by an async task.
-        '''
-        self._asyncio_event_from_isr.set()
-
-    async def _isr_event_processor_coro(self):
-        '''
-        An internal async coroutine that continuously waits for the ISR event
-        and ensures the asyncio loop gets a chance to run.
-        This effectively acts as the 'tick' driven by the timer.
-        '''
-        while True:
-            await self._asyncio_event_from_isr.wait()
-            self._asyncio_event_from_isr.clear()
-            await asyncio.sleep_ms(0) # Yield control
-            if self._logging_task and self._logging_task.done():
-                self._logging_task = None
-            await asyncio.sleep_ms(0) # Briefly yield again
-
-    def tick(self):
-        '''
-        Processes internal MotorController events, including allowing its
-        asyncio tasks to run briefly. This method is synchronous.
-        Your main application must call this periodically.
-        '''
-        if self._loop is not None:
-            try:
-                # Define a tiny async helper function internally that just yields
-                async def _internal_tick_coro():
-                    await asyncio.sleep_ms(0)
-                # Now, run this helper coroutine until it completes.
-                # This ensures run_until_complete receives a proper coroutine object.
-                self._loop.run_until_complete(_internal_tick_coro())
-            except Exception as e:
-                self._log.error("Error processing internal asyncio events: {} - {}".format(type(e).__name__, e))
-                sys.print_exception(e)
+            self._log.info(Fore.MAGENTA + "🍆 rpm_logger_coro done.")
 
     # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 
