@@ -55,7 +55,7 @@ class Motor:
             # setup input capture and callback
             self._encoder_pin = Pin(encoder_pin)
             self._encoder_pin_name = encoder_pin_name or str(self._encoder_pin)
-            self._encoder_channel  = enc_timer.channel(enc_channel, Timer.IC, pin=self._encoder_pin, polarity=Timer.BOTH) # or Timer.BOTH
+            self._encoder_channel  = enc_timer.channel(enc_channel, Timer.IC, pin=self._encoder_pin, polarity=Timer.RISING) # or Timer.BOTH
             self._timer_freq = enc_timer.freq()
             # info
             self._log.info('Motor {}: PWM timer:  '.format(name) + Fore.GREEN + '{}'.format(pwm_timer))
