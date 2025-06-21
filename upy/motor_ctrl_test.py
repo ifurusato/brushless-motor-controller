@@ -113,7 +113,7 @@ async def main():
         if PULSE_TEST:
             motor_ctrl.set_motor_speed(1, 100)
             motor0 = motor_ctrl.get_motor(0)
-            motor0.measure_ticks_per_second(test_duration=10.0)
+            await motor0.measure_ticks_per_second(test_duration=10.0)
 
         if RAMP_TEST:
             ids = motor_ctrl.motor_ids
@@ -122,20 +122,26 @@ async def main():
 
             while True:
                 motor_ctrl.set_motor_direction('all', Motor.DIRECTION_FORWARD)
+
                 log.info('accelerate forward…')
-                motor_ctrl.accelerate(ids, Motor.FULL_SPEED, step=5, delay_ms=_delay_ms)
+                await motor_ctrl.accelerate(ids, Motor.FULL_SPEED, step=5, delay_ms=_delay_ms)
+
                 log.info('decelerate…')
-                motor_ctrl.accelerate(ids, Motor.STOPPED, step=5, delay_ms=_delay_ms)
+                await motor_ctrl.accelerate(ids, Motor.STOPPED, step=5, delay_ms=_delay_ms)
+
                 log.info('stop…')
                 motor_ctrl.stop()
+
                 motor_ctrl.set_motor_direction('all', Motor.DIRECTION_REVERSE)
+
                 log.info('accelerate backward…')
-                motor_ctrl.accelerate(ids, Motor.FULL_SPEED, step=5, delay_ms=_delay_ms)
+                await motor_ctrl.accelerate(ids, Motor.FULL_SPEED, step=5, delay_ms=_delay_ms)
+
                 log.info('decelerate…')
-                motor_ctrl.accelerate(ids, Motor.STOPPED, step=5, delay_ms=_delay_ms)
+                await motor_ctrl.accelerate(ids, Motor.STOPPED, step=5, delay_ms=_delay_ms)
+
                 log.info('stop…')
                 motor_ctrl.stop()
-                await asyncio.sleep(0)  # yield to event loop
 
         else:
             log.info('wait...')

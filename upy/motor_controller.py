@@ -248,7 +248,7 @@ class MotorController:
             motor_nums = [motor_nums]
         return list(self._motors[m] for m in motor_nums if m in self._motors)
 
-    def accelerate(self, motor_nums, target_speed, step=1, delay_ms=50):
+    async def accelerate(self, motor_nums, target_speed, step=1, delay_ms=50):
         '''
         Gradually change speed of one or more motors toward a target
         speed, starting from each motor's current speed.
@@ -273,15 +273,15 @@ class MotorController:
                 direction = 1 if delta > 0 else -1
                 new_speed = current + direction * min(step, abs(delta))
                 motor.speed = new_speed
-            time.sleep_ms(delay_ms)
+            await asyncio.sleep_ms(delay_ms)
 
-    def decelerate_to_stop(self, motor_nums, step=1, delay_ms=50):
+    async def decelerate_to_stop(self, motor_nums, step=1, delay_ms=50):
         '''
         Gradually slow one or more motors to a stop (speed = 100).
         :param motor_nums: int or list/tuple of ints
         '''
         self._log.info("Decelerating motor(s) {} to stop...".format(motor_nums))
-        self.accelerate(motor_nums, target_speed=Motor.STOPPED, step=step, delay_ms=delay_ms)
+        await self.accelerate(motor_nums, target_speed=Motor.STOPPED, step=step, delay_ms=delay_ms)
 
     def log_pin_configuration(self):
         '''

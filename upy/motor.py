@@ -11,7 +11,6 @@
 #
 
 import uasyncio as asyncio
-import time
 from pyb import Pin, Timer
 from core.logger import Logger, Level
 from colorama import Fore, Style
@@ -193,9 +192,9 @@ class Motor:
         then return the number of pulses counted during that period.
         '''
         self._tick_count = 0
-        self.speed = self.FULL_SPEED  # full speed (0 if your scale is inverted)
-        time.sleep(test_duration)    # wait for pulses to accumulate
-        self.speed = self.STOPPED    # stop the motor
+        self.speed = self.FULL_SPEED       # full speed (0 if your scale is inverted)
+        await asyncio.sleep(test_duration) # async wait for pulses to accumulate
+        self.speed = self.STOPPED          # stop the motor
         ticks = self._tick_count
         ticks_per_sec = ticks / test_duration
         self._log.info(Fore.WHITE + Style.BRIGHT + "measured {} pulses in {}s -> {} ticks/sec".format(ticks, test_duration, ticks_per_sec))
