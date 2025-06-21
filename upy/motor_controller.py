@@ -80,6 +80,7 @@ class MotorController:
             self._timer        = None # timer for logging
             self._asyncio_event_from_isr = asyncio.Event() # Event to signal asyncio from ISR
             # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+            self._pid_task     = None
             self._log.info('ready.')
 
         except Exception as e:
@@ -89,6 +90,8 @@ class MotorController:
     def _rpm_timer_callback(self, timer):
         for motor in self.motors:
             motor._calculate_rpm()
+        motor._pid_needs_update = True # flag for PID update in async task
+        self.tick() # advance asyncio event loop
 
     # properties ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 
@@ -109,6 +112,26 @@ class MotorController:
     @property
     def enabled(self):
         return self._enabled
+
+    # PID control task ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+            
+    async def _pid_control_coro(self, interval_ms: int = 10):
+        """ 
+        Coroutine to run PID control for all motors that need it.
+        """     
+        self._log.info("PID control coroutine started, running every {}ms".format(interval_ms))
+        try:
+            while True: 
+                for motor in self.motors:
+                    if getattr(motor, '_pid_needs_update', False):
+                        # --- Your PID logic goes here ---
+                        # Example: motor.apply_pid()
+                        # For now, just clear the flag.
+                        # Replace with real PID code!
+                        motor._pid_needs_update = False
+                await asyncio.sleep_ms(interval_ms)
+        except asyncio.CancelledError:
+            self._log.info("PID control coroutine cancelled.")
 
     # logging ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 
@@ -212,22 +235,6 @@ class MotorController:
                 self._logging_task = None
             await asyncio.sleep_ms(0) # Briefly yield again
 
-    def delay_and_tick(self, duration_ms=50, tick_interval_ms=10):
-        '''
-        A Helper for internal delays that also tick asyncio.
-
-        Performs a delay in smaller chunks, calling self.tick() repeatedly.
-        Used internally by blocking methods like accelerate().
-        '''
-        num_ticks = duration_ms // tick_interval_ms
-        remaining_ms = duration_ms % tick_interval_ms
-        for _ in range(num_ticks):
-            time.sleep_ms(tick_interval_ms)
-            self.tick() # give asyncio a chance to run
-        if remaining_ms > 0:
-            time.sleep_ms(remaining_ms)
-            self.tick() # one final tick after the remainder
-
     def tick(self):
         '''
         Processes internal MotorController events, including allowing its
@@ -255,6 +262,9 @@ class MotorController:
             for motor in self.motors:
                 motor.enable()
             self._enabled = True
+            self.enable_rpm_logger() # already starts timer & logging
+            if self._pid_task is None:
+                self._pid_task = self._loop.create_task(self._pid_control_coro())
             self._log.info("motor controller enabled.")
 
     def disable(self):
@@ -264,7 +274,11 @@ class MotorController:
             for motor in self.motors:
                 motor.disable()
             self._encoder_channel.callback(None)
-        self._enabled = False
+            self._stop_auto_tick()
+            if self._pid_task is not None:
+                self._pid_task.cancel()
+                self._pid_task = None
+            self._enabled = False
 
     def get_motor(self, motor_num):
         if isinstance(motor_num, int):
@@ -330,7 +344,7 @@ class MotorController:
                 direction = 1 if delta > 0 else -1
                 new_speed = current + direction * min(step, abs(delta))
                 motor.speed = new_speed
-            self.delay_and_tick(delay_ms)
+            time.sleep_ms(delay_ms)
 
     def decelerate_to_stop(self, motor_nums, step=1, delay_ms=50):
         '''

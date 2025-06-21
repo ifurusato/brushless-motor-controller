@@ -58,7 +58,7 @@ def main():
                 log.info(Fore.GREEN + 'set to full speed…')
                 motor_ctrl.set_motor_speed([0, 1], 100)
                 while True:
-                    motor_ctrl.delay_and_tick(duration_ms=50, tick_interval_ms=10)
+                    time.sleep(1)
 
             except KeyboardInterrupt:
                 log.info('Ctrl-C caught, user stopped execution.')

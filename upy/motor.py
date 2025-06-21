@@ -43,6 +43,7 @@ class Motor:
             self._reverse         = reverse
             self._update_interval = 0.1
             self._pulses_per_output_rev = 270 # 569 # self._pulses_per_motor_rev * self._gear_ratio
+            self._pid_needs_update = False
             # setup PWM channel with pin
             self._pwm_pin = Pin(pwm_pin)
             self._pwm_pin_name = pwm_pin_name or str(self._pwm_pin)
