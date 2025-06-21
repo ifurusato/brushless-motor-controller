@@ -11,7 +11,7 @@ kros:
         motor_controller:
             verbose:                          False        # noisy
             closed_loop_enabled:               True        # open- or closed-loop control
-            pwm_controller_impl:         "tlc59711"        # PWMController impl class: "software" | "hardware" | "tlc59711"
+            pwm_controller_impl:         "hardware"        # PWMController impl class: "software" | "hardware" | "tlc59711"
             pwm_pin:                             18        # GPIO pin used for PWM control
             dir_pin:                             23        # GPIO pin used for motor direction
             encoder_pin:                         24        # GPIO pin used for motor feedback from motor FG pin
