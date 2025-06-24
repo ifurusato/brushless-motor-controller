@@ -60,7 +60,7 @@ class Payload:
         return crc
 
     def __repr__(self):
-        return "Payload(cmd={}, pfwd={:.2f}, sfwd={:.2f}, paft={:.2f}, saft={:.2f})".format(
-                self.cmd.decode('ascii'), self.pfwd, self.sfwd, self.paft, self.saft)
+        return "Payload(cmd={}, pfwd={:7.2f}, sfwd={:7.2f}, paft={:7.2f}, saft={:7.2f})".format(
+            self.cmd.decode('ascii'), self.pfwd, self.sfwd, self.paft, self.saft)
 
 #EOF
