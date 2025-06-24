@@ -14,15 +14,15 @@ class NeoPixel:
         "GBR": (1, 2, 0),
     }
 
-    # G R B W
-    ORDER = (1, 0, 2, 3)
+    ORDER = (0, 1, 2)
 
-    def __init__(self, pin, n, bpp=3, timing=1, color_order="GRB"):
+    def __init__(self, pin, n, bpp=3, timing=1, color_order="RGB", brightness=1.0):
         self.pin = pin
         self.n = n
         self.bpp = bpp
         self.buf = bytearray(n * bpp)
         self.pin.init(pin.OUT)
+        self.brightness = brightness
         # Timing arg can either be 1 for 800kHz or 0 for 400kHz,
         # or a user-specified timing ns tuple (high_0, low_0, high_1, low_1).
         self.timing = (
@@ -34,8 +34,6 @@ class NeoPixel:
             if color_order not in self.ORDER_MAP:
                 raise ValueError("Unsupported color_order: {}".format(color_order))
             self.ORDER = self.ORDER_MAP[color_order]
-        elif bpp == 4:
-            self.ORDER = (1, 0, 2, 3)
 
     def __len__(self):
         return self.n
@@ -43,7 +41,7 @@ class NeoPixel:
     def __setitem__(self, i, v):
         offset = i * self.bpp
         for i in range(self.bpp):
-            self.buf[offset + self.ORDER[i]] = v[i]
+            self.buf[offset + self.ORDER[i]] = int(v[i] * self.brightness)
 
     def __getitem__(self, i):
         offset = i * self.bpp
@@ -54,7 +52,7 @@ class NeoPixel:
         l = len(self.buf)
         bpp = self.bpp
         for i in range(bpp):
-            c = v[i]
+            c = int(v[i] * self.brightness)
             j = self.ORDER[i]
             while j < l:
                 b[j] = c
