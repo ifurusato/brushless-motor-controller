@@ -7,8 +7,7 @@
 #
 # author:   Murray Altheim
 # created:  2025-06-04
-# modified: 2025-06-21
-#
+# modified: 2025-06-26
 
 import sys
 import uasyncio as asyncio
@@ -19,7 +18,6 @@ from config_loader import ConfigLoader
 from colorama import Fore, Style
 from motor import Motor
 
-# ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 class MotorController:
     def __init__(self, config=None, motors_enabled=(True, True, True, True), level=Level.INFO):
         self._log = Logger('motor-ctrl', level=level)
@@ -30,13 +28,11 @@ class MotorController:
         self._motors     = {}
         self._motor_list = []
         try:
-#           config = ConfigLoader.configure('motor-config.yaml')
             _cfg = config["kros"]["motor_controller"]
             _motor_cfg         = config["kros"]["motors"]
             _pwm_frequency     = _cfg['pwm_frequency']
             _encoder_frequency = _cfg['encoder_frequency']
-
-            # motors ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+            # motors
             for index in range(4):
                 if not motors_enabled[index]:
                     continue
@@ -65,7 +61,6 @@ class MotorController:
             # immediately stop all motors
             self.stop()
             self._log.debug('configuring additional timers…')
-            # timers ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
             # RPM timer
             _rpm_timer_number  = _cfg['rpm_timer_number']
             _rpm_timer_freq    = _cfg['rpm_timer_frequency']
@@ -80,7 +75,6 @@ class MotorController:
             self._loop         = None # asyncio loop instance
             self._timer        = None # timer for logging
             self._asyncio_event_from_isr = asyncio.Event() # Event to signal asyncio from ISR
-            # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
             self._needs_pid_update = False
             self._pid_task     = None
             self._log.info('ready.')
@@ -94,8 +88,6 @@ class MotorController:
             motor._calculate_rpm()
             motor._pid_needs_update = True # flag for PID update in async task
         self._needs_pid_update = True
-
-    # properties ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 
     @property
     def motor_ids(self):
@@ -115,12 +107,10 @@ class MotorController:
     def enabled(self):
         return self._enabled
 
-    # PID control task ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
-            
     async def _pid_control_coro(self, interval_ms: int = 10):
-        """ 
+        """
         Coroutine to run PID control for all motors that need it.
-        """     
+        """
         self._log.info("PID control coroutine started, running every {}ms".format(interval_ms))
         try:
             while True:
@@ -133,8 +123,6 @@ class MotorController:
                 await asyncio.sleep_ms(interval_ms)
         except asyncio.CancelledError:
             self._log.info("PID control coroutine cancelled.")
-
-    # logging ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 
     def enable_rpm_logger(self, interval_ms: int = 1000):
         """
@@ -181,8 +169,6 @@ class MotorController:
             self._log.info("RPM logger task cancelled.")
         finally:
             self._log.info(Fore.MAGENTA + "🍆 rpm_logger_coro done.")
-
-    # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 
     def enable(self):
         if self.enabled:

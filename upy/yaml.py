@@ -7,7 +7,7 @@
 #
 # author:   Murray Altheim
 # created:  2025-06-02
-# modified: 2025-06-21
+# modified: 2025-06-26
 #
 # This is a simple YAML parser for MicroPython, supporting a subset of the
 # standard YAML grammar, as described below:
@@ -25,12 +25,11 @@
 #
 
 class FileNotFoundError(Exception):
-    '''     
+    '''
     An exception thrown when encountering a reference to a file that does not exist.
-    '''     
+    '''
     pass
 
-# ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 def load(fpath):
     try:
         with open(fpath, 'r') as f:
@@ -39,13 +38,11 @@ def load(fpath):
     except OSError as e:
         raise FileNotFoundError("file not found: {}".format(fpath))
 
-# ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 def dump(obj, indent=4):
     import pprint
     # delegate the call to pprint.pretty_print
     pprint.pretty_print(obj, indent=indent)
 
-# ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 def parse(text):
     lines = text.split('\n')
     def parse_value(val):

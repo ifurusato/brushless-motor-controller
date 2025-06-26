@@ -18,8 +18,6 @@ from colorama import Fore, Style
 from motor import Motor
 from motor_controller import MotorController
 
-# main ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
-
 DIAGNOSTIC = True
 MOTOR_TEST = False
 RPM_TEST   = False

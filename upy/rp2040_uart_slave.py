@@ -33,13 +33,7 @@ class RP2040UartSlave(UartSlaveBase):
         # set up LED pin
         self.led = Pin(self.led_pin, Pin.OUT)
         # set up UART connection with custom TX and RX pins
-        self.uart = UART(uart_id, baudrate=baudrate, bits=8, parity=None, stop=1, tx=Pin(self.tx_pin), rx=Pin(self.rx_pin))
+        self._uart = UART(uart_id, baudrate=baudrate, bits=8, parity=None, stop=1, tx=Pin(self.tx_pin), rx=Pin(self.rx_pin))
         # ready
-
-    async def flash_led(self, duration_ms=30):
-        if self._enable_led:
-            self._led.on()
-            await asyncio.sleep_ms(duration_ms)
-            self._led.off()
 
 #EOF

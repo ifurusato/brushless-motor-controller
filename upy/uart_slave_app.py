@@ -1,16 +1,4 @@
 #!/micropython
-# -*- coding: utf-8 -*-
-#
-# Copyright 2020-2025 by Murray Altheim. All rights reserved. This file is part
-# of the Robot Operating System project, released under the MIT License. Please
-# see the LICENSE file included as part of this package.
-#
-# author:   Murray Altheim
-# created:  2025-06-23
-# modified: 2025-06-25
-#
-# This is the entry point to the UART slave application.
-#
 
 import uasyncio as asyncio
 from colorama import Fore, Style
@@ -29,14 +17,13 @@ class UartSlaveApp:
         self._pixel    = Pixel(brightness=0.1)
         self._slave    = None
         self._uart_id  = None
-        self._verbose  = True
-        self._baudrate = 1_000_000 # default: can be configured if needed 
-        self._motor_controller = FakeMotor() # for now
+        self._baudrate = 1_000_000  # Can be configured if needed
+        self._motor_controller = FakeMotor()
         self._router   = PayloadRouter(self._motor_controller)
         self._log.info('ready.')
 
-    def pixel_on(self, color=None):
-        self._pixel.set_pixel(color=COLOR_CYAN if color == None else color)
+    def pixel_on(self):
+        self._pixel.set_pixel(color=COLOR_CYAN)
 
     def pixel_off(self):
         self._pixel.set_pixel(color=None)
@@ -51,9 +38,6 @@ class UartSlaveApp:
             self.pixel_off()
             _led.off()
             await asyncio.sleep_ms(950)
-        self.pixel_off()
-        self.pixel_on(color=COLOR_GREEN)
-        await asyncio.sleep_ms(1000)
         self.pixel_off()
         _led.off()
 
@@ -75,7 +59,6 @@ class UartSlaveApp:
             self._log.info(Fore.GREEN + "configuring UART slave for STM32 Pyboard…")
             from stm32_uart_slave import Stm32UartSlave
             await self._pyb_wait_a_bit()
-#           await self.color_test()
             self._uart_id = 4
             self._slave = Stm32UartSlave(uart_id=self._uart_id, baudrate=self._baudrate)
         else:
@@ -84,34 +67,20 @@ class UartSlaveApp:
             await self._wait_a_bit()
             self._uart_id = 1
             self._slave = RP2040UartSlave(uart_id=self._uart_id, baudrate=self._baudrate)
-
-        self._slave.set_verbose(False)
+        
+        self._slave.set_verbose(True)
         self._log.info("UART slave: waiting for command from master…")
 
     async def run(self):
         await self.setup_uart_slave()
         while True:
-            _payload = await self._slave.receive_packet()
-            if isinstance(_payload , Payload):
-                if self._verbose:
-                    self._log.info(Fore.WHITE + Style.BRIGHT + "payload: {}".format(_payload))
-                self._router.route(_payload)
-                ack_payload = Payload("AK", 0.0, 0.0, 0.0, 0.0)
-                await self._slave.send_packet(ack_payload)
-            elif _payload is not None:
-                if self._verbose:
-                    self._log.info(Fore.WHITE + "packet: {} (type: {})".format(_payload, type(_payload)))
+            packet = await self._slave.receive_packet()
+            if packet is not None:
+                self._log.info(Fore.WHITE + Style.BRIGHT + "packet: {} (type: {}).".format(packet, type(packet)))
                 ack_payload = Payload("AK", 0.0, 0.0, 0.0, 0.0)
                 await self._slave.send_packet(ack_payload)
             else:
-                self._log.warning("no valid payload received.")
-
-    async def color_test(self):
-        for _color in Color.all_colors():
-            self._log.info('color: {}'.format(_color))
-            self.pixel_on(color=_color)
-            await asyncio.sleep_ms(500)
-        self.pixel_on(color=COLOR_BLACK)
+                self._log.warning("no valid packet received.")
 
     def close(self):
         self.pixel_off()

@@ -7,15 +7,13 @@
 #
 # author:   Murray Altheim
 # created:  2025-06-04
-# modified: 2025-06-21
-#
+# modified: 2025-06-26
 
 import uasyncio as asyncio
 from pyb import Pin, Timer
 from core.logger import Logger, Level
 from colorama import Fore, Style
 
-# ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 class Motor:
     STOPPED           = 0
     FULL_SPEED        = 100
@@ -60,17 +58,15 @@ class Motor:
             # info
             self._log.info('Motor {}: PWM timer:  '.format(name) + Fore.GREEN + '{}'.format(pwm_timer))
             self._log.info('Motor {} channel:     '.format(name) + Fore.GREEN + '{}'.format(self._pwm_channel))
-            self._log.info('Motor {} pins: PWM:   '.format(name) + Fore.GREEN + '{}'.format(pwm_pin) 
+            self._log.info('Motor {} pins: PWM:   '.format(name) + Fore.GREEN + '{}'.format(pwm_pin)
                     + Fore.CYAN + '; direction:   ' + Fore.GREEN + '{}'.format(direction_pin)
                     + Fore.CYAN + '; encoder:     ' + Fore.GREEN + '{}'.format(encoder_pin))
-            self._log.info('Motor {} enc channel: '.format(name) + Fore.GREEN + '{}'.format(self._encoder_channel) 
+            self._log.info('Motor {} enc channel: '.format(name) + Fore.GREEN + '{}'.format(self._encoder_channel)
                     + Fore.CYAN + '; frequency:   ' + Fore.GREEN + '{}Hz.'.format(self._timer_freq))
             self._log.info('motor {} ready.'.format(name))
         except Exception as e:
             self._log.error('{} raised by motor: {}'.format(type(e), e))
             raise
-
-    # properties ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 
     @property
     def name(self):
@@ -149,8 +145,6 @@ class Motor:
         rps = 1.0 / (interval_sec * self._pulses_per_output_rev)
         return rps * 60.0
 
-    # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
-
     def _encoder_callback(self, arg):
         current_capture = self._encoder_channel.capture()
         if current_capture is None:
@@ -168,8 +162,6 @@ class Motor:
             self._log.info("adding encoder callback…")
             self._encoder_channel.callback(self._encoder_callback)
             self._log.info("motor enabled.")
-
-    # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 
     def _calculate_rpm(self):
         if self._last_capture is None or self._prev_capture is None:
@@ -197,7 +189,9 @@ class Motor:
         self.speed = self.STOPPED          # stop the motor
         ticks = self._tick_count
         ticks_per_sec = ticks / test_duration
-        self._log.info(Fore.WHITE + Style.BRIGHT + "measured {} pulses in {}s -> {} ticks/sec".format(ticks, test_duration, ticks_per_sec))
+        self._log.info(Fore.WHITE + Style.BRIGHT + "measured {} pulses in {}s -> {} ticks/sec".format(
+            ticks, test_duration, ticks_per_sec)
+        )
         return ticks_per_sec
 
     def stop(self):

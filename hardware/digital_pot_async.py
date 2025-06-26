@@ -26,7 +26,7 @@ from core.logger import Logger, Level
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 class DigitalPotentiometer:
-    I2C_ADDR   = 0x0C
+    I2C_ADDR   = 0x0E # or 0x0C
     PIN_RED    = 1
     PIN_GREEN  = 7
     PIN_BLUE   = 2
@@ -52,9 +52,12 @@ class DigitalPotentiometer:
             self.ioe.set_mode(self.PIN_GREEN, io.PWM, invert=True)
             self.ioe.set_mode(self.PIN_BLUE, io.PWM, invert=True)
             self._log.info("running LED with {} brightness steps.".format(int(self.PERIOD * self.BRIGHTNESS)))
-            self._fps  = fps
-            self._task = None
-            self._loop = None
+            self._red   = 0
+            self._green = 0
+            self._blue  = 0
+            self._fps   = fps
+            self._task  = None
+            self._loop  = None
             self._loop_thread = None
             self._stop_event = threading.Event()
             self._log.info('ready.')
@@ -73,13 +76,23 @@ class DigitalPotentiometer:
         return 1.0 - (val / self._max)
 
     # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+    @property
+    def rgb(self):
+        return self._red, self._green, self._blue
+
+    # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+    @property
+    def data(self):
+        return self.value, self._red, self._green, self._blue
+
+    # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
     def _update(self):
         h = max(0.0, min(self.analog / self._max, 1.0))
-        r, g, b = [int(c * self.PERIOD * self.BRIGHTNESS)
+        self._red, self._green, self._blue = [int(c * self.PERIOD * self.BRIGHTNESS)
                    for c in colorsys.hsv_to_rgb(h, 1.0, 1.0)]
-        self.ioe.output(self.PIN_RED, r)
-        self.ioe.output(self.PIN_GREEN, g)
-        self.ioe.output(self.PIN_BLUE, b)
+        self.ioe.output(self.PIN_RED, self._red)
+        self.ioe.output(self.PIN_GREEN, self._green)
+        self.ioe.output(self.PIN_BLUE, self._blue)
 
     # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
     def start(self):
@@ -94,7 +107,7 @@ class DigitalPotentiometer:
             try:
                 self._loop.run_until_complete(runner())
             except Exception as e:
-                self._log.error('{} raised in run loop: {}\n{}'.format(type(e), e, traceback.format_exc()))
+                self._log.error('{} raised in pot run loop: {}\n{}'.format(type(e), e, traceback.format_exc()))
             finally:
                 self._loop.close()
         self._stop_event.clear()
@@ -109,6 +122,7 @@ class DigitalPotentiometer:
 
     # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
     def off(self):
+        self._log.info('off.')
         self.ioe.output(self.PIN_RED, 0)
         self.ioe.output(self.PIN_GREEN, 0)
         self.ioe.output(self.PIN_BLUE, 0)

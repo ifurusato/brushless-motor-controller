@@ -7,46 +7,69 @@
 #
 # author:   Murray Altheim
 # created:  2025-06-12
-# modified: 2025-06-22
+# modified: 2025-06-24
 
 import struct
 from crc8_table import CRC8_TABLE
 
 class Payload:
-    # Sync header: 'zz' for human-readability. To switch to a binary header, just uncomment the next line.
+    # sync header: 'zz' for human-readability. To switch to a binary header, just uncomment the next line.
     SYNC_HEADER = b'\x7A\x7A'
 #   SYNC_HEADER = b'\xAA\x55'
     PACK_FORMAT = '<2sffff'  # 2-char cmd, 4 floats
-    PAYLOAD_SIZE = struct.calcsize(PACK_FORMAT)  # Size of cmd+floats only, no CRC or header
+    PAYLOAD_SIZE = struct.calcsize(PACK_FORMAT) # size of cmd+floats only, no CRC or header
     CRC_SIZE = 1
     PACKET_SIZE = len(SYNC_HEADER) + PAYLOAD_SIZE + CRC_SIZE  # header + payload + crc
 
     def __init__(self, cmd, pfwd, sfwd, paft, saft):
-        self.cmd = cmd.encode('ascii') if isinstance(cmd, str) else cmd
-        self.pfwd = pfwd
-        self.sfwd = sfwd
-        self.paft = paft
-        self.saft = saft
+        self._cmd  = cmd
+        self._pfwd = pfwd
+        self._sfwd = sfwd
+        self._paft = paft
+        self._saft = saft
+
+    @property
+    def cmd(self):
+        return self._cmd
+
+    @property
+    def pfwd(self):
+        return self._pfwd
+
+    @property
+    def sfwd(self):
+        return self._sfwd
+
+    @property
+    def paft(self):
+        return self._paft
+
+    @property
+    def saft(self):
+        return self._saft
 
     def __repr__(self):
-        return f"Payload(cmd={self.cmd.decode('ascii')}, pfwd={self.pfwd}, sfwd={self.sfwd}, paft={self.paft}, saft={self.saft})"
+        return "Payload(cmd={:>2}, pfwd={:7.2f}, sfwd={:7.2f}, paft={:7.2f}, saft={:7.2f})".format(
+            self._cmd, self._pfwd, self._sfwd, self._paft, self._saft
+        )
 
     def to_bytes(self):
         '''
-        A convenience method that calls __bytes__().
+        A convenience method that calls __bytes__(). This is probably safer as in
+        certain cases __bytes__() doesn't get triggered correctly in MicroPython.
         '''
         return self.__bytes__()
 
     def __bytes__(self):
-        # Pack the data into bytes (cmd, floats)
-        packed = struct.pack(self.PACK_FORMAT, self.cmd, self.pfwd, self.sfwd, self.paft, self.saft)
+        # pack the data into bytes (cmd, floats)
+        packed = struct.pack(self.PACK_FORMAT, self._cmd, self._pfwd, self._sfwd, self._paft, self._saft)
         crc = self.calculate_crc8(packed)
         return Payload.SYNC_HEADER + packed + bytes([crc])
 
     @classmethod
     def from_bytes(cls, packet):
         if len(packet) != cls.PACKET_SIZE:
-            raise ValueError(f"invalid packet size: {len(packet)}")
+            raise ValueError("invalid packet size: {}".format(len(packet)))
         if packet[:len(Payload.SYNC_HEADER)] != Payload.SYNC_HEADER:
             raise ValueError("invalid sync header")
         data_and_crc = packet[len(Payload.SYNC_HEADER):]

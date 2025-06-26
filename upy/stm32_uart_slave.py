@@ -44,14 +44,8 @@ class Stm32UartSlave(UartSlaveBase):
     def __init__(self, uart_id=1, baudrate=115200):
         UartSlaveBase.__init__(self, 'stm32-uart', uart_id=uart_id, baudrate=baudrate)
         self._led = LED(1)
-        self.uart = UART(uart_id)
-        self.uart.init(baudrate=baudrate, bits=8, parity=None, stop=1)
+        self._uart = UART(uart_id)
+        self._uart.init(baudrate=baudrate, bits=8, parity=None, stop=1)
         # ready
-
-    async def flash_led(self, duration_ms=30):
-        if self._enable_led:
-            self._led.on()
-            await asyncio.sleep_ms(duration_ms)
-            self._led.off()
 
 #EOF

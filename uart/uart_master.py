@@ -10,6 +10,8 @@
 # modified: 2025-06-23
 
 import time
+import traceback
+import itertools
 from typing import Callable, Optional
 from datetime import datetime as dt
 from colorama import init, Fore, Style
@@ -18,6 +20,7 @@ init()
 from uart.async_uart_manager import AsyncUARTManager
 from uart.sync_uart_manager import SyncUARTManager
 from uart.payload import Payload
+from hardware.value_provider import DigitalPotValueProvider
 from core.logger import Logger, Level
 
 class UARTMaster:
@@ -32,6 +35,8 @@ class UARTMaster:
         else:
             self.uart = SyncUARTManager(port=port, baudrate=baudrate)
         self.uart.open()
+        self._hindered = False
+        self._verbose = False
         self._log.info('UART master ready at baud rate: {}.'.format(baudrate))
 
     def send_payload(self, payload):
@@ -41,7 +46,8 @@ class UARTMaster:
         packet_bytes = payload.to_bytes()
 #       self._log.info(f"MASTER TX BYTES: {packet_bytes.hex(' ')}") # TEMP
         self.uart.send_packet(payload)
-        self._log.info(Fore.MAGENTA + "master sent: {}".format(payload))
+        if self._verbose:
+            self._log.info(Fore.MAGENTA + "tx: {}".format(payload))
 
     def receive_payload(self):
         '''
@@ -49,7 +55,8 @@ class UARTMaster:
         '''
         response_payload = self.uart.receive_packet()
         if response_payload:
-            self._log.info(Fore.MAGENTA + "received: {}".format(response_payload))
+            if self._verbose:
+                self._log.info(Fore.MAGENTA + "rx: {}".format(response_payload))
             return response_payload
         else:
             raise ValueError("no valid response received.")
@@ -68,31 +75,34 @@ class UARTMaster:
             self._log.error("error during communication: {}".format(e))
             return self.ERROR_PAYLOAD
 
-    def run(self, source: Optional[Callable[[], int]] = None):
+    def run(self, 
+                speed_source: Optional[Callable[[], int]] = None,
+                delay_sec=0):
         '''
         Main loop for communication with elapsed time measurement. This is currently
         used for testing but could easily be modified for continuous use.
         '''
         try:
-            if source is None:
-                print(Fore.GREEN + "source not provided, using counter.")
+            if speed_source is None:
+                print(Fore.GREEN + "speed source not provided, using counter.")
             else:
-                print(Fore.GREEN + "using source for data.")
+                print(Fore.GREEN + "using speed source for data.")
 
-            count = 0.0
+            value = 0.0
+            red = green = blue = 0.0
+            counter = itertools.count()
 
             while True:
 
-                if source is not None:
-                    data = source()
-                    print("data: '{}'".format(data))
+                if speed_source is not None:
+                    value, red, green, blue = speed_source()
                 else:
-                    count += 1.0
-                    data = count
+                    value += 1.0
 
                 start_time = dt.now()
                 # create Payload with cmd (2 letters) and floats for pfwd, sfwd, paft, saft
-                payload = Payload("MO", data, data, -10.0, -20.0)
+                
+                payload = Payload("CO", red, green, blue, 0.0)
                 # send the Payload object
                 self.send_payload(payload)
                 try:
@@ -103,15 +113,24 @@ class UARTMaster:
                 # calculate elapsed time
                 end_time = dt.now()
                 elapsed_time = (end_time - start_time).total_seconds() * 1000  # Convert to milliseconds
-                self._log.info(Fore.GREEN + "tx elapsed: {:.2f} ms".format(elapsed_time))
+                if next(counter) % 10 == 0: # every 10th time
+                    self._log.info("tx: {:.2f} ms elapsed.".format(elapsed_time))
                 # with no sleep here, would be running as fast as the system allows
-#               time.sleep(0.25)
+                if self._hindered:
+                    time.sleep(delay_sec)
 
+        except KeyboardInterrupt:
+            print('\n')
+            self._log.info("ctrl-c caught, exiting…")
         except Exception as e:
             self._log.error("{} raised in run loop: {}".format(type(e), e))
-        except KeyboardInterrupt:
-            self._log.info("ctrl-c caught, exiting…")
+            traceback.print_exception(type(e), e, e.__traceback__)
         finally:
             self.uart.close()
+            if speed_source:
+                if isinstance(speed_source, DigitalPotValueProvider):
+                    speed_source.close()
+                else:
+                    self._log.info("speed source: {}".format(type(speed_source)))
 
 #EOF

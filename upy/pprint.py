@@ -7,24 +7,21 @@
 #
 # author:   Murray Altheim
 # created:  2025-06-02
-# modified: 2025-06-21
+# modified: 2025-06-26
 #
 # A simple MicroPython-compatible YAML pretty printer.
 # This also prints a subset of JSON, meant only to be used with mp-yaml.
-#
 
 from stringbuilder import StringBuilder
 
-# ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 def _pretty_print_yaml(obj, indent=4, _current_indent=0, return_text=False):
     '''
     Pretty-print dicts/lists as YAML-like text.
 
-    Args:
-        obj: object to print (dict/list/primitive)
-        indent: number of spaces per indentation level
-        _current_indent: current number of spaces to indent
-        return_text: whether to return the generated text instead of printing it
+    :param obj:           object to print (dict/list/primitive)
+    :param indent:        number of spaces per indentation level
+    :param _current_indent: current number of spaces to indent
+    :param return_text:   whether to return the generated text instead of printing it
     '''
     space = ' ' * _current_indent
     result = StringBuilder()  # Create a StringBuilder instance
@@ -53,16 +50,14 @@ def _pretty_print_yaml(obj, indent=4, _current_indent=0, return_text=False):
     # Default behavior: print the result
     print(str(result))
 
-# ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 def _pretty_print_json(obj, indent=4, _depth=0, return_text=False):
     '''
     Pretty-print nested dicts and lists in JSON-like style.
 
-    Args:
-        obj: object to print (dict/list/primitive)
-        indent: number of spaces per indentation level
-        _depth: current depth of recursion
-        return_text: whether to return the generated text instead of printing it
+    :param obj:           object to print (dict/list/primitive)
+    :param indent:        number of spaces per indentation level
+    :param _depth:        current depth of recursion
+    :param return_text:   whether to return the generated text instead of printing it
     '''
     space = ' ' * indent * _depth
     result = StringBuilder()  # Create a StringBuilder instance
@@ -95,12 +90,10 @@ def _pretty_print_json(obj, indent=4, _depth=0, return_text=False):
     # Default behavior: print the result
     print(str(result))
 
-# ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 def pretty_print(obj, indent=4, markup='yaml', return_text=False):
     '''
     Public pretty print function.
 
-    Args:
     :param obj:           The object (dict/list/primitive) to pretty print.
     :param markup:        A string indicating 'yaml' (default) or 'json'.
     :param return_text:   Flag to indicate whether to return the generated text instead of printing.

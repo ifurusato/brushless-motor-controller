@@ -7,9 +7,9 @@
 #
 # author:   Murray Altheim
 # created:  2020-01-14
-# modified: 2025-04-26
-
-# this is a simplification of the MROS Logger class, just using print statements
+# modified: 2025-06-26
+#
+# This is a simplification of the MROS Logger class, just using print statements
 # and not supporting log-to-file, log suppression, the notice() or critical()
 # levels, etc.
 #
@@ -24,7 +24,6 @@ def enum(**enums: int):
 Level = enum(DEBUG=10, INFO=20, WARN=30, ERROR=40)
 # e.g., levels = (Level.ONE, Level.TWO)
 
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 class Logger:
 
     __color_debug    = Fore.BLUE   + Style.DIM
@@ -40,7 +39,7 @@ class Logger:
         :param name:     the name identified with the log output
     :param level:    the log level
     '''
-        # configuration ..........................
+        # configuration
         self._include_timestamp = True
         self.__DEBUG_TOKEN = 'DEBUG'
         self.__INFO_TOKEN  = 'INFO '
@@ -54,7 +53,6 @@ class Logger:
         self._name   = name
         self.level = level
 
-    # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
     def _get_timestamp(self):
         while True:
             ticks1 = time.ticks_ms()
@@ -66,11 +64,9 @@ class Logger:
                     t[0], t[1], t[2], t[3], t[4], t[5], ms
                 )
 
-    # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
     def _get_time(self):
         return self._get_timestamp()
 
-    # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
     @property
     def name(self):
         '''
@@ -78,7 +74,6 @@ class Logger:
         '''
         return self._name
 
-    # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
     def close(self):
         '''
         Closes down logging, and informs the logging system to perform an
@@ -89,7 +84,6 @@ class Logger:
         '''
         pass
 
-    # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
     @property
     def level(self):
         '''
@@ -97,7 +91,6 @@ class Logger:
         '''
         return self._level
 
-    # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
     @level.setter
     def level(self, level):
         '''
@@ -105,7 +98,6 @@ class Logger:
         '''
         self._level = level
 
-    # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
     def is_at_least(self, level):
         '''
         Returns True if the current log level is less than or equals the
@@ -116,7 +108,6 @@ class Logger:
         '''
         return level >= self._level
 
-    # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
     def debug(self, message):
         '''
         Prints a debug message.
@@ -131,7 +122,6 @@ class Logger:
                     + Logger.__color_debug + "{} : ".format(self.__DEBUG_TOKEN)
                     + Fore.CYAN + "{}".format(message) + Logger.__color_reset)
 
-    # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
     def info(self, message):
         '''
         Prints an informational message.
@@ -146,7 +136,6 @@ class Logger:
                     + Logger.__color_info + "{} : ".format(self.__INFO_TOKEN)
                     + Fore.CYAN + "{}".format(message) + Logger.__color_reset)
 
-    # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
     def warning(self, message):
         '''
         Prints a warning message.
@@ -161,7 +150,6 @@ class Logger:
                     + Logger.__color_warning + "{} : ".format(self.__WARN_TOKEN)
                     + Fore.CYAN + "{}".format(message) + Logger.__color_reset)
 
-    # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
     def error(self, message):
         '''
         Prints an error message.
