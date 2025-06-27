@@ -7,7 +7,7 @@
 #
 # author:   Murray Altheim
 # created:  2025-06-12
-# modified: 2025-06-24
+# modified: 2025-06-27
 
 import struct
 from crc8_table import CRC8_TABLE
@@ -47,6 +47,14 @@ class Payload:
     @property
     def saft(self):
         return self._saft
+
+    @property
+    def rgb(self):
+        return self._pfwd, self._sfwd, self._paft
+
+    @property
+    def values(self):
+        return self._pfwd, self._sfwd, self._paft, self._saft
 
     def __repr__(self):
         return "Payload(cmd={:>2}, pfwd={:7.2f}, sfwd={:7.2f}, paft={:7.2f}, saft={:7.2f})".format(

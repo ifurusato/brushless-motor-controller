@@ -18,16 +18,17 @@ from colors import *
 class Pixel:
     def __init__(self, pin='PB3', pixel_count=24, color_order='GRB', brightness=0.33):
         self._pixel_count = pixel_count
+        self._pixel_index = 0
         self._neopixel = NeoPixel(pyb.Pin(pin, pyb.Pin.OUT), pixel_count, color_order=color_order, brightness=brightness)
 
-    def set_pixel(self, pixel_index=0, color=None):
+    def set_color(self, color=None):
         '''
         Function to set a single pixel to a color as a tuple.
         '''
         if color is None:
-            self._neopixel[pixel_index] = (0, 0, 0)
+            self._neopixel[self._pixel_index] = (0, 0, 0)
         else:
-            self._neopixel[pixel_index] = color
+            self._neopixel[self._pixel_index] = color
         self._neopixel.write()
 
     def off(self):
@@ -39,7 +40,7 @@ class Pixel:
         self._neopixel.write()       # apply the changes
 #       time.sleep(0.05) # rest a bit
 
-    def rainbow_cycle(self, pixel_index=0, delay=0.05, steps=-1):
+    def rainbow_cycle(self, delay=0.05, steps=-1):
         '''
         Cycle a single NeoPixel through the colors of the rainbow.
 
@@ -47,7 +48,6 @@ class Pixel:
         and writes the result to the specified pixel.
 
         :param np:             (NeoPixel) An instance of the NeoPixel class.
-        :param pixel_index:    (int) The index of the pixel to cycle. Default is 0.
         :param delay:          (float) Time in seconds to wait between color updates. Default is 0.01.
         :param steps:          (int) Number of color steps to cycle through the rainbow. 
                                      Higher = smoother. Default is 255. If -1 runs indefinitely.
@@ -56,7 +56,7 @@ class Pixel:
         while True:
             hue = (step % steps) / steps if steps != -1 else (step % 360) / 360
             color = Pixel.hsv_to_rgb(hue)
-            self._neopixel[pixel_index] = color
+            self._neopixel[self.pixel_index] = color
             self._neopixel.write()
             time.sleep(delay)
             step += 1

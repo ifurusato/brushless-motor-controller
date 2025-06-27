@@ -24,16 +24,14 @@ from payload import Payload
 from uart_slave_base import UartSlaveBase
 
 class RP2040UartSlave(UartSlaveBase):
-    def __init__(self, uart_id=1, baudrate=115200, rx_pin=5, tx_pin=4, led_pin=25):
-        UartSlaveBase.__init__(self, 'rp2040-uart', uart_id=uart_id, baudrate=baudrate)
-        self.rx_pin   = rx_pin
-        self.tx_pin   = tx_pin
+    def __init__(self, uart_id=1, baudrate=115200, pixel=None, rx_pin=5, tx_pin=4, led_pin=25):
+        UartSlaveBase.__init__(self, 'rp2040-uart', uart_id=uart_id, baudrate=baudrate, pixel=pixel)
         self._log.info('pins: rx={}; tx={}.'.format(rx_pin, tx_pin))
         self.led_pin  = led_pin # Pin for the LED
         # set up LED pin
         self.led = Pin(self.led_pin, Pin.OUT)
         # set up UART connection with custom TX and RX pins
-        self._uart = UART(uart_id, baudrate=baudrate, bits=8, parity=None, stop=1, tx=Pin(self.tx_pin), rx=Pin(self.rx_pin))
+        self._uart = UART(uart_id, baudrate=baudrate, bits=8, parity=None, stop=1, tx=Pin(tx_pin), rx=Pin(rx_pin))
         # ready
 
 #EOF

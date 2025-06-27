@@ -20,14 +20,15 @@ init()
 from uart.async_uart_manager import AsyncUARTManager
 from uart.sync_uart_manager import SyncUARTManager
 from uart.payload import Payload
-from hardware.value_provider import DigitalPotValueProvider
+from hardware.value_provider import DigitalPotSpeedProvider, RotaryEncoderCommandProvider
 from core.logger import Logger, Level
 
 class UARTMaster:
-
     ERROR_PAYLOAD = Payload("ER", -1.0, -1.0, -1.0, -1.0) # singleton error payload
-
-    def __init__(self, port='/dev/serial0', baudrate=115200):
+    '''
+    Uses UART 4 on port /dev/ttyAMA0 as the default.
+    '''
+    def __init__(self, port='/dev/ttyAMA0', baudrate=115200):
         self._log = Logger('uart-master', Level.INFO)
         _use_async_uart_manager = False # config?
         if _use_async_uart_manager:
@@ -35,8 +36,10 @@ class UARTMaster:
         else:
             self.uart = SyncUARTManager(port=port, baudrate=baudrate)
         self.uart.open()
-        self._hindered = False
-        self._verbose = False
+        self._hindered = True
+        self._last_tx  = None
+        self._last_rx  = None
+        self._verbose  = True
         self._log.info('UART master ready at baud rate: {}.'.format(baudrate))
 
     def send_payload(self, payload):
@@ -47,17 +50,21 @@ class UARTMaster:
 #       self._log.info(f"MASTER TX BYTES: {packet_bytes.hex(' ')}") # TEMP
         self.uart.send_packet(payload)
         if self._verbose:
-            self._log.info(Fore.MAGENTA + "tx: {}".format(payload))
+            if payload.cmd != self._last_tx:
+                self._log.info(Fore.MAGENTA + "tx: {}".format(payload))
+        self._last_tx = payload.cmd
 
     def receive_payload(self):
         '''
         Receive a Payload object.
         '''
-        response_payload = self.uart.receive_packet()
-        if response_payload:
+        payload = self.uart.receive_packet()
+        if payload:
             if self._verbose:
-                self._log.info(Fore.MAGENTA + "rx: {}".format(response_payload))
-            return response_payload
+                if payload.cmd != self._last_rx:
+                    self._log.info(Fore.MAGENTA + "rx: {}".format(payload))
+            self._last_rx = payload.cmd
+            return payload
         else:
             raise ValueError("no valid response received.")
 
@@ -76,6 +83,7 @@ class UARTMaster:
             return self.ERROR_PAYLOAD
 
     def run(self, 
+                command_source: Optional[Callable[[], int]] = None,
                 speed_source: Optional[Callable[[], int]] = None,
                 delay_sec=0):
         '''
@@ -88,21 +96,27 @@ class UARTMaster:
             else:
                 print(Fore.GREEN + "using speed source for data.")
 
-            value = 0.0
+            speed   = 0.0
             red = green = blue = 0.0
             counter = itertools.count()
+            cmd     = 'CO'
 
             while True:
 
+                if command_source is not None:
+                    cmd = command_source()
                 if speed_source is not None:
-                    value, red, green, blue = speed_source()
+                    speed, red, green, blue = speed_source()
                 else:
-                    value += 1.0
+                    speed += 1.0
+
+                # create Payload with cmd (2 letters) and floats for pfwd, sfwd, paft, saft
+                if cmd == 'CO':
+                    payload = Payload(cmd, red, green, blue, 0.0)
+                else:
+                    payload = Payload(cmd, speed, speed, -speed, -speed)
 
                 start_time = dt.now()
-                # create Payload with cmd (2 letters) and floats for pfwd, sfwd, paft, saft
-                
-                payload = Payload("CO", red, green, blue, 0.0)
                 # send the Payload object
                 self.send_payload(payload)
                 try:
@@ -111,8 +125,7 @@ class UARTMaster:
                     self._log.error("error receiving payload: {}:".format(e))
                     continue  # optionally, continue the loop without stopping
                 # calculate elapsed time
-                end_time = dt.now()
-                elapsed_time = (end_time - start_time).total_seconds() * 1000  # Convert to milliseconds
+                elapsed_time = (dt.now() - start_time).total_seconds() * 1000  # Convert to milliseconds
                 if next(counter) % 10 == 0: # every 10th time
                     self._log.info("tx: {:.2f} ms elapsed.".format(elapsed_time))
                 # with no sleep here, would be running as fast as the system allows
@@ -121,16 +134,23 @@ class UARTMaster:
 
         except KeyboardInterrupt:
             print('\n')
-            self._log.info("ctrl-c caught, exiting…")
+            self._log.info(Fore.YELLOW + "ctrl-c caught, exiting…")
         except Exception as e:
             self._log.error("{} raised in run loop: {}".format(type(e), e))
             traceback.print_exception(type(e), e, e.__traceback__)
         finally:
+            self._log.info("closing…")
             self.uart.close()
+            if command_source:
+                if isinstance(command_source, RotaryEncoderCommandProvider):
+                    command_source.close()
+                else:
+                    self._log.info("command source: {}".format(type(command_source)))
             if speed_source:
-                if isinstance(speed_source, DigitalPotValueProvider):
+                if isinstance(speed_source, DigitalPotSpeedProvider):
                     speed_source.close()
                 else:
                     self._log.info("speed source: {}".format(type(speed_source)))
+            self._log.info("closed.")
 
 #EOF

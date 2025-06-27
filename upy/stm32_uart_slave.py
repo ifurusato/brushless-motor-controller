@@ -41,10 +41,10 @@ from payload import Payload
 from uart_slave_base import UartSlaveBase
 
 class Stm32UartSlave(UartSlaveBase):
-    def __init__(self, uart_id=1, baudrate=115200):
-        UartSlaveBase.__init__(self, 'stm32-uart', uart_id=uart_id, baudrate=baudrate)
-        self._led = LED(1)
-        self._uart = UART(uart_id)
+    def __init__(self, uart_id=1, baudrate=115200, pixel=None):
+        UartSlaveBase.__init__(self, 'stm32-uart', uart_id=uart_id, baudrate=baudrate, pixel=pixel)
+        self._led   = LED(1)
+        self._uart  = UART(uart_id)
         self._uart.init(baudrate=baudrate, bits=8, parity=None, stop=1)
         # ready
 

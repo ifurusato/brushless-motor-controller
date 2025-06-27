@@ -22,6 +22,8 @@ from payload_router import PayloadRouter
 from fake_motor import FakeMotor
 from colors import *
 
+import free
+
 class UartSlaveApp:
     def __init__(self, is_pyboard=True):
         self._is_pyboard = is_pyboard
@@ -29,17 +31,17 @@ class UartSlaveApp:
         self._pixel    = Pixel(brightness=0.1)
         self._slave    = None
         self._uart_id  = None
-        self._verbose  = True
+        self._verbose  = False
         self._baudrate = 1_000_000 # default: can be configured if needed 
         self._motor_controller = FakeMotor() # for now
         self._router   = PayloadRouter(self._motor_controller)
         self._log.info('ready.')
 
     def pixel_on(self, color=None):
-        self._pixel.set_pixel(color=COLOR_CYAN if color == None else color)
+        self._pixel.set_color(color=COLOR_CYAN if color == None else color)
 
     def pixel_off(self):
-        self._pixel.set_pixel(color=None)
+        self._pixel.set_color(color=None)
 
     async def _pyb_wait_a_bit(self):
         from pyb import LED
@@ -51,9 +53,6 @@ class UartSlaveApp:
             self.pixel_off()
             _led.off()
             await asyncio.sleep_ms(950)
-        self.pixel_off()
-        self.pixel_on(color=COLOR_GREEN)
-        await asyncio.sleep_ms(1000)
         self.pixel_off()
         _led.off()
 
@@ -70,50 +69,52 @@ class UartSlaveApp:
         self.pixel_off()
         _led.off()
 
-    async def setup_uart_slave(self):
+    async def _setup_uart_slave(self):
         if self._is_pyboard:
-            self._log.info(Fore.GREEN + "configuring UART slave for STM32 Pyboard…")
+            self._log.info("configuring UART slave for STM32 Pyboard…")
             from stm32_uart_slave import Stm32UartSlave
             await self._pyb_wait_a_bit()
-#           await self.color_test()
             self._uart_id = 4
-            self._slave = Stm32UartSlave(uart_id=self._uart_id, baudrate=self._baudrate)
+            self._slave = Stm32UartSlave(uart_id=self._uart_id, baudrate=self._baudrate, pixel=self._pixel)
+        
         else:
-            self._log.info(Fore.GREEN + "configuring UART slave for RP2040…")
+            self._log.info("configuring UART slave for RP2040…")
             from rp2040_uart_slave import RP2040UartSlave
             await self._wait_a_bit()
             self._uart_id = 1
-            self._slave = RP2040UartSlave(uart_id=self._uart_id, baudrate=self._baudrate)
+            self._slave = RP2040UartSlave(uart_id=self._uart_id, baudrate=self._baudrate, pixel=self._pixel)
 
         self._slave.set_verbose(False)
-        self._log.info("UART slave: waiting for command from master…")
+        self._log.info('UART slave: ' + Fore.WHITE + 'waiting for command from master…')
 
     async def run(self):
-        await self.setup_uart_slave()
-        while True:
-            _payload = await self._slave.receive_packet()
-            if isinstance(_payload , Payload):
-                if self._verbose:
-                    self._log.info(Fore.WHITE + Style.BRIGHT + "payload: {}".format(_payload))
-                self._router.route(_payload)
-                ack_payload = Payload("AK", 0.0, 0.0, 0.0, 0.0)
-                await self._slave.send_packet(ack_payload)
-            elif _payload is not None:
-                if self._verbose:
-                    self._log.info(Fore.WHITE + "packet: {} (type: {})".format(_payload, type(_payload)))
-                ack_payload = Payload("AK", 0.0, 0.0, 0.0, 0.0)
-                await self._slave.send_packet(ack_payload)
-            else:
-                self._log.warning("no valid payload received.")
-
-    async def color_test(self):
-        for _color in Color.all_colors():
-            self._log.info('color: {}'.format(_color))
-            self.pixel_on(color=_color)
-            await asyncio.sleep_ms(500)
-        self.pixel_on(color=COLOR_BLACK)
+        await self._setup_uart_slave()
+        self._slave.enable()
+        try:
+            while True:
+                _payload = await self._slave.receive_packet()
+                if isinstance(_payload , Payload):
+                    if self._verbose:
+                        self._log.info("payload: {}".format(_payload))
+                    self._router.route(_payload)
+                    ack_payload = Payload("AK", 0.0, 0.0, 0.0, 0.0)
+                    await self._slave.send_packet(ack_payload)
+                elif _payload is not None:
+                    if self._verbose:
+                        self._log.info("packet: {} (type: {})".format(_payload, type(_payload)))
+                    ack_payload = Payload("AK", 0.0, 0.0, 0.0, 0.0)
+                    await self._slave.send_packet(ack_payload)
+                else:
+                    self._log.warning("no valid payload received.")
+        except Exception as e:
+            self._log.error("{} raised in run loop: {}".format(type(e), e))
+        except KeyboardInterrupt:
+            pass
+        finally:
+            self.close()
 
     def close(self):
+        self._slave.disable()
         self.pixel_off()
 
 # for REPL usage or testing

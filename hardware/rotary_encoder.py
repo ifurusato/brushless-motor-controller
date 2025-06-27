@@ -30,22 +30,25 @@ class RotaryEncoder:
     def __init__(self, i2c_addr=0x0B, multiplier=1, brightness=0.5):
         self._log = Logger('encoder', level=Level.INFO)
         self._i2caddress = i2c_addr
+        self._count = 0
+        self._use_stepped_hue = True
+        self._multiplier = multiplier
+        self._brightness = brightness
+        self._period = int(255 / self._brightness)
+        self._log.info('ready.')
+
+    def start(self):
         self.ioe = io.IOE(i2c_addr=self._i2caddress, interrupt_pin=4)
         # swap interrupt pin for rotary encoder breakout
         if self._i2caddress == 0x0B:
             self.ioe.enable_interrupt_out(pin_swap=True)
-        self._multiplier = multiplier
-        self._brightness = brightness
-        self._period = int(255 / self._brightness)
         self.ioe.setup_rotary_encoder(1, RotaryEncoder.POT_ENC_A, RotaryEncoder.POT_ENC_B, pin_c=RotaryEncoder.POT_ENC_C)
         self.ioe.set_pwm_period(self._period)
         self.ioe.set_pwm_control(divider=2)  # PWM as fast as possible
         self.ioe.set_mode(RotaryEncoder.PIN_RED, io.PWM, invert=True)
         self.ioe.set_mode(RotaryEncoder.PIN_GREEN, io.PWM, invert=True)
         self.ioe.set_mode(RotaryEncoder.PIN_BLUE, io.PWM, invert=True)
-        self._count = 0
-        self._use_stepped_hue = True
-        self._log.info("ready: RGB encoder with a period of {}, and {} brightness steps.".format(self._period, int(self._period * self._brightness)))
+        self._log.info("started: RGB encoder with a period of {}, and {} brightness steps.".format(self._period, int(self._period * self._brightness)))
 
     def update(self):
         if self.ioe.get_interrupt():
@@ -68,5 +71,11 @@ class RotaryEncoder:
         if value >= limit or value <= -limit:
             return 0
         return value
+
+    def off(self):
+        self._log.info('off.')
+        self.ioe.output(self.PIN_RED, 0)
+        self.ioe.output(self.PIN_GREEN, 0)
+        self.ioe.output(self.PIN_BLUE, 0)
 
 #EOF

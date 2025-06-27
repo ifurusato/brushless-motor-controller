@@ -7,26 +7,44 @@ from pyb import LED, Pin, UART
 from pyb import LED
 from colorama import Fore, Style
 
+from core.ucomponent import Component, IllegalStateError
 from core.logger import Logger, Level
 from payload import Payload
 
-class UartSlaveBase:
-    def __init__(self, name, uart_id=1, baudrate=115200):
+class UartSlaveBase(Component):
+    COLOR_ERROR = (120, 8, 0)
+    COLOR_READY = (30, 70, 0)
+    def __init__(self, name, uart_id=1, baudrate=115200, pixel=None):
         self._log = Logger(name, Level.INFO)
+        Component.__init__(self, self._log, suppressed=False, enabled=False)
         self.baudrate    = baudrate
+        if pixel is None:
+            raise ValueError('no pixel provided.')
+        self._pixel      = pixel
         self._buffer     = bytearray()
         self._last_rx    = time.ticks_ms()
         self._timeout_ms = 250
         self._verbose    = False
         self._led        = LED(1)
-        self._uart = UART(uart_id)
-        self._uart.init(baudrate=baudrate, bits=8, parity=None, stop=1)
-        self._log.info('UART {} slave ready at baud rate: {}.'.format(uart_id, baudrate))
+        try:
+            self._uart = UART(uart_id)
+            self._uart.init(baudrate=baudrate, bits=8, parity=None, stop=1)
+            self._pixel.set_color(color=UartSlaveBase.COLOR_READY)
+            self._log.info('UART{} slave ready at {:,} baud.'.format(uart_id, baudrate))
+        except Exception as e:
+            self._signal_error()
+            self._log.info('{} raised setting up UART{} ready at {:,} baud: {}'.format(type(e), uart_id, baudrate, e))
 
     def set_verbose(self, verbose: bool):
         self._verbose = verbose
 
+    def _signal_error(self):
+        self._log.error('error.')
+        self._pixel.set_color(color=self.COLOR_ERROR)
+
     async def receive_packet(self):
+        if not self.enabled:
+            raise IllegalStateError('not enabled.')
         while True:
             if self._uart.any():
                 # read all available bytes at once
@@ -50,12 +68,12 @@ class UartSlaveBase:
                     try:
                         _payload = Payload.from_bytes(packet)
                         if self._verbose:
-#                           self._log.info('valid payload received: ' + Fore.GREEN + '{}'.format(_payload))
                             self._log.info('rx: ' + Fore.GREEN + '{}'.format(_payload))
                         self._led.on()
                         return _payload
                     except Exception:
                         # corrupt packet: remove SYNC_HEADER and resync
+                        self._signal_error()
                         self._log.error("packet decode error: {}. resyncing…".format(e))
                         self._buffer = self._buffer[1:]
                         continue
@@ -79,6 +97,8 @@ class UartSlaveBase:
                     continue
 
     async def send_packet(self, payload: Payload):
+        if not self.enabled:
+            raise IllegalStateError('not enabled.')
         try:
             packet = payload.to_bytes()
             if not packet.startswith(Payload.SYNC_HEADER):
@@ -89,6 +109,11 @@ class UartSlaveBase:
 #               self._log.info(Style.DIM + "tx: " + Fore.GREEN + '{}'.format(payload))
             self._led.off()
         except Exception as e:
+            self._signal_error()
             self._log.error("failed to send packet: {}".format(e))
+
+    def close(self):
+        Component.close(self)
+        self._log.info("closed.")
 
 #EOF

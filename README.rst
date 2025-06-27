@@ -116,6 +116,23 @@ available GPIO pins.
 | FG (encoder)    |  GPIO 24        | any GPIO pin  |
 +-----------------+-----------------+---------------+
 
+When operating over UART4 the connections are as follows:
+
++-----------------+------------+-----------------+---------------+
+| Pin             |  GPIO pin  |  STM32H562 pin  | Notes         |
++=================+============+=================+===============+
+| UART1 TX        |  GPIO 14   |  UART4_RX/PC11  | hardware UART |
++-----------------+------------+-----------------+---------------+
+| UART1 RX        |  GPIO 15   |  UART4_TX/PC10  | hardware UART |
++-----------------+------------+-----------------+---------------+
+| Direction       |  GPIO 23   |                 | any GPIO pin  |
++-----------------+------------+-----------------+---------------+
+| FG (encoder)    |  GPIO 24   |                 | any GPIO pin  |
++-----------------+------------+-----------------+---------------+
+
+Note that using UART1 is unadvised as communications with the STM32 is occurring
+over /dev/serial0, which is UART1.
+
 
 Status
 ******

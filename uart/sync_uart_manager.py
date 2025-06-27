@@ -24,22 +24,23 @@ class SyncUARTManager:
         self._baudrate   = baudrate
         self._tx_timeout_s = tx_timeout_ms / 1000
         self._rx_timeout_s = rx_timeout_ms / 1000
-        self._log.info('TX timeout: {}ms; RX timeout: {}ms'.format(tx_timeout_ms, rx_timeout_ms))
+        self._log.info('tx timeout: {}ms; rx timeout: {}ms'.format(tx_timeout_ms, rx_timeout_ms))
         self._serial     = None
-        self._log.info('using port {} at {} baud.'.format(port, baudrate))
-        # Buffer for sync-header-based framing
-        self._rx_buffer  = bytearray()
+        self._errors     = 0
+        self._rx_buffer  = None # buffer for sync-header-based framing
         self._log.info('ready.')
 
     def open(self):
         if self._serial is None or not self._serial.is_open:
+            self._rx_buffer = bytearray()
             self._serial = serial.Serial(self._port_name, self._baudrate, timeout=self._tx_timeout_s)
-            self._log.info("serial port {} opened.".format(self._port_name))
+            self._log.info("serial port {} opened at {} baud.".format(self._port_name, self._baudrate))
             
     def close(self):
         if self._serial and self._serial.is_open:
             self._serial.close()
             self._log.info("serial port closed.")
+            self._serial = None
 
     def send_packet(self, payload):
         packet_bytes = payload.to_bytes()
@@ -51,7 +52,9 @@ class SyncUARTManager:
         # self._log.info(Style.DIM + "sent: {}".format(repr(payload)))
 
     def receive_packet(self):
-        '''Reads bytes, synchronizes on sync header, and returns the first valid Payload found.'''
+        '''
+        Reads bytes, synchronizes on sync header, and returns the first valid Payload found.
+        '''
         start_time = time.time()
         while True:
             if self._serial.in_waiting:
@@ -65,7 +68,8 @@ class SyncUARTManager:
                     self._rx_buffer = self._rx_buffer[-(len(Payload.SYNC_HEADER)-1):]
                 # tight loop, no sleep
                 if time.time() - start_time > self._rx_timeout_s:
-                    self._log.error("UART RX timeout; sync header not found, clearing buffer.")
+                    self._errors += 1
+                    self._log.error('UART RX timeout error {}; sync header not found, clearing buffer…'.format(self._errors))
                     self._rx_buffer = bytearray()
                     start_time = time.time()
                 continue
@@ -77,24 +81,29 @@ class SyncUARTManager:
                     payload = Payload.from_bytes(packet)
                     return payload
                 except ValueError as e:
-                    self._log.error("receive error: {}. Resyncing...".format(e))
+                    self._errors += 1
+                    self._log.error('receive error {}: {}. Resyncing…'.format(self._errors, e))
                     # remove just the first header byte to attempt resync
                     self._rx_buffer = self._rx_buffer[idx+1:]
+                    self._errors = 0
                     continue
             else:
                 # not enough bytes yet for a full packet
                 # tight loop, no sleep
                 if time.time() - start_time > self._rx_timeout_s:
-                    self._log.error('UART RX timeout; incomplete packet, clearing buffer.')
+                    self._errors += 1
+                    self._log.error('UART RX timeout error {}; incomplete packet, clearing buffer.'.format(self._errors))
                     self._rx_buffer = bytearray()
                     start_time = time.time()
                 continue
 
     def receive_values(self):
-        '''Convenience method to receive a Payload and return the tuple (cmd, pfwd, sfwd, paft, saft).'''
+        '''
+        Convenience method to receive a Payload and return the tuple (cmd, pfwd, sfwd, paft, saft).
+        '''
         payload = self.receive_packet()
         if payload:
-            return (payload.cmd.decode('ascii'), payload.pfwd, payload.sfwd, payload.paft, payload.saft)
+            return (payload.cmd, payload.pfwd, payload.sfwd, payload.paft, payload.saft)
         return None
 
 #EOF
