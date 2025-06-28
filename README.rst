@@ -26,7 +26,7 @@ closed-loop control.
 Note that its PWM is *inverted*: 100% is stopped, 0% is full speed.
 
 `Generated documentation <https://ifurusato.github.io/brushless-motor-controller/>`__
-Tfor the project is also available.
+for the project is also available.
 
 
 Features
