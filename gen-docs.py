@@ -159,8 +159,8 @@ def find_modules(base_dir: Path):
 
 modules = find_modules(project_root)
 
-# Initialize lines from sphinx-overview.rst if present, otherwise use default
-overview_file = project_root / "sphinx-overview.rst"
+# Initialize lines from sphinx-sidebar.rst if present, otherwise use default
+overview_file = project_root / "sphinx-sidebar.rst"
 if overview_file.exists():
     lines = overview_file.read_text().splitlines()
     if lines and lines[-1].strip() != "":
