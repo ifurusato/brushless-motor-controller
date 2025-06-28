@@ -38,7 +38,7 @@ The project operates in one of five hardware modes:
 
 * using a software PWM from the Raspberry Pi to the motors: does provide a stable frequency
 * using a hardware PWM from the Raspberry Pi to the motors: there are only two hardware PWM pins available on the Raspberry Pi
-* using a TI TLC59711 PWM controller (supplied by an Adafruit board [1]_, see below): requires an additional SPI device but is both stable and there are 12 PWM channels available
+* using a TI TLC59711 PWM controller (supplied by an Adafruit board [†]_, see below): requires an additional SPI device but is both stable and there are 12 PWM channels available
 * connecting via UART to either an RP2040 or STM32 microcontroller: the microcontroller handles the PWM to the motors, but is limited by the performance of the UART
 
 .. note::
@@ -56,7 +56,7 @@ distance and speed measurements.
 This uses a YAML configuration file for the application itself, and another for
 the motor pin configuraion when using the UART in the MicroPython environent.
 
-.. [1] The `Adafruit 12 Channel 16-bit PWM LED Driver - SPI Interface <https://www.adafruit.com/product/1455>`__
+.. [†] The `Adafruit 12 Channel 16-bit PWM LED Driver - SPI Interface <https://www.adafruit.com/product/1455>`__
        is designed to control up to 12 channels of LEDs, or four RGB LEDs. In our case we only need a much smaller
        number of channels, one per motor. These channels are enumerated in the `ControllerChannel` class.
 
