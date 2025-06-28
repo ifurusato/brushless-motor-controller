@@ -46,7 +46,7 @@ MODULES_RST = SOURCE_DIR / "modules.rst"
 
 # Remove old docs directory if it exists
 if DOCS_DIR.exists():
-    print(Fore.YELLOW + "Removing existing '{0}' directory...".format(DOCS_DIR) + Style.RESET_ALL)
+    print(Fore.YELLOW + "Removing existing '{0}' directory…".format(DOCS_DIR) + Style.RESET_ALL)
     shutil.rmtree(DOCS_DIR)
 
 # Run sphinx-quickstart
@@ -64,7 +64,7 @@ cmd = [
     "--ext-autodoc",
     "--ext-viewcode"
 ]
-print(Fore.GREEN + "Running sphinx-quickstart…" + Style.RESET_ALL)
+print(Fore.YELLOW + "Running sphinx-quickstart…" + Style.RESET_ALL)
 subprocess.run(cmd, check=True)
 
 # Get absolute project root path (where the script is run)
@@ -129,7 +129,7 @@ if "import sphinx_rtd_theme" not in conf_text:
 conf_text = conf_text.rstrip() + "\n"
 
 CONF_PY.write_text(conf_text)
-print(Fore.GREEN + "Patched conf.py to add napoleon, autodoc_mock_imports, sys.path, and set sphinx_rtd_theme" + Style.RESET_ALL)
+print(Fore.YELLOW + "Patched conf.py to add napoleon, autodoc_mock_imports, sys.path, and set sphinx_rtd_theme" + Style.RESET_ALL)
 
 # Auto-generate modules.rst
 def find_modules(base_dir: Path):
@@ -180,7 +180,7 @@ for mod in sorted(modules):
     lines.append("")
 
 MODULES_RST.write_text("\n".join(lines))
-print(Fore.GREEN + "Generated {} with {} modules".format(MODULES_RST, len(modules)) + Style.RESET_ALL)
+print(Fore.YELLOW + "Generated {} with {} modules".format(MODULES_RST, len(modules)) + Style.RESET_ALL)
 
 # Optional external prefix file for index.rst
 index_prefix_file = project_root / "sphinx-index.rst"
@@ -208,10 +208,10 @@ toctree_lines = [
 # Combine all lines and write out
 final_index = "\n".join(index_lines + toctree_lines) + "\n"
 INDEX_RST.write_text(final_index)
-print(Fore.GREEN + "Generated index.rst with overview and toctree for modules" + Style.RESET_ALL)
+print(Fore.YELLOW + "Generated index.rst with overview and toctree for modules" + Style.RESET_ALL)
 
 # Build HTML docs automatically
-print(Fore.GREEN + "Building HTML documentation by running 'make html' in docs/" + Style.RESET_ALL)
+print(Fore.YELLOW + "Building HTML documentation by running 'make html'…" + Style.RESET_ALL)
 try:
     PICKY = True
     if PICKY:
@@ -219,7 +219,7 @@ try:
         subprocess.run(["make", "html", "SPHINXOPTS=-n"], cwd=str(DOCS_DIR), check=True)
     else:
         subprocess.run(["make", "html"], cwd=str(DOCS_DIR), check=True)
-    print(Fore.GREEN + "HTML documentation built successfully!" + Style.RESET_ALL)
+    print(Fore.YELLOW + "HTML documentation built successfully!" + Style.RESET_ALL)
 except subprocess.CalledProcessError as e:
     print(Fore.RED + "Failed to build HTML docs: {}".format(e) + Style.RESET_ALL)
     sys.exit(1)
@@ -227,7 +227,7 @@ except subprocess.CalledProcessError as e:
 # Copy the generated HTML docs from 'temp/build/html' to 'docs'
 final_docs_dir = Path("docs")
 if not final_docs_dir.exists():
-    print(Fore.GREEN + "Creating final docs/ directory..." + Style.RESET_ALL)
+    print(Fore.YELLOW + "Creating final docs/ directory…" + Style.RESET_ALL)
     final_docs_dir.mkdir(parents=True)
 
 # Remove old content in docs/ if it exists
@@ -243,7 +243,7 @@ if REMOVE_BUILD_UPON_COMPLETE:
     # delete the temp directory
     shutil.rmtree(DOCS_DIR, ignore_errors=True)
 else:
-    print(Fore.GREEN + "\nNote: The temporary build directory was not deleted." + Style.RESET_ALL)
+    print(Fore.YELLOW + "\nNote: The temporary build directory was not deleted." + Style.RESET_ALL)
 
 print(Fore.GREEN + "\nAll done! Documentation is ready in the docs directory." + Style.RESET_ALL)
 
