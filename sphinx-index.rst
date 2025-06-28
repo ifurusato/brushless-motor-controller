@@ -7,10 +7,13 @@
     The project is still a work in progress, i.e., not everything works, or works as expected.
 
 
-A Python Controller for the DFRobot Brushless DC Motor with Encoder 12V 159RPM (FIT0441)
-****************************************************************************************
+Brushless Motor Controller
+**************************
 
-Welcome!
+A Python Controller for the DFRobot Brushless DC Motor with Encoder 12V 159RPM (FIT0441)
+----------------------------------------------------------------------------------------
+
+*Welcome!*
 
 In 2025 DFRobot released the `Brushless DC Motor with Encoder 12V 159RPM (FIT0441) <https://www.dfrobot.com/product-1364.html>`__,
 a small (24mm diameter, 40mm length), relatively inexpensive 12V DC brushless motor
