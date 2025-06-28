@@ -36,10 +36,10 @@ Features
 
 The project operates in one of five hardware modes:
 
-* using a software PWM from the Raspberry Pi to the motors: does provide a stable frequency
-* using a hardware PWM from the Raspberry Pi to the motors: there are only two hardware PWM pins available on the Raspberry Pi
-* using a TI TLC59711 PWM controller (supplied by an Adafruit board [*]_, see below): requires an additional SPI device but is both stable and there are 12 PWM channels available
-* connecting via UART to either an RP2040 or STM32 microcontroller: the microcontroller handles the PWM to the motors, but is limited by the performance of the UART
+# using a **software PWM** from the Raspberry Pi to the motors: does provide a stable frequency
+# using a **hardware PWM** from the Raspberry Pi to the motors: there are only two hardware PWM pins available on the Raspberry Pi
+# using an **external PWM controller** such as the TI TLC59711 PWM controller (supplied by an Adafruit board [*]_, see below): requires an additional SPI device but is both stable and there are 12 PWM channels available
+# connecting via **UART** to either an RP2040 or STM32 microcontroller: the microcontroller reliably handles the PWM to the motors, but may be limited by the performance of the UART
 
 .. note::
     One of the options is a microcontroller connected over a UART; with this approach
