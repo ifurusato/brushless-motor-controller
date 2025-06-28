@@ -44,7 +44,7 @@ class AsyncUARTManager:
         if self._serial is None or not self._serial.is_open:
             self._serial = serial.Serial(self._port_name, self._baudrate, timeout=self._tx_timeout_s)
             self._log.info("serial port {} opened.".format(self._port_name))
-            
+
     def close(self):
         if self._serial and self._serial.is_open:
             self._serial.close()
@@ -52,7 +52,7 @@ class AsyncUARTManager:
         self._executor.shutdown(wait=False)
         self._loop.call_soon_threadsafe(self._loop.stop)
         self._loop_thread.join()
-        
+
     def _send_packet_sync(self, payload):
         packet_bytes = payload.to_bytes()
         # ensure sync header is present for robust protocol
@@ -70,11 +70,11 @@ class AsyncUARTManager:
         future = asyncio.run_coroutine_threadsafe(
             self._send_packet_async(payload), self._loop)
         return future.result() # wait for completion
-        
+
     async def _send_packet_async(self, payload):
         loop = asyncio.get_running_loop()
         await loop.run_in_executor(self._executor, self._send_packet_sync, payload)
-        
+
     def _receive_packet_sync(self):
         '''
         Reads bytes, synchronizes on sync header, and returns the first valid Payload found.
@@ -119,7 +119,7 @@ class AsyncUARTManager:
                     self._rx_buffer = bytearray()
                     start_time = time.time()
                 continue
-        
+
     def receive_packet(self):
         '''
         Synchronous wrapper: schedule async receive on background loop.
@@ -128,11 +128,11 @@ class AsyncUARTManager:
         future = asyncio.run_coroutine_threadsafe(
             self._receive_packet_async(), self._loop)
         return future.result()
-        
+
     async def _receive_packet_async(self):
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(self._executor, self._receive_packet_sync)
-    
+
     def receive_values(self):
         '''
         Convenience method to receive a Payload and return the tuple (cmd, pfwd, sfwd, paft, saft).

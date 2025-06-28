@@ -212,7 +212,7 @@ class Util(object):
             _lines = _result.splitlines()
             for _bytes in _lines:
                 _parts = _bytes.decode('utf-8').split() # convert byte array to string and split
-                if int(_parts[1]) != _pid and _parts[7] == 'python3' and process_name in _parts[8]: 
+                if int(_parts[1]) != _pid and _parts[7] == 'python3' and process_name in _parts[8]:
                     return True
         except subprocess.CalledProcessError as e:
             # called if grep returns nothing

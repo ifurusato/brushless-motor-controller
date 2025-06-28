@@ -32,7 +32,7 @@ class UartSlaveApp:
         self._slave    = None
         self._uart_id  = None
         self._verbose  = False
-        self._baudrate = 1_000_000 # default: can be configured if needed 
+        self._baudrate = 1_000_000 # default: can be configured if needed
         self._motor_controller = FakeMotor() # for now
         self._router   = PayloadRouter(self._motor_controller)
         self._log.info('ready.')
@@ -76,7 +76,7 @@ class UartSlaveApp:
             await self._pyb_wait_a_bit()
             self._uart_id = 4
             self._slave = Stm32UartSlave(uart_id=self._uart_id, baudrate=self._baudrate, pixel=self._pixel)
-        
+
         else:
             self._log.info("configuring UART slave for RP2040…")
             from rp2040_uart_slave import RP2040UartSlave

@@ -79,7 +79,7 @@ class DigitalPotentiometer:
         '''
         _value = max(0.0, min(self.analog, self._max))
         return 1.0 - (_value / self._max)
- 
+
     # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
     @property
     def normalised_value(self):

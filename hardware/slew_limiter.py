@@ -33,7 +33,7 @@ class SlewLimiter:
 
     def limit(self, value):
         '''
-        Returns the limited value based on the time passed since the last call, 
+        Returns the limited value based on the time passed since the last call,
         '''
         now = dt.now()
         value = float(value)

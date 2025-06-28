@@ -82,7 +82,7 @@ class UARTMaster:
             self._log.error("error during communication: {}".format(e))
             return self.ERROR_PAYLOAD
 
-    def run(self, 
+    def run(self,
                 command_source: Optional[Callable[[], int]] = None,
                 speed_source: Optional[Callable[[], int]] = None,
                 delay_sec=0):

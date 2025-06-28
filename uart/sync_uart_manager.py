@@ -35,7 +35,7 @@ class SyncUARTManager:
             self._rx_buffer = bytearray()
             self._serial = serial.Serial(self._port_name, self._baudrate, timeout=self._tx_timeout_s)
             self._log.info("serial port {} opened at {} baud.".format(self._port_name, self._baudrate))
-            
+
     def close(self):
         if self._serial and self._serial.is_open:
             self._serial.close()

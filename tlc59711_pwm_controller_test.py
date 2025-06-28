@@ -11,7 +11,7 @@
 #
 
 import time
-import spidev
+from spidev import SpiDev
 from colorama import init, Fore, Style
 init()
 
@@ -33,7 +33,7 @@ if __name__ == '__main__':
         _config = ConfigLoader(Level.INFO).configure('motor-config.yaml')
 
         # initialize the SPI interface for TLC59711
-        spi = spidev.SpiDev()
+        spi = SpiDev()
         spi.open(0, 0)
         spi.max_speed_hz = 1000000
         # create an instance of TLC59711 (reusable across muliple controllers)

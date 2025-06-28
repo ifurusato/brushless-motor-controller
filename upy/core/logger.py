@@ -116,7 +116,7 @@ class Logger:
         '''
         if self.is_at_least(Level.DEBUG):
             timestamp = self._get_time()
-            print(Fore.BLUE + "{} : ".format(timestamp) 
+            print(Fore.BLUE + "{} : ".format(timestamp)
                     + Style.DIM + Fore.RESET
                     + self._name_format.format(self._name)
                     + Logger.__color_debug + "{} : ".format(self.__DEBUG_TOKEN)
@@ -130,7 +130,7 @@ class Logger:
         '''
         if self.is_at_least(Level.INFO):
             timestamp = self._get_time()
-            print(Fore.BLUE + "{} : ".format(timestamp) 
+            print(Fore.BLUE + "{} : ".format(timestamp)
                     + Style.DIM + Fore.RESET
                     + self._name_format.format(self._name)
                     + Logger.__color_info + "{} : ".format(self.__INFO_TOKEN)
@@ -158,7 +158,7 @@ class Logger:
         '''
         if self.is_at_least(Level.ERROR):
             timestamp = self._get_time()
-            print(Fore.BLUE + "{} : ".format(timestamp) 
+            print(Fore.BLUE + "{} : ".format(timestamp)
                     + Style.DIM + Fore.RESET
                     + self._name_format.format(self._name)
                     + Logger.__color_error + "{} : ".format(self.__ERROR_TOKEN)

@@ -38,7 +38,7 @@ class StringBuilder():
             self._buffer.write(obj)
         else:
             self._buffer.write(str(obj))
-        if delim or delim == ''
+        if delim or delim == '':
             self._buffer.write(delim)
         elif self._delim:
             self._buffer.write(self._delim)

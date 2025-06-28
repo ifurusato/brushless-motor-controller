@@ -178,7 +178,7 @@ class Motor:
             self._interval = interval
         self._prev_capture = self._last_capture
 
-    def measure_ticks_per_second(self, test_duration=1.0):
+    async def measure_ticks_per_second(self, test_duration=1.0):
         '''
         Run the motor at full speed for `test_duration` seconds,
         then return the number of pulses counted during that period.

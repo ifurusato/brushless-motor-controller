@@ -8,26 +8,28 @@
 # author:   Murray Altheim
 # created:  2025-06-12
 # modified: 2025-06-26
-# 
+#
 # ---- Generating Project Documentation Using Sphinx ----
-# 
+#
 # To install Sphinx dependencies::
-# 
+#
 #     pip install sphinx sphinx-rtd-theme
-# 
+#
 # then, to create the documentation in a 'docs' directory::
-# 
+#
 #     cd your-project
 #     sphinx-quickstart docs
-# 
-# Answer the prompts like::
-# 
-#     Separate source and build directories? → yes
-#     Project name → your project name
-#     Author → you
-#     Project version → 0.1.0 (or whatever)
-#     Use autodoc, viewcode → yes
-#     Use Makefile → yes
+#
+# Try sphinx-lint:
+#
+# pip3 install sphinx-lint
+# sphinx-lint .
+#
+# Or use pydocstyle for more aggressive linting:
+#
+# pip3 install pydocstyle
+# pydocstyle .
+#
 
 import subprocess
 from pathlib import Path
@@ -68,23 +70,69 @@ cmd = [
 print("Running sphinx-quickstart...")
 subprocess.run(cmd, check=True)
 
-# Patch conf.py to add napoleon and sys.path
+# Get absolute project root path (where the script is run)
+project_root = Path.cwd().resolve()
+
+# Patch conf.py to add napoleon, autodoc_mock_imports, sys.path with absolute path, and set sphinx_rtd_theme
 conf_text = CONF_PY.read_text()
 
+# Add napoleon extension if missing
 if "sphinx.ext.napoleon" not in conf_text:
     conf_text = conf_text.replace(
         "extensions = [",
         "extensions = [\n    'sphinx.ext.napoleon',"
     )
 
-if "sys.path.insert" not in conf_text:
-    conf_text = conf_text.replace(
-        "import sys",
-        "import sys\nimport os\nsys.path.insert(0, os.path.abspath('../..'))  # add project root"
-    )
+# Add autodoc_mock_imports line if missing
+mock_imports_line = "autodoc_mock_imports = ['pigpio', 'spidev', 'RPi', 'smbus']"
+if mock_imports_line not in conf_text:
+    # Insert after extensions block (after the closing bracket)
+    insert_after = conf_text.find("extensions = [")
+    if insert_after != -1:
+        # Find end of extensions list (the closing ']')
+        end_of_extensions = conf_text.find("]", insert_after)
+        if end_of_extensions != -1:
+            conf_text = (
+                conf_text[:end_of_extensions+1] +
+                "\n\n" + mock_imports_line +
+                conf_text[end_of_extensions+1:]
+            )
+    else:
+        # Fallback: add at start
+        conf_text = mock_imports_line + "\n\n" + conf_text
+
+# Ensure imports of sys and os exist, add sys.path insert with absolute path
+if "import sys" not in conf_text:
+    conf_text = "import sys\nimport os\n\n" + conf_text
+elif "import os" not in conf_text:
+    conf_text = conf_text.replace("import sys", "import sys\nimport os")
+
+lines = conf_text.splitlines()
+insert_idx = 0
+for i, line in enumerate(lines):
+    if line.startswith("import ") or line.startswith("from "):
+        insert_idx = i + 1
+sys_path_line = f"sys.path.insert(0, os.path.abspath(r'{project_root}'))  # add project root"
+if sys_path_line not in conf_text:
+    lines.insert(insert_idx, sys_path_line)
+conf_text = "\n".join(lines)
+
+# Set html_theme to sphinx_rtd_theme
+import re
+if "html_theme" in conf_text:
+    conf_text = re.sub(r"html_theme\s*=\s*['\"].*?['\"]", "html_theme = 'sphinx_rtd_theme'", conf_text)
+else:
+    conf_text += "\nhtml_theme = 'sphinx_rtd_theme'\n"
+
+# Add import sphinx_rtd_theme if missing
+if "import sphinx_rtd_theme" not in conf_text:
+    conf_text = "import sphinx_rtd_theme\n" + conf_text
+
+# add newline at end
+conf_text = conf_text.rstrip() + "\n"
 
 CONF_PY.write_text(conf_text)
-print("Patched conf.py to add napoleon and sys.path")
+print("Patched conf.py to add napoleon, autodoc_mock_imports, sys.path, and set sphinx_rtd_theme")
 
 # Auto-generate modules.rst
 def find_modules(base_dir: Path):
@@ -95,13 +143,18 @@ def find_modules(base_dir: Path):
             continue
         if f.name.startswith("test_"):
             continue
+        if f.name.endswith("_test.py"):
+            continue
+        if "upy" in f.parts:  # skip MicroPython code
+            continue
+        if f.name in ("gen-docs.py", "generate-docs.py"):  # skip docs generator scripts
+            continue
         rel = f.relative_to(base_dir).with_suffix("")
         parts = rel.parts
         module_name = ".".join(parts)
         modules.append(module_name)
     return modules
 
-project_root = Path.cwd()
 modules = find_modules(project_root)
 
 lines = [
@@ -111,14 +164,19 @@ lines = [
 ]
 
 for mod in sorted(modules):
-    lines.append(".. automodule:: {0}".format(mod))
+    lines.append(f".. automodule:: {mod}")
     lines.append("    :members:")
     lines.append("    :undoc-members:")
     lines.append("    :show-inheritance:")
+    # Customize exclusions per module
+    if mod.endswith("globals"):
+        lines.append("    :exclude-members: has, get, put, init")
+    else:
+        lines.append("    :exclude-members: main, init")
     lines.append("")
 
 MODULES_RST.write_text("\n".join(lines))
-print("Generated {0} with {1} modules".format(MODULES_RST, len(modules)))
+print(f"Generated {MODULES_RST} with {len(modules)} modules")
 
 # Update index.rst to include modules.rst
 index_text = INDEX_RST.read_text()
@@ -130,10 +188,15 @@ if "modules" not in index_text:
 # Build HTML docs automatically
 print("Building HTML documentation by running 'make html' in docs/")
 try:
-    subprocess.run(["make", "html"], cwd=str(DOCS_DIR), check=True)
+    PICKY = True
+    if PICKY:
+#       subprocess.run(["make", "html", "SPHINXOPTS=-n -W"], cwd=str(DOCS_DIR), check=True) # will fail on warnings
+        subprocess.run(["make", "html", "SPHINXOPTS=-n"], cwd=str(DOCS_DIR), check=True)
+    else:
+        subprocess.run(["make", "html"], cwd=str(DOCS_DIR), check=True)
     print("HTML documentation built successfully!")
 except subprocess.CalledProcessError as e:
-    print("Failed to build HTML docs: {0}".format(e))
+    print(f"Failed to build HTML docs: {e}")
     sys.exit(1)
 
 print("\nAll done! Documentation is ready in the docs directory.")

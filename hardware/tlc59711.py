@@ -24,7 +24,7 @@
 #
 
 import struct
-import spidev
+from spidev import SpiDev
 from typing import Dict, List, Optional, Tuple
 
 # constants ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
@@ -63,7 +63,7 @@ class TLC59711:
     '''
     :param spi:  an instance of the SPI bus connected to the chip.
     '''
-    def __init__(self, spi: spidev.SpiDev) -> None:
+    def __init__(self, spi: SpiDev) -> None:
         self.spi = spi
         self.pixel_count = 4
         self.channel_count = self.pixel_count * _COLORS_PER_PIXEL
