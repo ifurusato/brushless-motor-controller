@@ -1,0 +1,168 @@
+
+Brushless Motor Controller Documentation
+========================================
+
+Welcome to the Brushless Motor Controller project documentation!
+
+This documentation covers:
+
+- System architecture overview
+- Core utilities and classes
+- Hardware interaction modules
+- Configuration and setup
+- MicroPython code for deployment to the STM32
+
+
+Modules
+=======
+
+.. note::
+
+   The following modules are automatically documented using Sphinx.
+
+
+
+
+.. automodule:: core.component
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: core.config_loader
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: core.globals
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: has, get, put, init
+
+.. automodule:: core.logger
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: core.util
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: hardware.brushless_motor
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: hardware.controller_channel
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: hardware.digital_pot_async
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: hardware.payload
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: hardware.pwm_controller
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: hardware.pwm_controller_impl
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: hardware.rotary_encoder
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: hardware.slew_limiter
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: hardware.stm32_pwm_controller
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: hardware.tlc59711
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: hardware.tlc59711_pwm_controller
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: hardware.value_provider
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: stop_motor
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: temp.source.conf
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: uart.async_uart_manager
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: uart.crc8_table
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: uart.payload
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: uart.sync_uart_manager
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: uart.uart_master
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init

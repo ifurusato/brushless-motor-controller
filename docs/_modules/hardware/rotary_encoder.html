@@ -1,0 +1,198 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>hardware.rotary_encoder &mdash; Brushless Motor Controller 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Brushless Motor Controller
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Brushless Motor Controller Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html#modules">Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Brushless Motor Controller</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">hardware.rotary_encoder</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for hardware.rotary_encoder</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright 2020-2025 by Murray Altheim. All rights reserved. This file is part</span>
+<span class="c1"># of the Robot Operating System project, released under the MIT License. Please</span>
+<span class="c1"># see the LICENSE file included as part of this package.</span>
+<span class="c1">#</span>
+<span class="c1"># author:   Murray Altheim</span>
+<span class="c1"># created:  2025-06-26</span>
+<span class="c1"># modified: 2025-06-26</span>
+<span class="c1">#</span>
+<span class="c1"># Note that this changes the default 0x0F for 0x0B</span>
+
+<span class="kn">import</span> <span class="nn">colorsys</span>
+<span class="kn">import</span> <span class="nn">ioexpander</span> <span class="k">as</span> <span class="nn">io</span>
+<span class="kn">from</span> <span class="nn">colorama</span> <span class="kn">import</span> <span class="n">init</span><span class="p">,</span> <span class="n">Fore</span><span class="p">,</span> <span class="n">Style</span>
+<span class="n">init</span><span class="p">()</span>
+
+<span class="kn">from</span> <span class="nn">core.logger</span> <span class="kn">import</span> <span class="n">Logger</span><span class="p">,</span> <span class="n">Level</span>
+
+<div class="viewcode-block" id="RotaryEncoder">
+<a class="viewcode-back" href="../../modules.html#hardware.rotary_encoder.RotaryEncoder">[docs]</a>
+<span class="k">class</span> <span class="nc">RotaryEncoder</span><span class="p">:</span>
+    <span class="n">I2C_ADDR</span>  <span class="o">=</span> <span class="mh">0x0F</span>
+    <span class="n">PIN_RED</span>   <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">PIN_GREEN</span> <span class="o">=</span> <span class="mi">7</span>
+    <span class="n">PIN_BLUE</span>  <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">POT_ENC_A</span> <span class="o">=</span> <span class="mi">12</span>
+    <span class="n">POT_ENC_B</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">POT_ENC_C</span> <span class="o">=</span> <span class="mi">11</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i2c_addr</span><span class="o">=</span><span class="mh">0x0B</span><span class="p">,</span> <span class="n">multiplier</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">brightness</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">(</span><span class="s1">&#39;encoder&#39;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">Level</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_i2caddress</span> <span class="o">=</span> <span class="n">i2c_addr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_use_stepped_hue</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_multiplier</span> <span class="o">=</span> <span class="n">multiplier</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_brightness</span> <span class="o">=</span> <span class="n">brightness</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_period</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">255</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_brightness</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ready.&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RotaryEncoder.start">
+<a class="viewcode-back" href="../../modules.html#hardware.rotary_encoder.RotaryEncoder.start">[docs]</a>
+    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ioe</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">IOE</span><span class="p">(</span><span class="n">i2c_addr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_i2caddress</span><span class="p">,</span> <span class="n">interrupt_pin</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+        <span class="c1"># swap interrupt pin for rotary encoder breakout</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_i2caddress</span> <span class="o">==</span> <span class="mh">0x0B</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ioe</span><span class="o">.</span><span class="n">enable_interrupt_out</span><span class="p">(</span><span class="n">pin_swap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ioe</span><span class="o">.</span><span class="n">setup_rotary_encoder</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">RotaryEncoder</span><span class="o">.</span><span class="n">POT_ENC_A</span><span class="p">,</span> <span class="n">RotaryEncoder</span><span class="o">.</span><span class="n">POT_ENC_B</span><span class="p">,</span> <span class="n">pin_c</span><span class="o">=</span><span class="n">RotaryEncoder</span><span class="o">.</span><span class="n">POT_ENC_C</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ioe</span><span class="o">.</span><span class="n">set_pwm_period</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_period</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ioe</span><span class="o">.</span><span class="n">set_pwm_control</span><span class="p">(</span><span class="n">divider</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># PWM as fast as possible</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ioe</span><span class="o">.</span><span class="n">set_mode</span><span class="p">(</span><span class="n">RotaryEncoder</span><span class="o">.</span><span class="n">PIN_RED</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">PWM</span><span class="p">,</span> <span class="n">invert</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ioe</span><span class="o">.</span><span class="n">set_mode</span><span class="p">(</span><span class="n">RotaryEncoder</span><span class="o">.</span><span class="n">PIN_GREEN</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">PWM</span><span class="p">,</span> <span class="n">invert</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ioe</span><span class="o">.</span><span class="n">set_mode</span><span class="p">(</span><span class="n">RotaryEncoder</span><span class="o">.</span><span class="n">PIN_BLUE</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">PWM</span><span class="p">,</span> <span class="n">invert</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;started: RGB encoder with a period of </span><span class="si">{}</span><span class="s2">, and </span><span class="si">{}</span><span class="s2"> brightness steps.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_period</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_period</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_brightness</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="RotaryEncoder.update">
+<a class="viewcode-back" href="../../modules.html#hardware.rotary_encoder.RotaryEncoder.update">[docs]</a>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ioe</span><span class="o">.</span><span class="n">get_interrupt</span><span class="p">():</span>
+            <span class="n">_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ioe</span><span class="o">.</span><span class="n">read_rotary_encoder</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">=</span> <span class="n">_count</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multiplier</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ioe</span><span class="o">.</span><span class="n">clear_interrupt</span><span class="p">()</span>
+        <span class="n">hue</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">%</span> <span class="mi">360</span><span class="p">)</span> <span class="o">/</span> <span class="mf">360.0</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">hue</span> <span class="o">*</span> <span class="mi">10</span><span class="p">)</span> <span class="o">/</span> <span class="mf">10.0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_stepped_hue</span><span class="p">:</span>
+            <span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">c</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_period</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_brightness</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">colorsys</span><span class="o">.</span><span class="n">hsv_to_rgb</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">c</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_period</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_brightness</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">colorsys</span><span class="o">.</span><span class="n">hsv_to_rgb</span><span class="p">(</span><span class="n">hue</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ioe</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="n">RotaryEncoder</span><span class="o">.</span><span class="n">PIN_RED</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ioe</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="n">RotaryEncoder</span><span class="o">.</span><span class="n">PIN_GREEN</span><span class="p">,</span> <span class="n">g</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ioe</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="n">RotaryEncoder</span><span class="o">.</span><span class="n">PIN_BLUE</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mode</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span></div>
+
+
+<div class="viewcode-block" id="RotaryEncoder.bounded_rollover">
+<a class="viewcode-back" href="../../modules.html#hardware.rotary_encoder.RotaryEncoder.bounded_rollover">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">bounded_rollover</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">limit</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;=</span> <span class="n">limit</span> <span class="ow">or</span> <span class="n">value</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="n">limit</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="RotaryEncoder.off">
+<a class="viewcode-back" href="../../modules.html#hardware.rotary_encoder.RotaryEncoder.off">[docs]</a>
+    <span class="k">def</span> <span class="nf">off</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;off.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ioe</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PIN_RED</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ioe</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PIN_GREEN</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ioe</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PIN_BLUE</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+</div>
+
+
+<span class="c1">#EOF</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ichiro Furusato.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

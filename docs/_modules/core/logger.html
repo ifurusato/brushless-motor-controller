@@ -1,0 +1,402 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>core.logger &mdash; Brushless Motor Controller 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Brushless Motor Controller
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Brushless Motor Controller Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html#modules">Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Brushless Motor Controller</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">core.logger</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for core.logger</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright 2019-2025 by Murray Altheim. All rights reserved. This file is part</span>
+<span class="c1"># of the MR01 Robot Operating System (MROS) project, released under the MIT</span>
+<span class="c1"># License. Please see the LICENSE file included as part of this package.</span>
+<span class="c1">#</span>
+<span class="c1"># author:   Murray Altheim</span>
+<span class="c1"># created:  2020-01-14</span>
+<span class="c1"># modified: 2025-06-09</span>
+<span class="c1">#</span>
+<span class="c1"># This is a subset of the full Logger class, without support for writing to</span>
+<span class="c1"># a log file, statistics or fancy headings. This is just used for testing,</span>
+<span class="c1"># the full logger may be found in the KRZOS or MROS projects.</span>
+<span class="c1">#</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Lock</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span> <span class="k">as</span> <span class="n">dt</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span> <span class="nn">colorama</span> <span class="kn">import</span> <span class="n">init</span><span class="p">,</span> <span class="n">Fore</span><span class="p">,</span> <span class="n">Style</span>
+<span class="n">init</span><span class="p">()</span>
+
+<span class="c1"># ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+<div class="viewcode-block" id="Level">
+<a class="viewcode-back" href="../../modules.html#core.logger.Level">[docs]</a>
+<span class="k">class</span> <span class="nc">Level</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">DEBUG</span>    <span class="o">=</span> <span class="p">(</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span>    <span class="s1">&#39;DEBUG&#39;</span>    <span class="p">)</span> <span class="c1"># 10</span>
+    <span class="n">INFO</span>     <span class="o">=</span> <span class="p">(</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>     <span class="s1">&#39;INFO&#39;</span>     <span class="p">)</span> <span class="c1"># 20</span>
+    <span class="n">WARN</span>     <span class="o">=</span> <span class="p">(</span> <span class="n">logging</span><span class="o">.</span><span class="n">WARN</span><span class="p">,</span>     <span class="s1">&#39;WARN&#39;</span>     <span class="p">)</span> <span class="c1"># 30</span>
+    <span class="n">ERROR</span>    <span class="o">=</span> <span class="p">(</span> <span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span>    <span class="s1">&#39;ERROR&#39;</span>    <span class="p">)</span> <span class="c1"># 40</span>
+    <span class="n">CRITICAL</span> <span class="o">=</span> <span class="p">(</span> <span class="n">logging</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">,</span> <span class="s1">&#39;CRITICAL&#39;</span> <span class="p">)</span> <span class="c1"># 50</span>
+
+    <span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">_value_</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+    <span class="c1"># ignore the first param since it&#39;s already set by __new__</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_label</span> <span class="o">=</span> <span class="n">label</span>
+
+    <span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+<div class="viewcode-block" id="Level.from_string">
+<a class="viewcode-back" href="../../modules.html#core.logger.Level.from_string">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="n">label</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">label</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>   <span class="o">==</span> <span class="s1">&#39;DEBUG&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Level</span><span class="o">.</span><span class="n">DEBUG</span>
+        <span class="k">elif</span> <span class="n">label</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;INFO&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Level</span><span class="o">.</span><span class="n">INFO</span>
+        <span class="k">elif</span> <span class="n">label</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;WARN&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Level</span><span class="o">.</span><span class="n">WARN</span>
+        <span class="k">elif</span> <span class="n">label</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;ERROR&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Level</span><span class="o">.</span><span class="n">ERROR</span>
+        <span class="k">elif</span> <span class="n">label</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;CRITICAL&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Level</span><span class="o">.</span><span class="n">CRITICAL</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+</div>
+
+
+<span class="c1"># ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+<div class="viewcode-block" id="Logger">
+<a class="viewcode-back" href="../../modules.html#core.logger.Logger">[docs]</a>
+<span class="k">class</span> <span class="nc">Logger</span><span class="p">:</span>
+
+    <span class="n">__suppress</span>       <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">__color_debug</span>    <span class="o">=</span> <span class="n">Fore</span><span class="o">.</span><span class="n">BLUE</span>   <span class="o">+</span> <span class="n">Style</span><span class="o">.</span><span class="n">DIM</span>
+    <span class="n">__color_info</span>     <span class="o">=</span> <span class="n">Fore</span><span class="o">.</span><span class="n">CYAN</span>   <span class="o">+</span> <span class="n">Style</span><span class="o">.</span><span class="n">NORMAL</span>
+    <span class="n">__color_notice</span>   <span class="o">=</span> <span class="n">Fore</span><span class="o">.</span><span class="n">CYAN</span>   <span class="o">+</span> <span class="n">Style</span><span class="o">.</span><span class="n">BRIGHT</span>
+    <span class="n">__color_warning</span>  <span class="o">=</span> <span class="n">Fore</span><span class="o">.</span><span class="n">YELLOW</span> <span class="o">+</span> <span class="n">Style</span><span class="o">.</span><span class="n">NORMAL</span>
+    <span class="n">__color_error</span>    <span class="o">=</span> <span class="n">Fore</span><span class="o">.</span><span class="n">RED</span>    <span class="o">+</span> <span class="n">Style</span><span class="o">.</span><span class="n">NORMAL</span>
+    <span class="n">__color_critical</span> <span class="o">=</span> <span class="n">Fore</span><span class="o">.</span><span class="n">WHITE</span>  <span class="o">+</span> <span class="n">Style</span><span class="o">.</span><span class="n">NORMAL</span>
+    <span class="n">__color_reset</span>    <span class="o">=</span> <span class="n">Style</span><span class="o">.</span><span class="n">RESET_ALL</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Writes to a console log with the provided level.</span>
+
+<span class="sd">        :param name:            the name identified with the log output</span>
+<span class="sd">        :param level:           the log level</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;no log name specified.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">level</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;no log level specified.&#39;</span><span class="p">)</span>
+        <span class="c1"># configuration ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+        <span class="n">_strip_ansi_codes</span>       <span class="o">=</span> <span class="kc">True</span> <span class="c1"># used only with file output, to strip ANSI characters from log data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_include_timestamp</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_date_format</span>       <span class="o">=</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">T%H:%M:%S&#39;</span>
+<span class="c1">#       self._date_format       = &#39;%Y-%m-%dT%H:%M:%S.%f&#39;</span>
+<span class="c1">#       self._date_format       = &#39;%H:%M:%S&#39;</span>
+        <span class="c1"># i18n?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__DEBUG_TOKEN</span> <span class="o">=</span> <span class="s1">&#39;DEBUG&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__INFO_TOKEN</span>  <span class="o">=</span> <span class="s1">&#39;INFO &#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__WARN_TOKEN</span>  <span class="o">=</span> <span class="s1">&#39;WARN &#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__ERROR_TOKEN</span> <span class="o">=</span> <span class="s1">&#39;ERROR&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__FATAL_TOKEN</span> <span class="o">=</span> <span class="s1">&#39;FATAL&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mf</span>           <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1"> : </span><span class="si">{}{}</span><span class="s1">&#39;</span>
+        <span class="n">_1st_col_width</span>     <span class="o">=</span> <span class="mi">14</span>
+
+        <span class="c1"># create logger  ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__mutex</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__log</span>   <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__log</span><span class="o">.</span><span class="n">propagate</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>   <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sh</span>     <span class="o">=</span> <span class="kc">None</span> <span class="c1"># stream handler</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__log</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sh</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_include_timestamp</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_sh</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="n">Fore</span><span class="o">.</span><span class="n">BLUE</span> <span class="o">+</span> <span class="n">Style</span><span class="o">.</span><span class="n">DIM</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1">.</span><span class="si">%(msecs)3f</span><span class="s1">Z</span><span class="se">\t</span><span class="s1">:&#39;</span> \
+                        <span class="o">+</span> <span class="n">Fore</span><span class="o">.</span><span class="n">RESET</span> <span class="o">+</span> <span class="s1">&#39; </span><span class="si">%(name)s</span><span class="s1"> &#39;</span> <span class="o">+</span> <span class="p">(</span> <span class="s1">&#39; &#39;</span><span class="o">*</span><span class="p">(</span><span class="n">_1st_col_width</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">))</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; : </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">datefmt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_date_format</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_sh</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(name)s</span><span class="s1"> &#39;</span> <span class="o">+</span> <span class="p">(</span> <span class="s1">&#39; &#39;</span><span class="o">*</span><span class="p">(</span><span class="n">_1st_col_width</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">))</span> <span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; : </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__log</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sh</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="n">level</span>
+
+    <span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Return the name of this Logger.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+
+    <span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+<div class="viewcode-block" id="Logger.close">
+<a class="viewcode-back" href="../../modules.html#core.logger.Logger.close">[docs]</a>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Closes down logging, and informs the logging system to perform an</span>
+<span class="sd">        orderly shutdown by flushing and closing all handlers. This should</span>
+<span class="sd">        be called at application exit and no further use of the logging</span>
+<span class="sd">        system should be made after this call.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+<span class="c1">#       self.suppress()</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span></div>
+
+
+    <span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+<div class="viewcode-block" id="Logger.suppress">
+<a class="viewcode-back" href="../../modules.html#core.logger.Logger.suppress">[docs]</a>
+    <span class="k">def</span> <span class="nf">suppress</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Suppresses all log messages except critical errors and log-to-file</span>
+<span class="sd">        messages. This is global across all Loggers.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__suppress</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+    <span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+<div class="viewcode-block" id="Logger.release">
+<a class="viewcode-back" href="../../modules.html#core.logger.Logger.release">[docs]</a>
+    <span class="k">def</span> <span class="nf">release</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Releases (un-suppresses) all log messages except critical errors</span>
+<span class="sd">        and log-to-file messages. This is global across all Loggers.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__suppress</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+    <span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">level</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Return the level of this logger.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_level</span>
+
+    <span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+    <span class="nd">@level</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">level</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Set the level of this logger to the argument.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_level</span> <span class="o">=</span> <span class="n">level</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__log</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_level</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sh</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sh</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">_level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sh</span><span class="o">.</span><span class="n">level</span>
+
+    <span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+<div class="viewcode-block" id="Logger.is_at_least">
+<a class="viewcode-back" href="../../modules.html#core.logger.Logger.is_at_least">[docs]</a>
+    <span class="k">def</span> <span class="nf">is_at_least</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns True if the current log level is less than or equals the</span>
+<span class="sd">        argument. E.g.,</span>
+
+<span class="sd">            if self._log.is_at_least(Level.WARN):</span>
+<span class="sd">                # returns True for WARN or ERROR or CRITICAL</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_level</span><span class="o">.</span><span class="n">value</span> <span class="o">&gt;=</span> <span class="n">level</span><span class="o">.</span><span class="n">value</span></div>
+
+
+    <span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">suppressed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Return True if this logger has been suppressed.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__suppress</span>
+
+    <span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+<div class="viewcode-block" id="Logger.debug">
+<a class="viewcode-back" href="../../modules.html#core.logger.Logger.debug">[docs]</a>
+    <span class="k">def</span> <span class="nf">debug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Prints a debug message.</span>
+
+<span class="sd">        The optional &#39;end&#39; argument is for special circumstances where a different end-of-line is desired.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">suppressed</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mutex</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mf</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Logger</span><span class="o">.</span><span class="n">__color_debug</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__DEBUG_TOKEN</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">Logger</span><span class="o">.</span><span class="n">__color_reset</span><span class="p">))</span></div>
+
+
+    <span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+<div class="viewcode-block" id="Logger.info">
+<a class="viewcode-back" href="../../modules.html#core.logger.Logger.info">[docs]</a>
+    <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Prints an informational message.</span>
+
+<span class="sd">        The optional &#39;end&#39; argument is for special circumstances where a different end-of-line is desired.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">suppressed</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mutex</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mf</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Logger</span><span class="o">.</span><span class="n">__color_info</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__INFO_TOKEN</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">Logger</span><span class="o">.</span><span class="n">__color_reset</span><span class="p">))</span></div>
+
+
+    <span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+<div class="viewcode-block" id="Logger.notice">
+<a class="viewcode-back" href="../../modules.html#core.logger.Logger.notice">[docs]</a>
+    <span class="k">def</span> <span class="nf">notice</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Functionally identical to info() except it prints the message brighter.</span>
+
+<span class="sd">        The optional &#39;end&#39; argument is for special circumstances where a different end-of-line is desired.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">suppressed</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mutex</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mf</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Logger</span><span class="o">.</span><span class="n">__color_notice</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__INFO_TOKEN</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">Logger</span><span class="o">.</span><span class="n">__color_reset</span><span class="p">))</span></div>
+
+
+    <span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+<div class="viewcode-block" id="Logger.warning">
+<a class="viewcode-back" href="../../modules.html#core.logger.Logger.warning">[docs]</a>
+    <span class="k">def</span> <span class="nf">warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Prints a warning message.</span>
+
+<span class="sd">        The optional &#39;end&#39; argument is for special circumstances where a different end-of-line is desired.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">suppressed</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mutex</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mf</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Logger</span><span class="o">.</span><span class="n">__color_warning</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__WARN_TOKEN</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">Logger</span><span class="o">.</span><span class="n">__color_reset</span><span class="p">))</span></div>
+
+
+    <span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+<div class="viewcode-block" id="Logger.error">
+<a class="viewcode-back" href="../../modules.html#core.logger.Logger.error">[docs]</a>
+    <span class="k">def</span> <span class="nf">error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Prints an error message.</span>
+
+<span class="sd">        The optional &#39;end&#39; argument is for special circumstances where a different end-of-line is desired.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">suppressed</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mutex</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mf</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Logger</span><span class="o">.</span><span class="n">__color_error</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ERROR_TOKEN</span><span class="p">,</span> <span class="n">Style</span><span class="o">.</span><span class="n">NORMAL</span> <span class="o">+</span> <span class="n">message</span><span class="p">,</span> <span class="n">Logger</span><span class="o">.</span><span class="n">__color_reset</span><span class="p">))</span></div>
+
+
+    <span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+<div class="viewcode-block" id="Logger.critical">
+<a class="viewcode-back" href="../../modules.html#core.logger.Logger.critical">[docs]</a>
+    <span class="k">def</span> <span class="nf">critical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Prints a critical or otherwise application-fatal message.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mutex</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__log</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mf</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Logger</span><span class="o">.</span><span class="n">__color_critical</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__FATAL_TOKEN</span><span class="p">,</span> <span class="n">Style</span><span class="o">.</span><span class="n">BRIGHT</span> <span class="o">+</span> <span class="n">message</span><span class="p">,</span> <span class="n">Logger</span><span class="o">.</span><span class="n">__color_reset</span><span class="p">))</span></div>
+
+
+    <span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+<div class="viewcode-block" id="Logger.file">
+<a class="viewcode-back" href="../../modules.html#core.logger.Logger.file">[docs]</a>
+    <span class="k">def</span> <span class="nf">file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        This is just info() but without any formatting.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mutex</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
+</div>
+
+
+<span class="c1">#EOF</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ichiro Furusato.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

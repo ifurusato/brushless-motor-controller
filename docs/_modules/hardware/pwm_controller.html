@@ -1,0 +1,208 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>hardware.pwm_controller &mdash; Brushless Motor Controller 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Brushless Motor Controller
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Brushless Motor Controller Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html#modules">Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Brushless Motor Controller</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">hardware.pwm_controller</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for hardware.pwm_controller</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright 2020-2025 by Murray Altheim. All rights reserved. This file is part</span>
+<span class="c1"># of the Robot Operating System project, released under the MIT License. Please</span>
+<span class="c1"># see the LICENSE file included as part of this package.</span>
+<span class="c1">#</span>
+<span class="c1"># author:   Murray Altheim</span>
+<span class="c1"># created:  2025-06-08</span>
+<span class="c1"># modified: 2025-06-09</span>
+<span class="c1">#</span>
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">import</span> <span class="nn">pigpio</span>
+<span class="kn">from</span> <span class="nn">core.logger</span> <span class="kn">import</span> <span class="n">Logger</span><span class="p">,</span> <span class="n">Level</span>
+
+<span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+<div class="viewcode-block" id="PWMController">
+<a class="viewcode-back" href="../../modules.html#hardware.pwm_controller.PWMController">[docs]</a>
+<span class="k">class</span> <span class="nc">PWMController</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Abstract base class for motor PWM controllers.</span>
+<span class="sd">    All PWM controllers must implement set_pwm and stop_pwm.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">STOPPED</span>    <span class="o">=</span> <span class="mi">1_000_000</span>  <span class="c1"># 100% duty (inverted logic)</span>
+    <span class="n">FULL_SPEED</span> <span class="o">=</span> <span class="mi">0</span>          <span class="c1"># 0% duty (inverted logic)</span>
+
+<div class="viewcode-block" id="PWMController.set_pwm">
+<a class="viewcode-back" href="../../modules.html#hardware.pwm_controller.PWMController.set_pwm">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">set_pwm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speed_percent</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="PWMController.stop_pwm">
+<a class="viewcode-back" href="../../modules.html#hardware.pwm_controller.PWMController.stop_pwm">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">stop_pwm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+</div>
+
+
+<span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+<div class="viewcode-block" id="HardwarePWMController">
+<a class="viewcode-back" href="../../modules.html#hardware.pwm_controller.HardwarePWMController">[docs]</a>
+<span class="k">class</span> <span class="nc">HardwarePWMController</span><span class="p">(</span><span class="n">PWMController</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A hardware PWM controller, using one of the Raspberry Pi specific hardware PWM pins.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pi</span><span class="p">,</span> <span class="n">pwm_pin</span><span class="p">,</span> <span class="n">pwm_freq</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">Level</span><span class="o">.</span><span class="n">INFO</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">(</span><span class="s1">&#39;hw-pwm-ctrl&#39;</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span> <span class="o">=</span> <span class="n">pi</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pwm_pin</span> <span class="o">=</span> <span class="n">pwm_pin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pwm_freq</span> <span class="o">=</span> <span class="n">pwm_freq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="o">.</span><span class="n">set_mode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pwm_pin</span><span class="p">,</span> <span class="n">pigpio</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="o">.</span><span class="n">set_PWM_frequency</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pwm_pin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pwm_freq</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ready.&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="HardwarePWMController.set_pwm">
+<a class="viewcode-back" href="../../modules.html#hardware.pwm_controller.HardwarePWMController.set_pwm">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_pwm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speed_percent</span><span class="p">):</span>
+        <span class="n">speed_percent</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">speed_percent</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
+        <span class="n">duty_cycle</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="mi">100</span> <span class="o">-</span> <span class="n">speed_percent</span><span class="p">)</span> <span class="o">*</span> <span class="mi">10_000</span><span class="p">)</span>  <span class="c1"># inverted logic</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="o">.</span><span class="n">hardware_PWM</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pwm_pin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pwm_freq</span><span class="p">,</span> <span class="n">duty_cycle</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="HardwarePWMController.stop_pwm">
+<a class="viewcode-back" href="../../modules.html#hardware.pwm_controller.HardwarePWMController.stop_pwm">[docs]</a>
+    <span class="k">def</span> <span class="nf">stop_pwm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="o">.</span><span class="n">hardware_PWM</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pwm_pin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pwm_freq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">STOPPED</span><span class="p">)</span></div>
+</div>
+
+
+<span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
+<div class="viewcode-block" id="SoftwarePWMController">
+<a class="viewcode-back" href="../../modules.html#hardware.pwm_controller.SoftwarePWMController">[docs]</a>
+<span class="k">class</span> <span class="nc">SoftwarePWMController</span><span class="p">(</span><span class="n">PWMController</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A software PWM controller, using one of the Raspberry Pi GPIO pins.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pi</span><span class="p">,</span> <span class="n">pwm_pin</span><span class="p">,</span> <span class="n">pwm_freq</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">Level</span><span class="o">.</span><span class="n">INFO</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">(</span><span class="s1">&#39;sw-pwm-ctrl&#39;</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span> <span class="o">=</span> <span class="n">pi</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pwm_pin</span> <span class="o">=</span> <span class="n">pwm_pin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pwm_freq</span> <span class="o">=</span> <span class="n">pwm_freq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="o">.</span><span class="n">set_mode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pwm_pin</span><span class="p">,</span> <span class="n">pigpio</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="o">.</span><span class="n">set_PWM_frequency</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pwm_pin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pwm_freq</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="o">.</span><span class="n">set_PWM_range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pwm_pin</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>  <span class="c1"># match pigpio default range</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ready.&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SoftwarePWMController.set_pwm">
+<a class="viewcode-back" href="../../modules.html#hardware.pwm_controller.SoftwarePWMController.set_pwm">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_pwm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speed_percent</span><span class="p">):</span>
+        <span class="n">speed_percent</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">speed_percent</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
+        <span class="n">duty_cycle</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="mi">100</span> <span class="o">-</span> <span class="n">speed_percent</span><span class="p">)</span> <span class="o">*</span> <span class="mi">255</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span>  <span class="c1"># inverted logic</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="o">.</span><span class="n">set_PWM_dutycycle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pwm_pin</span><span class="p">,</span> <span class="n">duty_cycle</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SoftwarePWMController.stop_pwm">
+<a class="viewcode-back" href="../../modules.html#hardware.pwm_controller.SoftwarePWMController.stop_pwm">[docs]</a>
+    <span class="k">def</span> <span class="nf">stop_pwm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="o">.</span><span class="n">set_PWM_dutycycle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pwm_pin</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>  <span class="c1"># full stop (100% duty)</span></div>
+</div>
+
+
+<span class="c1">#EOF</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ichiro Furusato.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

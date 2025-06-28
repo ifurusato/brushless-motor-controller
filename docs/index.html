@@ -1,0 +1,197 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brushless Motor Controller &mdash; Brushless Motor Controller 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Brushless Motor Controller Documentation" href="modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            Brushless Motor Controller
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Brushless Motor Controller Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#modules">Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">Brushless Motor Controller</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Brushless Motor Controller</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="admonition-important admonition">
+<p class="admonition-title">Important</p>
+<p>This documentation for the Brushless Motor Controller was last updated 28 Jun 2025,
+so it may not be up to date with the code itself.</p>
+<p>The project is still a work in progress, i.e., not everything works, or works as expected.</p>
+</div>
+<section id="brushless-motor-controller">
+<h1>Brushless Motor Controller<a class="headerlink" href="#brushless-motor-controller" title="Link to this heading"></a></h1>
+<section id="a-python-controller-for-the-dfrobot-brushless-dc-motor-with-encoder-12v-159rpm-fit0441">
+<h2>A Python Controller for the DFRobot Brushless DC Motor with Encoder 12V 159RPM (FIT0441)<a class="headerlink" href="#a-python-controller-for-the-dfrobot-brushless-dc-motor-with-encoder-12v-159rpm-fit0441" title="Link to this heading"></a></h2>
+<p><em>Welcome!</em></p>
+<p>In 2025 DFRobot released the <a class="reference external" href="https://www.dfrobot.com/product-1364.html">Brushless DC Motor with Encoder 12V 159RPM (FIT0441)</a>,
+a small (24mm diameter, 40mm length), relatively inexpensive 12V DC brushless motor
+with its own internal controller, suitable for integration with the rest of the
+Python-based robot OS (<a class="reference external" href="https://github.com/ifurusato/krzos">KROS</a>).</p>
+<p>The motor is controlled by three pins: a pulse-width-modulated (PWM) pin, a direction
+pin, and an <code class="docutils literal notranslate"><span class="pre">FG</span></code> pin providing feedback from its internal motor encoder, permitting
+closed-loop control. Note that the encoder pin does not provide direction information,
+only an indication of movement.</p>
+<p>Also note that the motor’s PWM is <em>inverted</em>: 100% is stopped, 0% is full speed.</p>
+<p>The repository itself is located at:
+<a class="reference external" href="https://github.com/ifurusato/brushless-motor-controller/tree/main">brushless_motor_controller</a></p>
+</section>
+</section>
+<section id="features">
+<h1>Features<a class="headerlink" href="#features" title="Link to this heading"></a></h1>
+<p>The project operates in three main modes: a direct connection between the Raspberry Pi
+and the motors; using a TI TLC59711 PWM controller; and connecting via UART to either
+an RP2040 or STM32 microcontroller, which handles the PWM of the motors.</p>
+<p>In direct connect (non-UART) modes There are three PWM controller implementations:
+software PWM, hardware PWM, and using a TI TLC59711 PWM controller (supplied by an
+Adafruit board, see below).</p>
+<p>The TLC59711 is usually designed to control up to 12 channels of LEDs, or four RGB LEDs.
+n our case we only need a much smaller number of channels, one per motor. These channels
+are enumerated in ControllerChannel.</p>
+<p>This uses a YAML configuration file for the application itself, and another for the
+motor pin configuraion when using the UART in the MicroPython environent.</p>
+<p>The motor controller itself includes support for open- or closed-loop control,
+stall-and-recovery, deadband control, and control by target RPM when operating in
+closed-loop mode. Provided a wheel diameter this also provides for odometric
+distance and speed measurements.</p>
+</section>
+<section id="support-liability">
+<h1>Support &amp; Liability<a class="headerlink" href="#support-liability" title="Link to this heading"></a></h1>
+<p>This project comes with no promise of support or acceptance of liability. Use at
+your own risk.</p>
+</section>
+<section id="copyright-license">
+<h1>Copyright &amp; License<a class="headerlink" href="#copyright-license" title="Link to this heading"></a></h1>
+<p>All contents (including software, documentation and images)
+Copyright 2020-2025 by Ichiro Furusato. All rights reserved.</p>
+<p>Software and documentation are distributed under the MIT License, see LICENSE
+file included with project.</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Brushless Motor Controller Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#modules">Modules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#core.component.Component"><code class="docutils literal notranslate"><span class="pre">Component</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#core.component.ComponentRegistry"><code class="docutils literal notranslate"><span class="pre">ComponentRegistry</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#core.component.ConfigurationError"><code class="docutils literal notranslate"><span class="pre">ConfigurationError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#core.component.IllegalStateError"><code class="docutils literal notranslate"><span class="pre">IllegalStateError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#core.component.MissingComponentError"><code class="docutils literal notranslate"><span class="pre">MissingComponentError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#core.config_loader.ConfigLoader"><code class="docutils literal notranslate"><span class="pre">ConfigLoader</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#core.logger.Level"><code class="docutils literal notranslate"><span class="pre">Level</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#core.logger.Logger"><code class="docutils literal notranslate"><span class="pre">Logger</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#core.util.Util"><code class="docutils literal notranslate"><span class="pre">Util</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#hardware.brushless_motor.BrushlessMotor"><code class="docutils literal notranslate"><span class="pre">BrushlessMotor</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#hardware.controller_channel.ControllerChannel"><code class="docutils literal notranslate"><span class="pre">ControllerChannel</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#hardware.digital_pot_async.DigitalPotentiometer"><code class="docutils literal notranslate"><span class="pre">DigitalPotentiometer</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#hardware.payload.Payload"><code class="docutils literal notranslate"><span class="pre">Payload</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#hardware.pwm_controller.HardwarePWMController"><code class="docutils literal notranslate"><span class="pre">HardwarePWMController</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#hardware.pwm_controller.PWMController"><code class="docutils literal notranslate"><span class="pre">PWMController</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#hardware.pwm_controller.SoftwarePWMController"><code class="docutils literal notranslate"><span class="pre">SoftwarePWMController</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#hardware.pwm_controller_impl.PWMControllerImpl"><code class="docutils literal notranslate"><span class="pre">PWMControllerImpl</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#hardware.rotary_encoder.RotaryEncoder"><code class="docutils literal notranslate"><span class="pre">RotaryEncoder</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#hardware.slew_limiter.SlewLimiter"><code class="docutils literal notranslate"><span class="pre">SlewLimiter</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#hardware.stm32_pwm_controller.STM32PWMController"><code class="docutils literal notranslate"><span class="pre">STM32PWMController</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#hardware.tlc59711.TLC59711"><code class="docutils literal notranslate"><span class="pre">TLC59711</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#hardware.tlc59711_pwm_controller.TLC59711PWMController"><code class="docutils literal notranslate"><span class="pre">TLC59711PWMController</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#hardware.value_provider.DigitalPotSpeedProvider"><code class="docutils literal notranslate"><span class="pre">DigitalPotSpeedProvider</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#hardware.value_provider.RotaryEncoderCommandProvider"><code class="docutils literal notranslate"><span class="pre">RotaryEncoderCommandProvider</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#hardware.value_provider.ValueProvider"><code class="docutils literal notranslate"><span class="pre">ValueProvider</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#uart.async_uart_manager.AsyncUARTManager"><code class="docutils literal notranslate"><span class="pre">AsyncUARTManager</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#uart.payload.Payload"><code class="docutils literal notranslate"><span class="pre">Payload</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#uart.sync_uart_manager.SyncUARTManager"><code class="docutils literal notranslate"><span class="pre">SyncUARTManager</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#uart.uart_master.UARTMaster"><code class="docutils literal notranslate"><span class="pre">UARTMaster</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="modules.html" class="btn btn-neutral float-right" title="Brushless Motor Controller Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ichiro Furusato.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

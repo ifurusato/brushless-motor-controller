@@ -1,0 +1,380 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>core.util &mdash; Brushless Motor Controller 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Brushless Motor Controller
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Brushless Motor Controller Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html#modules">Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Brushless Motor Controller</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">core.util</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for core.util</h1><div class="highlight"><pre>
+<span></span>
+<span class="c1">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright 2020-2024 by Murray Altheim. All rights reserved. This file is part</span>
+<span class="c1"># of the Robot Operating System project, released under the MIT License. Please</span>
+<span class="c1"># see the LICENSE file included as part of this package.</span>
+<span class="c1">#</span>
+<span class="c1"># author:   Murray Altheim</span>
+<span class="c1"># created:  2021-07-07</span>
+<span class="c1"># modified: 2025-06-27</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">subprocess</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span> <span class="k">as</span> <span class="n">dt</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">colorama</span> <span class="kn">import</span> <span class="n">init</span><span class="p">,</span> <span class="n">Fore</span><span class="p">,</span> <span class="n">Style</span>
+<span class="n">init</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Util">
+<a class="viewcode-back" href="../../modules.html#core.util.Util">[docs]</a>
+<span class="k">class</span> <span class="nc">Util</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A collection of static utility methods.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">(</span><span class="s1">&#39;util&#39;</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Util.is_true">
+<a class="viewcode-back" href="../../modules.html#core.util.Util.is_true">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">is_true</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns True if the value is a 1, a &quot;1&quot;, &quot;y&quot;, &quot;yes&quot;, or &quot;true&quot; (with</span>
+<span class="sd">        case-insensitive matching).</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">value</span> <span class="o">==</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                <span class="k">return</span> <span class="n">_value</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span> <span class="ow">or</span> <span class="n">_value</span> <span class="o">==</span> <span class="s2">&quot;y&quot;</span> <span class="ow">or</span> <span class="n">_value</span> <span class="o">==</span> <span class="s2">&quot;yes&quot;</span> <span class="ow">or</span> <span class="n">_value</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="Util.get_timestamp">
+<a class="viewcode-back" href="../../modules.html#core.util.Util.get_timestamp">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_timestamp</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Return an ISO UTC timestamp.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">dt</span><span class="o">.</span><span class="n">utcfromtimestamp</span><span class="p">(</span><span class="n">dt</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">timestamp</span><span class="p">())</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span> <span class="c1">#.replace(&#39;:&#39;,&#39;_&#39;).replace(&#39;-&#39;,&#39;_&#39;).replace(&#39;.&#39;,&#39;_&#39;)</span></div>
+
+
+<div class="viewcode-block" id="Util.import_configuration">
+<a class="viewcode-back" href="../../modules.html#core.util.Util.import_configuration">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">import_configuration</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Read configuration from a JSON file.</span>
+
+<span class="sd">        :param logger     the logger to capture the result</span>
+<span class="sd">        :param filepath   the source file path</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;importing configuration from file &#39;</span><span class="si">{}</span><span class="s2">&#39;…&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filepath</span><span class="p">))</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">data_file</span><span class="p">:</span>
+            <span class="n">_config</span> <span class="o">=</span>  <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">data_file</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;import complete.&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">_config</span></div>
+
+
+<div class="viewcode-block" id="Util.export_configuration">
+<a class="viewcode-back" href="../../modules.html#core.util.Util.export_configuration">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">export_configuration</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Dump the configuration to a JSON file.</span>
+
+<span class="sd">        :param logger     the logger to capture the result</span>
+<span class="sd">        :param config     the configuration dict to be serialised to JSON</span>
+<span class="sd">        :param filepath   the target file path</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;exporting configuration to file &#39;</span><span class="si">{}</span><span class="s2">&#39;…&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filepath</span><span class="p">))</span>
+            <span class="n">Path</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;export complete.&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> raised exporting configuration to JSON: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">e</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Util.get_formatted_value">
+<a class="viewcode-back" href="../../modules.html#core.util.Util.get_formatted_value">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_formatted_value</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{:5.2f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Util.get_formatted_time">
+<a class="viewcode-back" href="../../modules.html#core.util.Util.get_formatted_time">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_formatted_time</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+       <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+           <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+       <span class="k">elif</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mf">1000.0</span><span class="p">:</span>
+           <span class="k">return</span> <span class="n">label</span> <span class="o">+</span> <span class="s1">&#39; </span><span class="si">{:4.3f}</span><span class="s1">s&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="o">/</span><span class="mf">1000.0</span><span class="p">)</span>
+       <span class="k">else</span><span class="p">:</span>
+           <span class="k">return</span> <span class="n">label</span> <span class="o">+</span> <span class="s1">&#39; </span><span class="si">{:4.3f}</span><span class="s1">ms&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Util.repeat">
+<a class="viewcode-back" href="../../modules.html#core.util.Util.repeat">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">repeat</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">number</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Repeat &#39;string&#39; a given number of times.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">string</span> <span class="o">*</span> <span class="p">(</span><span class="n">number</span><span class="o">//</span><span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))[:</span><span class="n">number</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Util.ellipsis">
+<a class="viewcode-back" href="../../modules.html#core.util.Util.ellipsis">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">ellipsis</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">max_length</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Repeat &#39;string&#39; a given number of times.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">max_length</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">string</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">…&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">string</span><span class="p">[:</span><span class="n">max_length</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="Util.frange">
+<a class="viewcode-back" href="../../modules.html#core.util.Util.frange">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">frange</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">jump</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+        <span class="n">nsteps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">stop</span><span class="o">-</span><span class="n">start</span><span class="p">)</span><span class="o">/</span><span class="n">jump</span><span class="p">)</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="n">stop</span><span class="o">-</span><span class="n">start</span>
+        <span class="c1"># f(i) goes from start to stop as i goes from 0 to nsteps</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">start</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">*</span><span class="n">dy</span><span class="o">/</span><span class="n">nsteps</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nsteps</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="Util.get_class_name_of_method">
+<a class="viewcode-back" href="../../modules.html#core.util.Util.get_class_name_of_method">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_class_name_of_method</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">vars</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">method</span><span class="o">.</span><span class="vm">__module__</span><span class="p">])[</span><span class="n">method</span><span class="o">.</span><span class="vm">__qualname__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="vm">__name__</span></div>
+
+
+<div class="viewcode-block" id="Util.list_methods">
+<a class="viewcode-back" href="../../modules.html#core.util.Util.list_methods">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">list_methods</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Print the methods of the provided class.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">Fore</span><span class="o">.</span><span class="n">CYAN</span> <span class="o">+</span> <span class="s2">&quot;methods of class: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">cls</span><span class="p">))</span> <span class="o">+</span> <span class="n">Style</span><span class="o">.</span><span class="n">RESET_ALL</span><span class="p">)</span>
+        <span class="n">method_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">func</span> <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">func</span><span class="p">))]</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">method_list</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">Fore</span><span class="o">.</span><span class="n">CYAN</span> <span class="o">+</span> <span class="s1">&#39;    method:</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">Fore</span><span class="o">.</span><span class="n">YELLOW</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="o">+</span> <span class="n">Style</span><span class="o">.</span><span class="n">RESET_ALL</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Util.remap_range">
+<a class="viewcode-back" href="../../modules.html#core.util.Util.remap_range">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">remap_range</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">in_min</span><span class="p">,</span> <span class="n">in_max</span><span class="p">,</span> <span class="n">out_min</span><span class="p">,</span> <span class="n">out_max</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Remaps a value in the input range to the same ratio&#39;d value</span>
+<span class="sd">        in the output range.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># range check</span>
+        <span class="k">if</span> <span class="n">in_min</span> <span class="o">==</span> <span class="n">in_max</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;zero input range.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">out_min</span> <span class="o">==</span> <span class="n">out_max</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;zero output range.&quot;</span><span class="p">)</span>
+        <span class="c1"># check reversed input range</span>
+        <span class="n">_reversed_input</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">_old_min</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">in_min</span><span class="p">,</span> <span class="n">in_max</span><span class="p">)</span>
+        <span class="n">_old_max</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">in_min</span><span class="p">,</span> <span class="n">in_max</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_old_min</span> <span class="o">==</span> <span class="n">in_min</span><span class="p">:</span>
+            <span class="n">_reversed_input</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="c1"># check reversed output range</span>
+        <span class="n">_reversed_output</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">_new_min</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">out_min</span><span class="p">,</span> <span class="n">out_max</span><span class="p">)</span>
+        <span class="n">_new_max</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">out_min</span><span class="p">,</span> <span class="n">out_max</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_new_min</span> <span class="o">==</span> <span class="n">out_min</span><span class="p">:</span>
+            <span class="n">_reversed_output</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">_portion</span> <span class="o">=</span> <span class="p">(</span><span class="n">value</span> <span class="o">-</span> <span class="n">_old_min</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">_new_max</span> <span class="o">-</span><span class="n">_new_min</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">_old_max</span> <span class="o">-</span> <span class="n">_old_min</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">_reversed_input</span><span class="p">:</span>
+            <span class="n">_portion</span> <span class="o">=</span> <span class="p">(</span><span class="n">_old_max</span> <span class="o">-</span> <span class="n">value</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">_new_max</span> <span class="o">-</span> <span class="n">_new_min</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">_old_max</span> <span class="o">-</span> <span class="n">_old_min</span><span class="p">)</span>
+        <span class="n">_result</span> <span class="o">=</span> <span class="n">_portion</span> <span class="o">+</span> <span class="n">_new_min</span>
+        <span class="k">if</span> <span class="n">_reversed_output</span><span class="p">:</span>
+            <span class="n">_result</span> <span class="o">=</span> <span class="n">_new_max</span> <span class="o">-</span> <span class="n">_portion</span>
+        <span class="k">return</span> <span class="n">_result</span></div>
+
+
+<div class="viewcode-block" id="Util.clip">
+<a class="viewcode-back" href="../../modules.html#core.util.Util.clip">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">clip</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">min_value</span><span class="p">,</span> <span class="n">max_value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        A replacement for numpy&#39;s clip():</span>
+
+<span class="sd">            _value = numpy.clip(target_value, _min, _max)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">min_value</span> <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;=</span> <span class="n">min_value</span> <span class="k">else</span> <span class="n">max_value</span> <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;=</span> <span class="n">max_value</span> <span class="k">else</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="Util.to_bin">
+<a class="viewcode-back" href="../../modules.html#core.util.Util.to_bin">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">to_bin</span><span class="p">(</span><span class="n">decimal</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{0:08b}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">decimal</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Util.to_bin_v2">
+<a class="viewcode-back" href="../../modules.html#core.util.Util.to_bin_v2">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">to_bin_v2</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">bin</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="mi">2</span><span class="p">:])</span></div>
+
+
+<div class="viewcode-block" id="Util.to_decimal">
+<a class="viewcode-back" href="../../modules.html#core.util.Util.to_decimal">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">to_decimal</span><span class="p">(</span><span class="n">binary</span><span class="p">):</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">binary</span><span class="p">)</span>
+        <span class="n">binary_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+        <span class="n">decimal</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">b</span><span class="p">:</span>
+            <span class="n">binary_len</span> <span class="o">=</span> <span class="n">binary_len</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">decimal</span> <span class="o">+=</span> <span class="nb">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">binary_len</span><span class="p">)</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">decimal</span></div>
+
+
+<div class="viewcode-block" id="Util.already_running">
+<a class="viewcode-back" href="../../modules.html#core.util.Util.already_running">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">already_running</span><span class="p">(</span><span class="n">process_name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Returns true if there is already an instance of a process running.</span>
+
+<span class="sd">        This is a static method so other processes can check prior to</span>
+<span class="sd">        starting a process rather than dealing with the RuntimeException</span>
+<span class="sd">        thrown.</span>
+
+<span class="sd">        This parses the output of &#39;ps --no-headers -f -C python3&#39; to see</span>
+<span class="sd">        if a different instance of this script is already running:</span>
+
+<span class="sd">            UID          PID    PPID  C STIME TTY          TIME CMD</span>
+<span class="sd">            pi          4186    1058  3 13:04 pts/0    00:00:31 python3 monitor_test.py</span>
+<span class="sd">            pi          5985    1058 95 13:18 pts/0    00:00:00 python3 monitor_exec.py</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">_pid</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">()</span>
+            <span class="n">_result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="s1">&#39;ps&#39;</span><span class="p">,</span> <span class="s1">&#39;--no-headers&#39;</span><span class="p">,</span> <span class="s1">&#39;-f&#39;</span><span class="p">,</span> <span class="s1">&#39;-C&#39;</span><span class="p">,</span> <span class="s1">&#39;python3&#39;</span><span class="p">])</span>
+            <span class="n">_lines</span> <span class="o">=</span> <span class="n">_result</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">_bytes</span> <span class="ow">in</span> <span class="n">_lines</span><span class="p">:</span>
+                <span class="n">_parts</span> <span class="o">=</span> <span class="n">_bytes</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="c1"># convert byte array to string and split</span>
+                <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">_parts</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">!=</span> <span class="n">_pid</span> <span class="ow">and</span> <span class="n">_parts</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;python3&#39;</span> <span class="ow">and</span> <span class="n">process_name</span> <span class="ow">in</span> <span class="n">_parts</span><span class="p">[</span><span class="mi">8</span><span class="p">]:</span>
+                    <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># called if grep returns nothing</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;exception: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+</div>
+
+
+<span class="c1">#EOF</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ichiro Furusato.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
