@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>hardware.payload &mdash; Brushless Motor Controller 0.1.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -41,7 +41,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Brushless Motor Controller Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html#modules">Modules</a></li>
 </ul>
 
@@ -81,15 +81,15 @@
 <span class="c1"># created:  2025-06-12</span>
 <span class="c1"># modified: 2025-06-12</span>
 
-<span class="kn">import</span> <span class="nn">struct</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">struct</span>
 
 <div class="viewcode-block" id="Payload">
 <a class="viewcode-back" href="../../modules.html#hardware.payload.Payload">[docs]</a>
-<span class="k">class</span> <span class="nc">Payload</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Payload</span><span class="p">:</span>
     <span class="n">PACK_FORMAT</span> <span class="o">=</span> <span class="s1">&#39;&lt;2s4f&#39;</span>
     <span class="n">PACKET_SIZE</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">calcsize</span><span class="p">(</span><span class="n">PACK_FORMAT</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># payload + crc</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pfwd</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">sfwd</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">paft</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">saft</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pfwd</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">sfwd</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">paft</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">saft</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">cmd</span><span class="o">.</span><span class="n">isalpha</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cmd must be 2 alphabetic characters&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span>
@@ -100,14 +100,14 @@
 
 <div class="viewcode-block" id="Payload.to_bytes">
 <a class="viewcode-back" href="../../modules.html#hardware.payload.Payload.to_bytes">[docs]</a>
-    <span class="k">def</span> <span class="nf">to_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
         <span class="c1"># pack the data into bytes, including the CRC</span>
         <span class="n">packed</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PACK_FORMAT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pfwd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sfwd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">paft</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">saft</span><span class="p">)</span>
         <span class="n">crc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_crc8</span><span class="p">(</span><span class="n">packed</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">packed</span> <span class="o">+</span> <span class="nb">bytes</span><span class="p">([</span><span class="n">crc</span><span class="p">])</span></div>
 
 
-    <span class="k">def</span> <span class="fm">__bytes__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__bytes__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
         <span class="c1"># pack the data into bytes, including the CRC</span>
         <span class="n">packed</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PACK_FORMAT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pfwd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sfwd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">paft</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">saft</span><span class="p">)</span>
         <span class="n">crc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_crc8</span><span class="p">(</span><span class="n">packed</span><span class="p">)</span>
@@ -116,7 +116,7 @@
 <div class="viewcode-block" id="Payload.from_bytes">
 <a class="viewcode-back" href="../../modules.html#hardware.payload.Payload.from_bytes">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_bytes</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">packet</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_bytes</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">packet</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">packet</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">PACKET_SIZE</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid packet size: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">packet</span><span class="p">)))</span>
         <span class="n">data</span><span class="p">,</span> <span class="n">crc</span> <span class="o">=</span> <span class="n">packet</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">packet</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -130,7 +130,7 @@
 <div class="viewcode-block" id="Payload.calculate_crc8">
 <a class="viewcode-back" href="../../modules.html#hardware.payload.Payload.calculate_crc8">[docs]</a>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">calculate_crc8</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">poly</span><span class="o">=</span><span class="mh">0x07</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="mh">0x00</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_crc8</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">poly</span><span class="o">=</span><span class="mh">0x07</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="mh">0x00</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="n">crc</span> <span class="o">=</span> <span class="n">init</span>
         <span class="k">for</span> <span class="n">byte</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
             <span class="n">crc</span> <span class="o">^=</span> <span class="n">byte</span>
@@ -142,7 +142,7 @@
         <span class="k">return</span> <span class="n">crc</span></div>
 
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;Payload(cmd=</span><span class="si">{}</span><span class="s2">, pfwd=</span><span class="si">{:7.2f}</span><span class="s2">, sfwd=</span><span class="si">{:7.2f}</span><span class="s2">, paft=</span><span class="si">{:7.2f}</span><span class="s2">, saft=</span><span class="si">{:7.2f}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">pfwd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sfwd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">paft</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">saft</span><span class="p">)</span></div>
 

@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>uart.async_uart_manager &mdash; Brushless Motor Controller 0.1.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -41,7 +41,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Brushless Motor Controller Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html#modules">Modules</a></li>
 </ul>
 
@@ -81,21 +81,21 @@
 <span class="c1"># created:  2025-06-12</span>
 <span class="c1"># modified: 2025-06-12</span>
 
-<span class="kn">import</span> <span class="nn">serial</span>
-<span class="kn">import</span> <span class="nn">asyncio</span>
-<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
-<span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
-<span class="kn">from</span> <span class="nn">colorama</span> <span class="kn">import</span> <span class="n">init</span><span class="p">,</span> <span class="n">Fore</span><span class="p">,</span> <span class="n">Style</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">serial</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">threading</span><span class="w"> </span><span class="kn">import</span> <span class="n">Thread</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">colorama</span><span class="w"> </span><span class="kn">import</span> <span class="n">init</span><span class="p">,</span> <span class="n">Fore</span><span class="p">,</span> <span class="n">Style</span>
 <span class="n">init</span><span class="p">()</span>
 
-<span class="kn">from</span> <span class="nn">hardware.payload</span> <span class="kn">import</span> <span class="n">Payload</span>
-<span class="kn">from</span> <span class="nn">core.logger</span> <span class="kn">import</span> <span class="n">Logger</span><span class="p">,</span> <span class="n">Level</span>
-<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hardware.payload</span><span class="w"> </span><span class="kn">import</span> <span class="n">Payload</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">core.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">Logger</span><span class="p">,</span> <span class="n">Level</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
 <div class="viewcode-block" id="AsyncUARTManager">
 <a class="viewcode-back" href="../../modules.html#uart.async_uart_manager.AsyncUARTManager">[docs]</a>
-<span class="k">class</span> <span class="nc">AsyncUARTManager</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="s1">&#39;/dev/serial0&#39;</span><span class="p">,</span> <span class="n">baudrate</span><span class="o">=</span><span class="mi">115200</span><span class="p">,</span> <span class="n">tx_timeout_ms</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">rx_timeout_ms</span><span class="o">=</span><span class="mi">25</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AsyncUARTManager</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="s1">&#39;/dev/serial0&#39;</span><span class="p">,</span> <span class="n">baudrate</span><span class="o">=</span><span class="mi">115200</span><span class="p">,</span> <span class="n">tx_timeout_ms</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">rx_timeout_ms</span><span class="o">=</span><span class="mi">25</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">(</span><span class="s1">&#39;async-uart-mgr&#39;</span><span class="p">,</span> <span class="n">Level</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_port_name</span>  <span class="o">=</span> <span class="n">port</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_baudrate</span>   <span class="o">=</span> <span class="n">baudrate</span>
@@ -116,7 +116,7 @@
 
 <div class="viewcode-block" id="AsyncUARTManager.open">
 <a class="viewcode-back" href="../../modules.html#uart.async_uart_manager.AsyncUARTManager.open">[docs]</a>
-    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_serial</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_serial</span><span class="o">.</span><span class="n">is_open</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_serial</span> <span class="o">=</span> <span class="n">serial</span><span class="o">.</span><span class="n">Serial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_port_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_baudrate</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_tx_timeout_s</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;serial port </span><span class="si">{}</span><span class="s2"> opened.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_port_name</span><span class="p">))</span></div>
@@ -124,7 +124,7 @@
 
 <div class="viewcode-block" id="AsyncUARTManager.close">
 <a class="viewcode-back" href="../../modules.html#uart.async_uart_manager.AsyncUARTManager.close">[docs]</a>
-    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_serial</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_serial</span><span class="o">.</span><span class="n">is_open</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_serial</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;serial port closed.&quot;</span><span class="p">)</span>
@@ -133,7 +133,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_loop_thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_send_packet_sync</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_send_packet_sync</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
         <span class="n">packet_bytes</span> <span class="o">=</span> <span class="n">payload</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">()</span>
         <span class="c1"># ensure sync header is present for robust protocol</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">packet_bytes</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">Payload</span><span class="o">.</span><span class="n">SYNC_HEADER</span><span class="p">):</span>
@@ -144,7 +144,7 @@
 
 <div class="viewcode-block" id="AsyncUARTManager.send_packet">
 <a class="viewcode-back" href="../../modules.html#uart.async_uart_manager.AsyncUARTManager.send_packet">[docs]</a>
-    <span class="k">def</span> <span class="nf">send_packet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">send_packet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Synchronous wrapper: schedule async send on background loop.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -154,11 +154,11 @@
         <span class="k">return</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span> <span class="c1"># wait for completion</span></div>
 
 
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">_send_packet_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_send_packet_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
         <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_running_loop</span><span class="p">()</span>
         <span class="k">await</span> <span class="n">loop</span><span class="o">.</span><span class="n">run_in_executor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_executor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_send_packet_sync</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_receive_packet_sync</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_receive_packet_sync</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Reads bytes, synchronizes on sync header, and returns the first valid Payload found.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -205,7 +205,7 @@
 
 <div class="viewcode-block" id="AsyncUARTManager.receive_packet">
 <a class="viewcode-back" href="../../modules.html#uart.async_uart_manager.AsyncUARTManager.receive_packet">[docs]</a>
-    <span class="k">def</span> <span class="nf">receive_packet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">receive_packet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Synchronous wrapper: schedule async receive on background loop.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -215,13 +215,13 @@
         <span class="k">return</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span></div>
 
 
-    <span class="k">async</span> <span class="k">def</span> <span class="nf">_receive_packet_async</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_receive_packet_async</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_running_loop</span><span class="p">()</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">loop</span><span class="o">.</span><span class="n">run_in_executor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_executor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_receive_packet_sync</span><span class="p">)</span>
 
 <div class="viewcode-block" id="AsyncUARTManager.receive_values">
 <a class="viewcode-back" href="../../modules.html#uart.async_uart_manager.AsyncUARTManager.receive_values">[docs]</a>
-    <span class="k">def</span> <span class="nf">receive_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">receive_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Convenience method to receive a Payload and return the tuple (cmd, pfwd, sfwd, paft, saft).</span>
 <span class="sd">        &#39;&#39;&#39;</span>

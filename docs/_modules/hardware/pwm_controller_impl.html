@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>hardware.pwm_controller_impl &mdash; Brushless Motor Controller 0.1.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -41,7 +41,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Brushless Motor Controller Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html#modules">Modules</a></li>
 </ul>
 
@@ -82,16 +82,16 @@
 <span class="c1"># modified: 2025-06-09</span>
 <span class="c1">#</span>
 
-<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
-<span class="kn">from</span> <span class="nn">hardware.pwm_controller</span> <span class="kn">import</span> <span class="n">HardwarePWMController</span><span class="p">,</span> <span class="n">SoftwarePWMController</span>
-<span class="kn">from</span> <span class="nn">hardware.tlc59711_pwm_controller</span> <span class="kn">import</span> <span class="n">TLC59711PWMController</span>
-<span class="kn">from</span> <span class="nn">hardware.tlc59711</span> <span class="kn">import</span> <span class="n">TLC59711</span>
-<span class="kn">from</span> <span class="nn">hardware.tlc59711_pwm_controller</span> <span class="kn">import</span> <span class="n">ControllerChannel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hardware.pwm_controller</span><span class="w"> </span><span class="kn">import</span> <span class="n">HardwarePWMController</span><span class="p">,</span> <span class="n">SoftwarePWMController</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hardware.tlc59711_pwm_controller</span><span class="w"> </span><span class="kn">import</span> <span class="n">TLC59711PWMController</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hardware.tlc59711</span><span class="w"> </span><span class="kn">import</span> <span class="n">TLC59711</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hardware.tlc59711_pwm_controller</span><span class="w"> </span><span class="kn">import</span> <span class="n">ControllerChannel</span>
 
 <div class="viewcode-block" id="PWMControllerImpl">
 <a class="viewcode-back" href="../../modules.html#hardware.pwm_controller_impl.PWMControllerImpl">[docs]</a>
-<span class="k">class</span> <span class="nc">PWMControllerImpl</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PWMControllerImpl</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
     <span class="n">SOFTWARE_CONTROLLER</span> <span class="o">=</span> <span class="s2">&quot;software&quot;</span>
     <span class="n">HARDWARE_CONTROLLER</span> <span class="o">=</span> <span class="s2">&quot;hardware&quot;</span>
     <span class="n">TLC59711_CONTROLLER</span> <span class="o">=</span> <span class="s2">&quot;tlc59711&quot;</span>
@@ -101,7 +101,7 @@
 <span class="sd">    &#39;&#39;&#39;</span>
 <div class="viewcode-block" id="PWMControllerImpl.create">
 <a class="viewcode-back" href="../../modules.html#hardware.pwm_controller_impl.PWMControllerImpl.create">[docs]</a>
-    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
             <span class="n">pi</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span>
             <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span>
@@ -126,7 +126,7 @@
 <div class="viewcode-block" id="PWMControllerImpl.from_string">
 <a class="viewcode-back" href="../../modules.html#hardware.pwm_controller_impl.PWMControllerImpl.from_string">[docs]</a>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;PWMControllerImpl&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_string</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;PWMControllerImpl&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Convert a string representation to a PWMControllerImpl enum member.</span>
 <span class="sd">        &#39;&#39;&#39;</span>

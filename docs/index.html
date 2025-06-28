@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Brushless Motor Controller &mdash; Brushless Motor Controller 0.1.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
@@ -19,7 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Brushless Motor Controller Documentation" href="modules.html" /> 
+    <link rel="next" title="Overview" href="modules.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -43,7 +43,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">Brushless Motor Controller Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html#modules">Modules</a></li>
 </ul>
 
@@ -73,9 +73,8 @@
              
   <div class="admonition-important admonition">
 <p class="admonition-title">Important</p>
-<p>This documentation for the Brushless Motor Controller was last updated 28 Jun 2025,
-so it may not be up to date with the code itself.</p>
-<p>The project is still a work in progress, i.e., not everything works, or works as expected.</p>
+<p>This documentation was last updated 29 Jun 2025, so it may not be up to date with the repository.</p>
+<p>The project is still a work in progress, i.e., things are still changing frequently, not everything works, or works as expected.</p>
 </div>
 <section id="brushless-motor-controller">
 <h1>Brushless Motor Controller<a class="headerlink" href="#brushless-motor-controller" title="Link to this heading"></a></h1>
@@ -91,43 +90,55 @@ pin, and an <code class="docutils literal notranslate"><span class="pre">FG</spa
 closed-loop control. Note that the encoder pin does not provide direction information,
 only an indication of movement.</p>
 <p>Also note that the motor’s PWM is <em>inverted</em>: 100% is stopped, 0% is full speed.</p>
-<p>The repository itself is located at:
+<p>The repository may be found at:
 <a class="reference external" href="https://github.com/ifurusato/brushless-motor-controller/tree/main">brushless_motor_controller</a></p>
-</section>
-</section>
 <section id="features">
-<h1>Features<a class="headerlink" href="#features" title="Link to this heading"></a></h1>
-<p>The project operates in three main modes: a direct connection between the Raspberry Pi
-and the motors; using a TI TLC59711 PWM controller; and connecting via UART to either
-an RP2040 or STM32 microcontroller, which handles the PWM of the motors.</p>
-<p>In direct connect (non-UART) modes There are three PWM controller implementations:
-software PWM, hardware PWM, and using a TI TLC59711 PWM controller (supplied by an
-Adafruit board, see below).</p>
-<p>The TLC59711 is usually designed to control up to 12 channels of LEDs, or four RGB LEDs.
-n our case we only need a much smaller number of channels, one per motor. These channels
-are enumerated in ControllerChannel.</p>
-<p>This uses a YAML configuration file for the application itself, and another for the
-motor pin configuraion when using the UART in the MicroPython environent.</p>
+<h3>Features<a class="headerlink" href="#features" title="Link to this heading"></a></h3>
+<p>The project operates in one of five hardware modes:</p>
+<ul class="simple">
+<li><p>using a software PWM from the Raspberry Pi to the motors: does provide a stable frequency</p></li>
+<li><p>using a hardware PWM from the Raspberry Pi to the motors: there are only two hardware PWM pins available on the Raspberry Pi</p></li>
+<li><p>using a TI TLC59711 PWM controller (supplied by an Adafruit board <a class="footnote-reference brackets" href="#id2" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>, see below): requires an additional SPI device but is both stable and there are 12 PWM channels available</p></li>
+<li><p>connecting via UART to either an RP2040 or STM32 microcontroller: the microcontroller handles the PWM to the motors, but is limited by the performance of the UART</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>One of the options is a microcontroller connected over a UART; with this approach
+the Raspberry Pi would not be necessary if control of the MotorController were
+fleshed out as necessary (though beyond the scope of this project). That is, e.g.,
+a robot based on a microcontroller could use the MotorController as a component
+without the Raspberry Pi as master.</p>
+</div>
 <p>The motor controller itself includes support for open- or closed-loop control,
 stall-and-recovery, deadband control, and control by target RPM when operating in
 closed-loop mode. Provided a wheel diameter this also provides for odometric
 distance and speed measurements.</p>
+<p>This uses a YAML configuration file for the application itself, and another for
+the motor pin configuraion when using the UART in the MicroPython environent.</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id2" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>The <a class="reference external" href="https://www.adafruit.com/product/1455">Adafruit 12 Channel 16-bit PWM LED Driver - SPI Interface</a>
+is designed to control up to 12 channels of LEDs, or four RGB LEDs. In our case we only need a much smaller
+number of channels, one per motor. These channels are enumerated in the <cite>ControllerChannel</cite> class.</p>
+</aside>
+</aside>
 </section>
 <section id="support-liability">
-<h1>Support &amp; Liability<a class="headerlink" href="#support-liability" title="Link to this heading"></a></h1>
+<h3>Support &amp; Liability<a class="headerlink" href="#support-liability" title="Link to this heading"></a></h3>
 <p>This project comes with no promise of support or acceptance of liability. Use at
 your own risk.</p>
 </section>
 <section id="copyright-license">
-<h1>Copyright &amp; License<a class="headerlink" href="#copyright-license" title="Link to this heading"></a></h1>
+<h3>Copyright &amp; License<a class="headerlink" href="#copyright-license" title="Link to this heading"></a></h3>
 <p>All contents (including software, documentation and images)
 Copyright 2020-2025 by Ichiro Furusato. All rights reserved.</p>
-<p>Software and documentation are distributed under the MIT License, see LICENSE
-file included with project.</p>
+<p>Software and documentation are distributed under the MIT License, see the LICENSE
+file included with the project.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">Brushless Motor Controller Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html#modules">Modules</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="modules.html#core.component.Component"><code class="docutils literal notranslate"><span class="pre">Component</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="modules.html#core.component.ComponentRegistry"><code class="docutils literal notranslate"><span class="pre">ComponentRegistry</span></code></a></li>
@@ -163,12 +174,14 @@ file included with project.</p>
 </ul>
 </div>
 </section>
+</section>
+</section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="modules.html" class="btn btn-neutral float-right" title="Brushless Motor Controller Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="modules.html" class="btn btn-neutral float-right" title="Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

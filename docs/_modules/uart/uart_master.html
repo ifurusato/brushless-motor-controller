@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>uart.uart_master &mdash; Brushless Motor Controller 0.1.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -41,7 +41,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Brushless Motor Controller Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html#modules">Modules</a></li>
 </ul>
 
@@ -81,28 +81,28 @@
 <span class="c1"># created:  2025-06-12</span>
 <span class="c1"># modified: 2025-06-23</span>
 
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">traceback</span>
-<span class="kn">import</span> <span class="nn">itertools</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span> <span class="k">as</span> <span class="n">dt</span>
-<span class="kn">from</span> <span class="nn">colorama</span> <span class="kn">import</span> <span class="n">init</span><span class="p">,</span> <span class="n">Fore</span><span class="p">,</span> <span class="n">Style</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span> <span class="k">as</span> <span class="n">dt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">colorama</span><span class="w"> </span><span class="kn">import</span> <span class="n">init</span><span class="p">,</span> <span class="n">Fore</span><span class="p">,</span> <span class="n">Style</span>
 <span class="n">init</span><span class="p">()</span>
 
-<span class="kn">from</span> <span class="nn">uart.async_uart_manager</span> <span class="kn">import</span> <span class="n">AsyncUARTManager</span>
-<span class="kn">from</span> <span class="nn">uart.sync_uart_manager</span> <span class="kn">import</span> <span class="n">SyncUARTManager</span>
-<span class="kn">from</span> <span class="nn">uart.payload</span> <span class="kn">import</span> <span class="n">Payload</span>
-<span class="kn">from</span> <span class="nn">hardware.value_provider</span> <span class="kn">import</span> <span class="n">DigitalPotSpeedProvider</span><span class="p">,</span> <span class="n">RotaryEncoderCommandProvider</span>
-<span class="kn">from</span> <span class="nn">core.logger</span> <span class="kn">import</span> <span class="n">Logger</span><span class="p">,</span> <span class="n">Level</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">uart.async_uart_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncUARTManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">uart.sync_uart_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">SyncUARTManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">uart.payload</span><span class="w"> </span><span class="kn">import</span> <span class="n">Payload</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hardware.value_provider</span><span class="w"> </span><span class="kn">import</span> <span class="n">DigitalPotSpeedProvider</span><span class="p">,</span> <span class="n">RotaryEncoderCommandProvider</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">core.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">Logger</span><span class="p">,</span> <span class="n">Level</span>
 
 <div class="viewcode-block" id="UARTMaster">
 <a class="viewcode-back" href="../../modules.html#uart.uart_master.UARTMaster">[docs]</a>
-<span class="k">class</span> <span class="nc">UARTMaster</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">UARTMaster</span><span class="p">:</span>
     <span class="n">ERROR_PAYLOAD</span> <span class="o">=</span> <span class="n">Payload</span><span class="p">(</span><span class="s2">&quot;ER&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)</span> <span class="c1"># singleton error payload</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Uses UART 4 on port /dev/ttyAMA0 as the default.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="s1">&#39;/dev/ttyAMA0&#39;</span><span class="p">,</span> <span class="n">baudrate</span><span class="o">=</span><span class="mi">115200</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="s1">&#39;/dev/ttyAMA0&#39;</span><span class="p">,</span> <span class="n">baudrate</span><span class="o">=</span><span class="mi">115200</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">(</span><span class="s1">&#39;uart-master&#39;</span><span class="p">,</span> <span class="n">Level</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
         <span class="n">_use_async_uart_manager</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># config?</span>
         <span class="k">if</span> <span class="n">_use_async_uart_manager</span><span class="p">:</span>
@@ -118,7 +118,7 @@
 
 <div class="viewcode-block" id="UARTMaster.send_payload">
 <a class="viewcode-back" href="../../modules.html#uart.uart_master.UARTMaster.send_payload">[docs]</a>
-    <span class="k">def</span> <span class="nf">send_payload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">send_payload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Send a Payload object after converting it to bytes.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -133,7 +133,7 @@
 
 <div class="viewcode-block" id="UARTMaster.receive_payload">
 <a class="viewcode-back" href="../../modules.html#uart.uart_master.UARTMaster.receive_payload">[docs]</a>
-    <span class="k">def</span> <span class="nf">receive_payload</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">receive_payload</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Receive a Payload object.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -150,7 +150,7 @@
 
 <div class="viewcode-block" id="UARTMaster.send_receive_payload">
 <a class="viewcode-back" href="../../modules.html#uart.uart_master.UARTMaster.send_receive_payload">[docs]</a>
-    <span class="k">def</span> <span class="nf">send_receive_payload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">send_receive_payload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Accept a Payload, send it, then wait for the response and return the Payload result.</span>
 <span class="sd">        This method can be used without needing to run the full loop. If an error occurs</span>
@@ -167,7 +167,7 @@
 
 <div class="viewcode-block" id="UARTMaster.run">
 <a class="viewcode-back" href="../../modules.html#uart.uart_master.UARTMaster.run">[docs]</a>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                 <span class="n">command_source</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[],</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="n">speed_source</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[],</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="n">delay_sec</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>

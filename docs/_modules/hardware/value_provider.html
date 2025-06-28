@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>hardware.value_provider &mdash; Brushless Motor Controller 0.1.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -41,7 +41,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Brushless Motor Controller Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html#modules">Modules</a></li>
 </ul>
 
@@ -81,49 +81,49 @@
 <span class="c1"># created:  2025-06-12</span>
 <span class="c1"># modified: 2025-06-26</span>
 
-<span class="kn">from</span> <span class="nn">hardware.digital_pot_async</span> <span class="kn">import</span> <span class="n">DigitalPotentiometer</span>
-<span class="kn">from</span> <span class="nn">hardware.rotary_encoder</span> <span class="kn">import</span> <span class="n">RotaryEncoder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hardware.digital_pot_async</span><span class="w"> </span><span class="kn">import</span> <span class="n">DigitalPotentiometer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hardware.rotary_encoder</span><span class="w"> </span><span class="kn">import</span> <span class="n">RotaryEncoder</span>
 
 <div class="viewcode-block" id="ValueProvider">
 <a class="viewcode-back" href="../../modules.html#hardware.value_provider.ValueProvider">[docs]</a>
-<span class="k">class</span> <span class="nc">ValueProvider</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ValueProvider</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;subclasses must implement __call__()&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ValueProvider.off">
 <a class="viewcode-back" href="../../modules.html#hardware.value_provider.ValueProvider.off">[docs]</a>
-    <span class="k">def</span> <span class="nf">off</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">off</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;subclasses must implement off()&quot;</span><span class="p">)</span></div>
 </div>
 
 
 <div class="viewcode-block" id="DigitalPotSpeedProvider">
 <a class="viewcode-back" href="../../modules.html#hardware.value_provider.DigitalPotSpeedProvider">[docs]</a>
-<span class="k">class</span> <span class="nc">DigitalPotSpeedProvider</span><span class="p">(</span><span class="n">ValueProvider</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DigitalPotSpeedProvider</span><span class="p">(</span><span class="n">ValueProvider</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_digital_pot</span> <span class="o">=</span> <span class="n">DigitalPotentiometer</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_digital_pot</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_digital_pot</span><span class="o">.</span><span class="n">data</span>
 
 <div class="viewcode-block" id="DigitalPotSpeedProvider.close">
 <a class="viewcode-back" href="../../modules.html#hardware.value_provider.DigitalPotSpeedProvider.close">[docs]</a>
-    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_digital_pot</span><span class="o">.</span><span class="n">off</span><span class="p">()</span></div>
 </div>
 
 
 <div class="viewcode-block" id="RotaryEncoderCommandProvider">
 <a class="viewcode-back" href="../../modules.html#hardware.value_provider.RotaryEncoderCommandProvider">[docs]</a>
-<span class="k">class</span> <span class="nc">RotaryEncoderCommandProvider</span><span class="p">(</span><span class="n">ValueProvider</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RotaryEncoderCommandProvider</span><span class="p">(</span><span class="n">ValueProvider</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_encoder</span> <span class="o">=</span> <span class="n">RotaryEncoder</span><span class="p">(</span><span class="n">i2c_addr</span><span class="o">=</span><span class="mh">0x0F</span><span class="p">,</span> <span class="n">multiplier</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">brightness</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_encoder</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">mode</span><span class="p">,</span> <span class="n">hue</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_encoder</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
         <span class="n">cmd_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">mode</span> <span class="o">*</span> <span class="mi">10</span><span class="p">)</span>
         <span class="k">match</span> <span class="n">cmd_index</span><span class="p">:</span>
@@ -148,7 +148,7 @@
 
 <div class="viewcode-block" id="RotaryEncoderCommandProvider.close">
 <a class="viewcode-back" href="../../modules.html#hardware.value_provider.RotaryEncoderCommandProvider.close">[docs]</a>
-    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_encoder</span><span class="o">.</span><span class="n">off</span><span class="p">()</span></div>
 </div>
 
