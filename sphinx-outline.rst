@@ -11,11 +11,12 @@ The DFRobot brushless motors require a Pulse-Width Modified (PWM) signal to cont
 their speed, in an inverted mode: when fed a 100% duty cycle the motor is stopped,
 a 50% duty cycle is half speed, a 0% duty cycle is full speed.
 
-Because the Raspberry Pi uses a user-space OS, rather than an RTOS, its software PWM is
-not reliable. The Pi has only two channels of hardware PWM. Therefore, if you are trying
-to control more than two motors you'll need either an external PWM board or connecting
-to a microcontroller over a UART. This code supports either an RP2040 or an STM32 (i.e.,
-the STM32H562, though it could with some pin configuration changes be used with others).
+Because the Raspberry Pi is a user-space OS rather than an RTOS, its software PWM is
+not particularly stable, as it is influenced by system load. The Pi has only two
+channels of hardware PWM. Therefore, if you are trying to control more than two motors
+you'll need either an external PWM board or connecting to a microcontroller over a UART.
+This code supports either an RP2040 or an STM32 (i.e., the STM32H562, though it could
+with some pin configuration changes be used with others).
 
 
 =======
