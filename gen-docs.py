@@ -157,11 +157,18 @@ def find_modules(base_dir: Path):
 
 modules = find_modules(project_root)
 
-lines = [
-    "Modules",
-    "=======",
-    "",
-]
+# Initialize lines from sphinx-overview.rst if present, otherwise use default
+overview_file = project_root / "sphinx-overview.rst"
+if overview_file.exists():
+    lines = overview_file.read_text().splitlines()
+    if lines and lines[-1].strip() != "":
+        lines.append("")  # Ensure there's a blank line
+else:
+    lines = [
+        "Modules",
+        "=======",
+        "",
+    ]
 
 for mod in sorted(modules):
     lines.append(f".. automodule:: {mod}")
