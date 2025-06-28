@@ -1,14 +1,16 @@
 
-.. admonition:: Notice
+.. admonition:: Important
 
-    The project is still a work in progress, i.e., not everything works, or works
-    as expected.
+    This documentation for the Brushless Motor Controller was last updated {{date}},
+    so it may not be up to date with the code itself.
+
+    The project is still a work in progress, i.e., not everything works, or works as expected.
 
 
 A Python Controller for the DFRobot Brushless DC Motor with Encoder 12V 159RPM (FIT0441)
 ****************************************************************************************
 
-Welcome! This documentation for the Brushless Motor Controller, last updated {{date}}.
+Welcome!
 
 In 2025 DFRobot released the `Brushless DC Motor with Encoder 12V 159RPM (FIT0441) <https://www.dfrobot.com/product-1364.html>`__,
 a small (24mm diameter, 40mm length), relatively inexpensive 12V DC brushless motor
@@ -21,6 +23,9 @@ closed-loop control. Note that the encoder pin does not provide direction inform
 only an indication of movement.
 
 Also note that the motor's PWM is *inverted*: 100% is stopped, 0% is full speed.
+
+The repository itself is located at:
+`brushless_motor_controller <https://github.com/ifurusato/brushless-motor-controller/tree/main>`__
 
 
 Features

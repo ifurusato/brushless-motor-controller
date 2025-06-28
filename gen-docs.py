@@ -42,7 +42,8 @@ PROJECT_NAME = "Brushless Motor Controller"
 AUTHOR_NAME = "Ichiro Furusato"
 VERSION = "0.1.0"
 
-DOCS_DIR = Path("docs")
+# Change this to the temp directory
+DOCS_DIR = Path("temp")
 SOURCE_DIR = DOCS_DIR / "source"
 CONF_PY = SOURCE_DIR / "conf.py"
 INDEX_RST = SOURCE_DIR / "index.rst"
@@ -228,5 +229,21 @@ except subprocess.CalledProcessError as e:
     print(f"Failed to build HTML docs: {e}")
     sys.exit(1)
 
+# Copy the generated HTML docs from 'temp/build/html' to 'docs'
+final_docs_dir = Path("docs")
+if not final_docs_dir.exists():
+    print("Creating final docs/ directory...")
+    final_docs_dir.mkdir(parents=True)
+
+# Remove old content in docs/ if it exists
+shutil.rmtree(final_docs_dir, ignore_errors=True)
+
+# Copy new content from the build folder
+shutil.copytree(DOCS_DIR / "build" / "html", final_docs_dir)
+
+# delete the temp directory
+shutil.rmtree(DOCS_DIR, ignore_errors=True)
+
 print("\nAll done! Documentation is ready in the docs directory.")
 
+#EOF
