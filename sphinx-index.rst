@@ -37,16 +37,20 @@ Features
 The project operates in one of five hardware modes:
 
 1. using a **software PWM** from the Raspberry Pi to the motors: does provide a stable frequency
-2. using a **hardware PWM** from the Raspberry Pi to the motors: there are only two hardware PWM pins available on the Raspberry Pi
-3. using an **external PWM controller** such as the TI TLC59711 PWM controller (supplied by an Adafruit board [*]_, see below): requires an additional SPI device but is both stable and there are 12 PWM channels available
-4. connecting via **UART** to either an RP2040 or STM32 microcontroller: the microcontroller reliably handles the PWM to the motors, but may be limited by the performance of the UART
+2. using a **hardware PWM** from the Raspberry Pi to the motors: there are only two
+   hardware PWM pins available on the Raspberry Pi
+3. using an **external PWM controller** such as the TI TLC59711 PWM controller (supplied by
+   an Adafruit board [*]_, see below): requires an additional SPI device but is both
+   stable and there are 12 PWM channels available
+4. connecting via **UART** to either an RP2040 or STM32 microcontroller: the microcontroller
+   reliably handles the PWM to the motors, but may be limited by the performance of the UART
 
 .. note::
     One of the options is a microcontroller connected over a UART; with this approach
     the Raspberry Pi would not be necessary if control of the MotorController were
-    fleshed out as necessary (though beyond the scope of this project). That is, e.g.,
-    a robot based on a microcontroller could use the MotorController as a component
-    without the Raspberry Pi as master.
+    fleshed out with a higher-level controller (though beyond the scope of this project).
+    That is, e.g., a robot based solely on a microcontroller could use the MotorController
+    as a design component without the Raspberry Pi as master.
 
 The motor controller itself includes support for open- or closed-loop control,
 stall-and-recovery, deadband control, and control by target RPM when operating in

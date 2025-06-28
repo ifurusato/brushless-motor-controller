@@ -97,17 +97,21 @@ only an indication of movement.</p>
 <p>The project operates in one of five hardware modes:</p>
 <ol class="arabic simple">
 <li><p>using a <strong>software PWM</strong> from the Raspberry Pi to the motors: does provide a stable frequency</p></li>
-<li><p>using a <strong>hardware PWM</strong> from the Raspberry Pi to the motors: there are only two hardware PWM pins available on the Raspberry Pi</p></li>
-<li><p>using an <strong>external PWM controller</strong> such as the TI TLC59711 PWM controller (supplied by an Adafruit board <a class="footnote-reference brackets" href="#id2" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>*<span class="fn-bracket">]</span></a>, see below): requires an additional SPI device but is both stable and there are 12 PWM channels available</p></li>
-<li><p>connecting via <strong>UART</strong> to either an RP2040 or STM32 microcontroller: the microcontroller reliably handles the PWM to the motors, but may be limited by the performance of the UART</p></li>
+<li><p>using a <strong>hardware PWM</strong> from the Raspberry Pi to the motors: there are only two
+hardware PWM pins available on the Raspberry Pi</p></li>
+<li><p>using an <strong>external PWM controller</strong> such as the TI TLC59711 PWM controller (supplied by
+an Adafruit board <a class="footnote-reference brackets" href="#id2" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>*<span class="fn-bracket">]</span></a>, see below): requires an additional SPI device but is both
+stable and there are 12 PWM channels available</p></li>
+<li><p>connecting via <strong>UART</strong> to either an RP2040 or STM32 microcontroller: the microcontroller
+reliably handles the PWM to the motors, but may be limited by the performance of the UART</p></li>
 </ol>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>One of the options is a microcontroller connected over a UART; with this approach
 the Raspberry Pi would not be necessary if control of the MotorController were
-fleshed out as necessary (though beyond the scope of this project). That is, e.g.,
-a robot based on a microcontroller could use the MotorController as a component
-without the Raspberry Pi as master.</p>
+fleshed out with a higher-level controller (though beyond the scope of this project).
+That is, e.g., a robot based solely on a microcontroller could use the MotorController
+as a design component without the Raspberry Pi as master.</p>
 </div>
 <p>The motor controller itself includes support for open- or closed-loop control,
 stall-and-recovery, deadband control, and control by target RPM when operating in
