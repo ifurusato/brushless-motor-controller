@@ -241,6 +241,9 @@ shutil.rmtree(final_docs_dir, ignore_errors=True)
 # Copy new content from the build folder
 shutil.copytree(DOCS_DIR / "build" / "html", final_docs_dir)
 
+# copy .nojekyll to docs
+shutil.copyfile(".nojekyll", os.path.join("docs", ".nojekyll"))
+
 # delete the temp directory
 shutil.rmtree(DOCS_DIR, ignore_errors=True)
 
