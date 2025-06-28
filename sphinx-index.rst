@@ -1,0 +1,65 @@
+
+.. admonition:: Notice
+
+    The project is still a work in progress, i.e., not everything works, or works
+    as expected.
+
+
+A Python Controller for the DFRobot Brushless DC Motor with Encoder 12V 159RPM (FIT0441)
+****************************************************************************************
+
+Welcome! This documentation for the Brushless Motor Controller, last updated {{date}}.
+
+In 2025 DFRobot released the `Brushless DC Motor with Encoder 12V 159RPM (FIT0441) <https://www.dfrobot.com/product-1364.html>`__,
+a small (24mm diameter, 40mm length), relatively inexpensive 12V DC brushless motor
+with its own internal controller, suitable for integration with the rest of the 
+Python-based robot OS (`KROS <https://github.com/ifurusato/krzos>`__).
+
+The motor is controlled by three pins: a pulse-width-modulated (PWM) pin, a direction
+pin, and an ``FG`` pin providing feedback from its internal motor encoder, permitting
+closed-loop control. Note that the encoder pin does not provide direction information,
+only an indication of movement.
+
+Also note that the motor's PWM is *inverted*: 100% is stopped, 0% is full speed.
+
+
+Features
+********
+
+The project operates in three main modes: a direct connection between the Raspberry Pi
+and the motors; using a TI TLC59711 PWM controller; and connecting via UART to either
+an RP2040 or STM32 microcontroller, which handles the PWM of the motors.
+
+In direct connect (non-UART) modes There are three PWM controller implementations:
+software PWM, hardware PWM, and using a TI TLC59711 PWM controller (supplied by an
+Adafruit board, see below).
+
+The TLC59711 is usually designed to control up to 12 channels of LEDs, or four RGB LEDs.
+n our case we only need a much smaller number of channels, one per motor. These channels
+are enumerated in ControllerChannel.
+
+This uses a YAML configuration file for the application itself, and another for the
+motor pin configuraion when using the UART in the MicroPython environent.
+
+The motor controller itself includes support for open- or closed-loop control,
+stall-and-recovery, deadband control, and control by target RPM when operating in
+closed-loop mode. Provided a wheel diameter this also provides for odometric
+distance and speed measurements.
+
+
+Support & Liability
+*******************
+
+This project comes with no promise of support or acceptance of liability. Use at
+your own risk.
+
+
+Copyright & License
+*******************
+
+All contents (including software, documentation and images)
+Copyright 2020-2025 by Ichiro Furusato. All rights reserved.
+
+Software and documentation are distributed under the MIT License, see LICENSE
+file included with project.
+

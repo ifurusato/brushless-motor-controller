@@ -33,6 +33,7 @@
 
 import subprocess
 from pathlib import Path
+from datetime import datetime
 import shutil
 import sys
 import os
@@ -185,12 +186,33 @@ for mod in sorted(modules):
 MODULES_RST.write_text("\n".join(lines))
 print(f"Generated {MODULES_RST} with {len(modules)} modules")
 
-# Update index.rst to include modules.rst
-index_text = INDEX_RST.read_text()
-if "modules" not in index_text:
-    index_text += "\n.. toctree::\n   :maxdepth: 2\n\n   modules\n"
-    INDEX_RST.write_text(index_text)
-    print("Updated index.rst to include modules.rst")
+# Optional external prefix file for index.rst
+index_prefix_file = project_root / "sphinx-index.rst"
+today = datetime.now().strftime("%d %b %Y")
+
+# Start with prefix from file, fallback to empty string
+if index_prefix_file.exists():
+    index_lines = index_prefix_file.read_text().splitlines()
+else:
+    index_lines = []
+
+# Replace placeholder {{date}} with today in all lines
+index_lines = [line.replace("{{date}}", today) for line in index_lines]
+
+# Ensure toctree is included
+toctree_lines = [
+    "",
+    ".. toctree::",
+    "   :maxdepth: 2",
+    "   :caption: Modules",
+    "",
+    "   modules",
+]
+
+# Combine all lines and write out
+final_index = "\n".join(index_lines + toctree_lines) + "\n"
+INDEX_RST.write_text(final_index)
+print("Generated index.rst with overview and toctree for modules")
 
 # Build HTML docs automatically
 print("Building HTML documentation by running 'make html' in docs/")
