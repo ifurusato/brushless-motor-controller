@@ -32,11 +32,11 @@ class Component(object):
 
     The Logger is passed in as an argument on the constructor. This is only
     implicitly an abstract class, (not explicitly) because while we expect it
-    to be subclassed, but there is no reason to enforce and API or reimplment
+    to be subclassed, but there is no reason to enforce an API or reimplement
     methods unless to hook additional functionality to them.
 
     The Component is suppressed and disabled by default, though via optional
-    constructor arguments either can set be set to True.
+    constructor arguments either can set be set to ``True``.
 
     All Components are automatically added to the ComponentRegistry, which is
     an alternative means of gaining access to them within the application, by

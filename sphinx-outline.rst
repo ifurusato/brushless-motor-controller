@@ -14,9 +14,10 @@ a 50% duty cycle is half speed, a 0% duty cycle is full speed.
 Because the Raspberry Pi is a user-space OS rather than an RTOS, its software PWM is
 not particularly stable, as it is influenced by system load. The Pi has only two
 channels of hardware PWM available. Therefore, if you are trying to control more than
-two motors you'll need either an external PWM board or connecting to a microcontroller
-over a UART. This code supports either an RP2040 or an STM32 (i.e., the STM32H562,
-though it could with some pin configuration changes be used with others).
+two motors you'll need either an external PWM board or connect to a microcontroller
+over a UART. In this latter mode the project supports either an RP2040 or an STM32
+(i.e., the STM32H562, though it could with some pin configuration changes be used with
+others).
 
 
 =======
