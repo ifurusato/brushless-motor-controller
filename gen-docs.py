@@ -84,7 +84,7 @@ if "sphinx.ext.napoleon" not in conf_text:
     )
 
 # Add autodoc_mock_imports line if missing
-mock_imports_line = "autodoc_mock_imports = ['pigpio', 'spidev', 'RPi', 'smbus']"
+mock_imports_line = "autodoc_mock_imports = ['pigpio', 'spidev', 'RPi', 'smbus', 'ioexpander']"
 if mock_imports_line not in conf_text:
     # Insert after extensions block (after the closing bracket)
     insert_after = conf_text.find("extensions = [")
