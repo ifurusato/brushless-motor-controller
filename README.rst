@@ -32,21 +32,20 @@ Documentation
 `Documentation <https://ifurusato.github.io/brushless-motor-controller/>`__
 for the project is available.
 
-.. note::
-   The primary documentation for this project is the generated documentation as linked
-   above, not this README file. Specifically, pin configuration is located there.
+**Note:**  The primary documentation for this project is the generated documentation as
+linked above, not this README file. Specifically, pin configuration is located there.
 
 
 Software Requirements
 *********************
 
-A requirements.txt file is provided. There are four dependencies::
+A `requirements.txt` file is provided. There are four dependencies::
 
     colorama==0.4.6
     pigpio==1.78
     pyserial==3.5
-    spidev==3.5
     PyYAML==6.0.2
+    spidev==3.5
 
 though if you are using the UART connection you will not need pigpio or spidev.
 
