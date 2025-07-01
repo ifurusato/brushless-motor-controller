@@ -26,8 +26,15 @@ only an indication of movement.
 
 Also note that the motor's PWM is *inverted*: 100% is stopped, 0% is full speed.
 
-The repository may be found at:
+The GitHub repository for this project may be found at:
 `brushless_motor_controller <https://github.com/ifurusato/brushless-motor-controller/tree/main>`__
+
+
+References
+----------
+
+* Product page: `Brushless DC Motor with Encoder 12V 159RPM FIT0441 <https://www.dfrobot.com/product-1364.html>`__
+* Documentation: `FIT0441 Brushless DC Motor with Encoder 12V 159RPM <https://wiki.dfrobot.com/FIT0441_Brushless_DC_Motor_with_Encoder_12V_159RPM>`__
 
 
 ========
@@ -48,9 +55,9 @@ The project operates in one of five hardware modes:
 .. note::
     While the fourth option describes a Raspberry Pi master connected to a microcontroller slave,
     strictly speaking the Raspberry Pi is not necessary if control of the MotorController were
-    fleshed out with a higher-level robot controller on the microcontroller (though beyond the
-    scope of this project). That is, e.g., a robot based solely on a microcontroller could use
-    this project's MotorController without a Raspberry Pi at all.
+    fleshed out with a higher-level robot controller on the microcontroller itself (though that
+    is beyond the scope of this project). I.e., a robot based solely on a microcontroller could
+    use this project's MotorController without a Raspberry Pi at all.
 
 
 The motor controller itself includes support for open- or closed-loop control,

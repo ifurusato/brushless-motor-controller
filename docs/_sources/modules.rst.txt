@@ -19,12 +19,6 @@ over a UART. In this latter mode the project supports either an RP2040 or an STM
 (i.e., the STM32H562, though it could with some pin configuration changes be used with
 others).
 
-References
-----------
-
-* Product page: `Brushless DC Motor with Encoder 12V 159RPM FIT0441 <https://www.dfrobot.com/product-1364.html>`__
-* Documentation: `FIT0441 Brushless DC Motor with Encoder 12V 159RPM <https://wiki.dfrobot.com/FIT0441_Brushless_DC_Motor_with_Encoder_12V_159RPM>`__
-
 
 Installation
 ------------
