@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>hardware.brushless_motor &mdash; Brushless Motor Controller 0.1.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -39,10 +39,11 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Features</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../modules.html#modules">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html#pinout">Pinout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html#module-core.component">Modules</a></li>
 </ul>
 
         </div>
@@ -99,28 +100,28 @@
 <span class="c1"># FG pin:        GPIO 24</span>
 <span class="c1">#</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">threading</span><span class="w"> </span><span class="kn">import</span> <span class="n">Thread</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">math</span><span class="w"> </span><span class="kn">import</span> <span class="n">pi</span> <span class="k">as</span> <span class="n">π</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span> <span class="k">as</span> <span class="n">dt</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pigpio</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">colorama</span><span class="w"> </span><span class="kn">import</span> <span class="n">init</span><span class="p">,</span> <span class="n">Fore</span><span class="p">,</span> <span class="n">Style</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">pi</span> <span class="k">as</span> <span class="n">π</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span> <span class="k">as</span> <span class="n">dt</span>
+<span class="kn">import</span> <span class="nn">pigpio</span>
+<span class="kn">from</span> <span class="nn">colorama</span> <span class="kn">import</span> <span class="n">init</span><span class="p">,</span> <span class="n">Fore</span><span class="p">,</span> <span class="n">Style</span>
 <span class="n">init</span><span class="p">()</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">core.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">Logger</span><span class="p">,</span> <span class="n">Level</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">hardware.controller_channel</span><span class="w"> </span><span class="kn">import</span> <span class="n">ControllerChannel</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">hardware.slew_limiter</span><span class="w"> </span><span class="kn">import</span> <span class="n">SlewLimiter</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">hardware.pwm_controller_impl</span><span class="w"> </span><span class="kn">import</span> <span class="n">PWMControllerImpl</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">hardware.tlc59711</span><span class="w"> </span><span class="kn">import</span> <span class="n">TLC59711</span>
+<span class="kn">from</span> <span class="nn">core.logger</span> <span class="kn">import</span> <span class="n">Logger</span><span class="p">,</span> <span class="n">Level</span>
+<span class="kn">from</span> <span class="nn">hardware.controller_channel</span> <span class="kn">import</span> <span class="n">ControllerChannel</span>
+<span class="kn">from</span> <span class="nn">hardware.slew_limiter</span> <span class="kn">import</span> <span class="n">SlewLimiter</span>
+<span class="kn">from</span> <span class="nn">hardware.pwm_controller_impl</span> <span class="kn">import</span> <span class="n">PWMControllerImpl</span>
+<span class="kn">from</span> <span class="nn">hardware.tlc59711</span> <span class="kn">import</span> <span class="n">TLC59711</span>
 
 <span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
 <div class="viewcode-block" id="BrushlessMotor">
 <a class="viewcode-back" href="../../modules.html#hardware.brushless_motor.BrushlessMotor">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">BrushlessMotor</span><span class="p">:</span>
+<span class="k">class</span> <span class="nc">BrushlessMotor</span><span class="p">:</span>
     <span class="c1"># defaults:</span>
     <span class="n">PWM_GPIO_PIN</span>      <span class="o">=</span> <span class="mi">18</span>
     <span class="n">DIR_GPIO_PIN</span>      <span class="o">=</span> <span class="mi">23</span>
@@ -147,7 +148,7 @@
 <span class="sd">    :param closed_loop_enabled:  if True, operates in closed loop mode. If None is provided, uses configuration instead</span>
 <span class="sd">    :param level:                the log level</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">pi</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ctrl&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pwm_pin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dir_pin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">closed_loop_enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">pi</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ctrl&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pwm_pin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dir_pin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">closed_loop_enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">pwm_impl</span><span class="p">:</span> <span class="n">PWMControllerImpl</span> <span class="o">=</span> <span class="n">PWMControllerImpl</span><span class="o">.</span><span class="n">HARDWARE_CONTROLLER</span><span class="p">,</span> <span class="n">tlc_controller</span><span class="p">:</span> <span class="n">TLC59711</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="n">ControllerChannel</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">Level</span><span class="o">.</span><span class="n">INFO</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">(</span><span class="s1">&#39;motor-</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
@@ -249,7 +250,7 @@
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> raised initialising motor controller: </span><span class="si">{}</span><span class="se">\n</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">e</span><span class="p">,</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()))</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_start_event_loop_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_start_event_loop_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">new_event_loop</span><span class="p">()</span>
         <span class="n">thread</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">loop</span><span class="o">.</span><span class="n">run_forever</span><span class="p">,</span> <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
@@ -257,31 +258,31 @@
 
 <div class="viewcode-block" id="BrushlessMotor.enable">
 <a class="viewcode-back" href="../../modules.html#hardware.brushless_motor.BrushlessMotor.enable">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">enable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">enable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_enabled</span> <span class="o">=</span> <span class="kc">True</span></div>
 
 
 <div class="viewcode-block" id="BrushlessMotor.disable">
 <a class="viewcode-back" href="../../modules.html#hardware.brushless_motor.BrushlessMotor.disable">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">disable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">disable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_enabled</span> <span class="o">=</span> <span class="kc">False</span></div>
 
 
     <span class="c1"># properties ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enabled</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">closed_loop_enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">closed_loop_enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Returns True if closed loop mode is enabled.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_closed_loop_enabled</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">measured_rpm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">measured_rpm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Returns the RPM indicated by counting the pulses coming from FG,</span>
 <span class="sd">        the motor feedback pin. Returns None if running in open loop mode.</span>
@@ -293,7 +294,7 @@
         <span class="k">return</span> <span class="o">-</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rpm</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">DIRECTION_REVERSE</span> <span class="k">else</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rpm</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">measured_mm_per_sec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">measured_mm_per_sec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Returns the current measured speed in mm/sec using the formula:</span>
 
@@ -304,7 +305,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_circumference_mm</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">measured_rpm</span><span class="p">)</span> <span class="o">/</span> <span class="mf">60.0</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_closed_loop_enabled</span> <span class="k">else</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">cumulative_distance_mm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">cumulative_distance_mm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Return the cumulative distance in millimeters.</span>
 <span class="sd">        Returns None if running in open loop mode.</span>
@@ -315,22 +316,22 @@
 
 <div class="viewcode-block" id="BrushlessMotor.set_on_stall">
 <a class="viewcode-back" href="../../modules.html#hardware.brushless_motor.BrushlessMotor.set_on_stall">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_on_stall</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">set_on_stall</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_on_stall_callback</span> <span class="o">=</span> <span class="n">callback</span></div>
 
 
 <div class="viewcode-block" id="BrushlessMotor.set_on_recovery">
 <a class="viewcode-back" href="../../modules.html#hardware.brushless_motor.BrushlessMotor.set_on_recovery">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_on_recovery</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">set_on_recovery</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_on_recovery_callback</span> <span class="o">=</span> <span class="n">callback</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_handle_stall</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_handle_stall</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;stall detected — attempting recovery…&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_stop_rpm_control</span><span class="p">()</span> <span class="c1"># pause PID temporarily</span>
         <span class="n">asyncio</span><span class="o">.</span><span class="n">run_coroutine_threadsafe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_attempt_recovery</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loop</span><span class="p">)</span>
 
-    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_attempt_recovery</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_attempt_recovery</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_target_rpm</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deadband_rpm</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;recovery aborted — target RPM below minimum threshold.&quot;</span><span class="p">)</span>
             <span class="k">return</span>
@@ -350,7 +351,7 @@
                 <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Recovery ramp failed — no FG detected.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_handle_recovery</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_handle_recovery</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;motor has recovered and is moving again.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_rpm</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
             <span class="c1"># smooth re-ramp to target RPM after recovery</span>
@@ -358,13 +359,13 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_resume_after_recovery</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loop</span>
             <span class="p">)</span>
 
-    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_resume_after_recovery</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_resume_after_recovery</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;smoothly resuming PID after recovery.&quot;</span><span class="p">)</span>
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_pwm_async</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># reset to zero (optional)</span>
         <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_target_rpm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_target_rpm</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_check_stall</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_check_stall</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">now</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
         <span class="c1"># cooldown window: ignore stall detection immediately after RPM changes</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_target_rpm_set_dt</span><span class="p">:</span>
@@ -399,27 +400,27 @@
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_recovery_callback</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_on_recovery_callback</span><span class="p">()</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_reset_pid_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_reset_pid_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Reset PID control state variables.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_integral_error</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_stall_monitor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_stall_monitor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_check_stall</span><span class="p">()</span>
             <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span> <span class="c1"># check every 100 ms</span>
 
 <div class="viewcode-block" id="BrushlessMotor.enable_closed_loop">
 <a class="viewcode-back" href="../../modules.html#hardware.brushless_motor.BrushlessMotor.enable_closed_loop">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">enable_closed_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enable</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">enable_closed_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enable</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_closed_loop_enabled</span> <span class="o">=</span> <span class="n">enable</span></div>
 
 
 <div class="viewcode-block" id="BrushlessMotor.set_speed">
 <a class="viewcode-back" href="../../modules.html#hardware.brushless_motor.BrushlessMotor.set_speed">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_speed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speed</span><span class="p">,</span> <span class="n">target_mm</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">set_speed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speed</span><span class="p">,</span> <span class="n">target_mm</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Sets the target speed for both open and closed loop mode.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -433,7 +434,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_open_loop_speed</span><span class="p">(</span><span class="n">speed</span><span class="p">,</span> <span class="n">target_mm</span><span class="o">=</span><span class="n">target_mm</span><span class="p">,</span> <span class="n">poll_delay</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_set_target_rpm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rpm</span><span class="p">,</span> <span class="n">target_mm</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_set_target_rpm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rpm</span><span class="p">,</span> <span class="n">target_mm</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;motor controller not enabled.&#39;</span><span class="p">)</span>
             <span class="k">return</span>
@@ -484,13 +485,13 @@
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> raised starting feedback coroutine: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">e</span><span class="p">))</span>
 
-    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_apply_kickstart</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speed</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_apply_kickstart</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speed</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;applying kickstart for low RPM startup…&quot;</span><span class="p">)</span>
         <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_pwm_async</span><span class="p">(</span><span class="n">speed</span><span class="p">)</span>
         <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.3</span><span class="p">)</span> <span class="c1"># brief burst</span>
 
-    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_run_rpm_feedback</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_run_rpm_feedback</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">Fore</span><span class="o">.</span><span class="n">WHITE</span> <span class="o">+</span> <span class="s2">&quot;starting RPM feedback task…&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_integral_error</span> <span class="o">=</span> <span class="mi">0</span>
@@ -535,7 +536,7 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">Fore</span><span class="o">.</span><span class="n">WHITE</span> <span class="o">+</span> <span class="n">Style</span><span class="o">.</span><span class="n">DIM</span> <span class="o">+</span> <span class="s2">&quot;RPM feedback task cancelled.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_check_distance_target_reached</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_check_distance_target_reached</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">current</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cumulative_distance_mm</span>
         <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initial_distance</span>
         <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_distance</span>
@@ -544,7 +545,7 @@
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="kc">False</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_pid_adjustment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">max_adjustment</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_compute_pid_adjustment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">max_adjustment</span><span class="p">):</span>
         <span class="n">error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_rpm</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">measured_rpm</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_integral_error</span> <span class="o">+=</span> <span class="n">error</span> <span class="o">*</span> <span class="n">dt</span>
         <span class="n">derivative</span> <span class="o">=</span> <span class="p">(</span><span class="n">error</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_error</span><span class="p">)</span> <span class="o">/</span> <span class="n">dt</span> <span class="k">if</span> <span class="n">dt</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
@@ -555,7 +556,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Huge PID adjustment: </span><span class="si">{:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">adjustment</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">adjustment</span><span class="p">,</span> <span class="n">error</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_new_speed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adjustment</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_compute_new_speed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">adjustment</span><span class="p">):</span>
         <span class="n">new_speed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clamp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_current_speed</span> <span class="o">+</span> <span class="n">adjustment</span><span class="p">,</span> <span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fixed_deadband</span><span class="p">:</span>
             <span class="n">new_speed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_deadband</span><span class="p">(</span><span class="n">new_speed</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deadband_rpm</span><span class="p">)</span>
@@ -564,19 +565,19 @@
             <span class="n">new_speed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_deadband</span><span class="p">(</span><span class="n">new_speed</span><span class="p">,</span> <span class="n">threshold</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">new_speed</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_clamp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">min_val</span><span class="p">,</span> <span class="n">max_val</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_clamp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">min_val</span><span class="p">,</span> <span class="n">max_val</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">min_val</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">max_val</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_deadband</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_apply_deadband</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
         <span class="k">return</span> <span class="mi">0</span> <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">threshold</span> <span class="k">else</span> <span class="n">value</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_stop_rpm_control</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_stop_rpm_control</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">closed_loop_enabled</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_feedback_task</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_feedback_task</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_feedback_task</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;closed-loop RPM control disabled.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_fg_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gpio</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">tick</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_fg_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gpio</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">tick</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Callback for open or closed loop control.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -598,7 +599,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_stall</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_last_tick</span> <span class="o">=</span> <span class="n">tick</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_rpm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_calculate_rpm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pulse_intervals</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_rpm</span> <span class="o">=</span> <span class="mf">0.0</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;no pulse intervals available, RPM set to 0.&quot;</span><span class="p">)</span>
@@ -620,21 +621,21 @@
 
 <div class="viewcode-block" id="BrushlessMotor.get_distance_future">
 <a class="viewcode-back" href="../../modules.html#hardware.brushless_motor.BrushlessMotor.get_distance_future">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_distance_future</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_distance_future</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Used to create blocking return while running the task.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_distance_future</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_start_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_start_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">Fore</span><span class="o">.</span><span class="n">GREEN</span> <span class="o">+</span> <span class="s1">&#39;starting asyncio loop…&#39;</span><span class="p">)</span>
         <span class="n">asyncio</span><span class="o">.</span><span class="n">set_event_loop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_loop</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_loop</span><span class="o">.</span><span class="n">run_forever</span><span class="p">()</span>
 
 <div class="viewcode-block" id="BrushlessMotor.stop_loop">
 <a class="viewcode-back" href="../../modules.html#hardware.brushless_motor.BrushlessMotor.stop_loop">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">stop_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">stop_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Stops the asyncio loop, to be used upon closing.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -645,7 +646,7 @@
 
 <div class="viewcode-block" id="BrushlessMotor.reset_distance">
 <a class="viewcode-back" href="../../modules.html#hardware.brushless_motor.BrushlessMotor.reset_distance">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">reset_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">reset_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Reset odometry tracking to zero.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -657,7 +658,7 @@
 
 <div class="viewcode-block" id="BrushlessMotor.get_distance_mm">
 <a class="viewcode-back" href="../../modules.html#hardware.brushless_motor.BrushlessMotor.get_distance_mm">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_distance_mm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_distance_mm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Calculate distance traveled in millimeters based on elapsed time</span>
 <span class="sd">        and current speed using the calibration constant.</span>
@@ -676,7 +677,7 @@
             <span class="k">return</span> <span class="n">distance</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_set_open_loop_speed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speed</span><span class="p">,</span> <span class="n">target_mm</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">poll_delay</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_set_open_loop_speed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speed</span><span class="p">,</span> <span class="n">target_mm</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">poll_delay</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Set motor speed (-100 to 100) in open loop. If target_mm &gt; 0, run until distance</span>
 <span class="sd">        reached then stop.</span>
@@ -718,7 +719,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_distance_future</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_rpm</span><span class="p">()</span>
 
-    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_stop_at_distance_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_mm</span><span class="p">,</span> <span class="n">poll_delay</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_stop_at_distance_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_mm</span><span class="p">,</span> <span class="n">poll_delay</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">Fore</span><span class="o">.</span><span class="n">MAGENTA</span> <span class="o">+</span> <span class="s2">&quot;monitoring distance to stop at </span><span class="si">{:.1f}</span><span class="s2">mm&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">target_mm</span><span class="p">))</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">counter</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -732,7 +733,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">Fore</span><span class="o">.</span><span class="n">MAGENTA</span> <span class="o">+</span> <span class="s2">&quot;target distance </span><span class="si">{:.1f}</span><span class="s2">mm reached, motor stopped.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">target_mm</span><span class="p">))</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_pwm_sync</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speed</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_apply_pwm_sync</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speed</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Synchronously ramps motor speed to target, sending PWM signals with delay between steps.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -749,13 +750,13 @@
                     <span class="s2">&quot;FORWARD&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">DIRECTION_FORWARD</span> <span class="k">else</span> <span class="s2">&quot;REVERSE&quot;</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_send_pwm</span><span class="p">(</span><span class="n">_speed</span><span class="p">)</span>
 
-    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_apply_pwm_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speed</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_apply_pwm_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speed</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Asynchronously ramps motor speed to target, sending PWM signals with async delays between steps.</span>
 <span class="sd">        This is the older version that uses _ramp_speeds().</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enable_ramping</span><span class="p">:</span>
-            <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">async_sleep</span><span class="p">():</span>
+            <span class="k">async</span> <span class="k">def</span> <span class="nf">async_sleep</span><span class="p">():</span>
                 <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_accel_delay</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">_speed</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ramp_speeds</span><span class="p">(</span><span class="n">speed</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_send_pwm</span><span class="p">(</span><span class="n">_speed</span><span class="p">)</span>
@@ -769,7 +770,7 @@
                     <span class="s2">&quot;FORWARD&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">DIRECTION_FORWARD</span> <span class="k">else</span> <span class="s2">&quot;REVERSE&quot;</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_send_pwm</span><span class="p">(</span><span class="n">_speed</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_send_pwm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speed</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_send_pwm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speed</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Send PWM and direction to the motor.</span>
 
@@ -790,7 +791,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;speed set to </span><span class="si">{:.2f}</span><span class="s2">% (direction: </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="n">speed</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;FORWARD&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">DIRECTION_FORWARD</span> <span class="k">else</span> <span class="s1">&#39;REVERSE&#39;</span><span class="p">)))</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_ramp_speeds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speed</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_ramp_speeds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speed</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Generator yielding intermediate speeds from current to target with slew limiting.</span>
 
@@ -814,7 +815,7 @@
 
 <div class="viewcode-block" id="BrushlessMotor.accelerate">
 <a class="viewcode-back" href="../../modules.html#hardware.brushless_motor.BrushlessMotor.accelerate">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">accelerate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_speed</span><span class="p">,</span> <span class="n">end_speed</span><span class="p">,</span> <span class="n">step_speed</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">accelerate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_speed</span><span class="p">,</span> <span class="n">end_speed</span><span class="p">,</span> <span class="n">step_speed</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Gradually accelerate from start_speed to end_speed, with set</span>
 <span class="sd">        delay between steps.</span>
@@ -839,7 +840,7 @@
 
 <div class="viewcode-block" id="BrushlessMotor.stop">
 <a class="viewcode-back" href="../../modules.html#hardware.brushless_motor.BrushlessMotor.stop">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Stop motor immediately.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -855,13 +856,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;motor stopped.&quot;</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_close_distance_future</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_close_distance_future</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_distance_future</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_distance_future</span><span class="o">.</span><span class="n">done</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;cancelling distance monitoring task…&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_distance_future</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_distance_future</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_reset_fg_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_reset_fg_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Reset all FG (feedback) pulse tracking state.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -872,7 +873,7 @@
 
 <div class="viewcode-block" id="BrushlessMotor.close">
 <a class="viewcode-back" href="../../modules.html#hardware.brushless_motor.BrushlessMotor.close">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Stop motor and clean up resources.</span>
 <span class="sd">        &#39;&#39;&#39;</span>

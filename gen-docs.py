@@ -7,7 +7,7 @@
 #
 # author:   Murray Altheim
 # created:  2025-06-12
-# modified: 2025-06-29
+# modified: 2025-07-01
 #
 # ---- Generating Project Documentation Using Sphinx ----
 #
@@ -28,6 +28,8 @@ from datetime import datetime
 import shutil
 from colorama import init, Fore, Style
 init()
+
+from motor_table_renderer import MotorTableRenderer
 
 # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 
@@ -154,18 +156,44 @@ def find_modules(base_dir: Path):
 
 modules = find_modules(project_root)
 
-# Initialize lines from sphinx-outline.rst if present, otherwise use default
-overview_file = project_root / "sphinx-outline.rst"
-if overview_file.exists():
-    lines = overview_file.read_text().splitlines()
-    if lines and lines[-1].strip() != "":
-        lines.append("")  # Ensure there's a blank line
-else:
-    lines = [
-        "Modules",
-        "=======",
-        "",
-    ]
+# sidebar ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+lines = []
+
+# append lines from sphinx-outline.rst
+outline_file = project_root / "sphinx-outline.rst"
+if outline_file.exists():
+    _lines = outline_file.read_text().splitlines()
+    for _line in _lines:
+        lines.append(_line)
+
+# append lines from table-rendered sphinx-outline.rst
+renderer = MotorTableRenderer("upy/motor_config.yaml")
+#renderer.prepend_template("sphinx-pinout.rst")
+rendered_table = renderer.render_table()
+
+pwm_timer = str(renderer.get_pwm_timer())
+enc_timer = str(renderer.get_enc_timer())
+
+pinout_file = project_root / "sphinx-pinout.rst"
+if pinout_file.exists():
+    _text = pinout_file.read_text()
+    _text = _text.replace('{{PWM_TIMER}}', pwm_timer)
+    _text = _text.replace('{{ENC_TIMER}}', enc_timer)
+    _text = _text.replace('{{PINOUT}}', rendered_table)
+    _lines = _text.splitlines()
+    for _line in _lines:
+#       print("line: '{}'".format(_line))
+        lines.append(_line)
+
+# add modules header
+lines.append("")
+lines.append("")
+lines.append("=======")
+lines.append("Modules")
+lines.append("=======")
+lines.append("")
+lines.append("")
 
 for mod in sorted(modules):
     lines.append(f".. automodule:: {mod}")
@@ -200,7 +228,7 @@ toctree_lines = [
     "",
     ".. toctree::",
     "   :maxdepth: 2",
-    "   :caption: Modules",
+    "   :caption: Features",
     "",
     "   modules",
 ]

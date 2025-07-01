@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Index &mdash; Brushless Motor Controller 0.1.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
@@ -39,10 +39,11 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Features</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html#modules">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#pinout">Pinout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#module-core.component">Modules</a></li>
 </ul>
 
         </div>
@@ -344,11 +345,15 @@
 </li>
       <li><a href="modules.html#hardware.brushless_motor.BrushlessMotor.get_distance_mm">get_distance_mm() (hardware.brushless_motor.BrushlessMotor method)</a>
 </li>
+      <li><a href="modules.html#motor_table_renderer.MotorTableRenderer.get_enc_timer">get_enc_timer() (motor_table_renderer.MotorTableRenderer method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules.html#core.util.Util.get_formatted_time">get_formatted_time() (core.util.Util static method)</a>
 </li>
       <li><a href="modules.html#core.util.Util.get_formatted_value">get_formatted_value() (core.util.Util static method)</a>
+</li>
+      <li><a href="modules.html#motor_table_renderer.MotorTableRenderer.get_pwm_timer">get_pwm_timer() (motor_table_renderer.MotorTableRenderer method)</a>
 </li>
       <li><a href="modules.html#core.component.ComponentRegistry.get_registry">get_registry() (core.component.ComponentRegistry method)</a>
 </li>
@@ -546,6 +551,8 @@
 </li>
         <li><a href="modules.html#module-hardware.value_provider">hardware.value_provider</a>
 </li>
+        <li><a href="modules.html#module-motor_table_renderer">motor_table_renderer</a>
+</li>
         <li><a href="modules.html#module-stop_motor">stop_motor</a>
 </li>
         <li><a href="modules.html#module-temp.source.conf">temp.source.conf</a>
@@ -561,6 +568,17 @@
         <li><a href="modules.html#module-uart.uart_master">uart.uart_master</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    motor_table_renderer
+
+      <ul>
+        <li><a href="modules.html#module-motor_table_renderer">module</a>
+</li>
+      </ul></li>
+      <li><a href="modules.html#motor_table_renderer.MotorTableRenderer">MotorTableRenderer (class in motor_table_renderer)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -637,14 +655,14 @@
         <li><a href="modules.html#hardware.rotary_encoder.RotaryEncoder.PIN_BLUE">(hardware.rotary_encoder.RotaryEncoder attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules.html#hardware.digital_pot_async.DigitalPotentiometer.PIN_GREEN">PIN_GREEN (hardware.digital_pot_async.DigitalPotentiometer attribute)</a>
 
       <ul>
         <li><a href="modules.html#hardware.rotary_encoder.RotaryEncoder.PIN_GREEN">(hardware.rotary_encoder.RotaryEncoder attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules.html#hardware.digital_pot_async.DigitalPotentiometer.PIN_RED">PIN_RED (hardware.digital_pot_async.DigitalPotentiometer attribute)</a>
 
       <ul>
@@ -669,6 +687,8 @@
         <li><a href="modules.html#hardware.rotary_encoder.RotaryEncoder.POT_ENC_C">(hardware.rotary_encoder.RotaryEncoder attribute)</a>
 </li>
       </ul></li>
+      <li><a href="modules.html#motor_table_renderer.MotorTableRenderer.prepend_template">prepend_template() (motor_table_renderer.MotorTableRenderer method)</a>
+</li>
       <li><a href="modules.html#core.component.ComponentRegistry.print_registry">print_registry() (core.component.ComponentRegistry method)</a>
 </li>
       <li><a href="modules.html#hardware.brushless_motor.BrushlessMotor.PWM_GPIO_PIN">PWM_GPIO_PIN (hardware.brushless_motor.BrushlessMotor attribute)</a>
@@ -703,9 +723,11 @@
         <li><a href="modules.html#core.logger.Logger.release">(core.logger.Logger method)</a>
 </li>
       </ul></li>
+      <li><a href="modules.html#core.util.Util.remap_range">remap_range() (core.util.Util static method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules.html#core.util.Util.remap_range">remap_range() (core.util.Util static method)</a>
+      <li><a href="modules.html#motor_table_renderer.MotorTableRenderer.render_table">render_table() (motor_table_renderer.MotorTableRenderer method)</a>
 </li>
       <li><a href="modules.html#core.util.Util.repeat">repeat() (core.util.Util static method)</a>
 </li>

@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>hardware.slew_limiter &mdash; Brushless Motor Controller 0.1.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -39,10 +39,11 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Features</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../modules.html#modules">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html#pinout">Pinout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html#module-core.component">Modules</a></li>
 </ul>
 
         </div>
@@ -82,19 +83,19 @@
 <span class="c1"># modified: 2025-06-09</span>
 <span class="c1">#</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span> <span class="k">as</span> <span class="n">dt</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span> <span class="k">as</span> <span class="n">dt</span>
 
 <span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
 <div class="viewcode-block" id="SlewLimiter">
 <a class="viewcode-back" href="../../modules.html#hardware.slew_limiter.SlewLimiter">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">SlewLimiter</span><span class="p">:</span>
+<span class="k">class</span> <span class="nc">SlewLimiter</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    A slew limiter for the BrushlessMotor, used to limit the rate of change</span>
 <span class="sd">    of the motor&#39;s target speed, preventing sudden, abrupt changes that could</span>
 <span class="sd">    be harmful to the motor and ensuring the changes to the motor&#39;s speed are</span>
 <span class="sd">    gradual, more elegant, rather than instantaneous.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_delta_per_sec</span><span class="p">,</span> <span class="n">safe_threshold</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_delta_per_sec</span><span class="p">,</span> <span class="n">safe_threshold</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        :param max_delta_per_sec:   Maximum allowed change per second (e.g. RPM/sec or %/sec)</span>
 <span class="sd">        :param safe_threshold:      Minimum magnitude below which direction changes are allowed</span>
@@ -107,7 +108,7 @@
 
 <div class="viewcode-block" id="SlewLimiter.limit">
 <a class="viewcode-back" href="../../modules.html#hardware.slew_limiter.SlewLimiter.limit">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">limit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">limit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Returns the limited value based on the time passed since the last call,</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -136,7 +137,7 @@
 
 <div class="viewcode-block" id="SlewLimiter.reset">
 <a class="viewcode-back" href="../../modules.html#hardware.slew_limiter.SlewLimiter.reset">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Resets the limiter to a specific value (or clears it).</span>
 <span class="sd">        &#39;&#39;&#39;</span>

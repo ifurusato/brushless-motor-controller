@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>hardware.tlc59711 &mdash; Brushless Motor Controller 0.1.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -39,10 +39,11 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Features</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../modules.html#modules">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html#pinout">Pinout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html#module-core.component">Modules</a></li>
 </ul>
 
         </div>
@@ -95,9 +96,9 @@
 <span class="c1">#   &lt;https://www.adafruit.com/product/1455&gt;`_ (Product ID: 1455)</span>
 <span class="c1">#</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">struct</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">spidev</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpiDev</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">struct</span>
+<span class="kn">from</span> <span class="nn">spidev</span> <span class="kn">import</span> <span class="n">SpiDev</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="c1"># constants ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
 
@@ -133,11 +134,11 @@
 <span class="c1"># ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈</span>
 <div class="viewcode-block" id="TLC59711">
 <a class="viewcode-back" href="../../modules.html#hardware.tlc59711.TLC59711">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">TLC59711</span><span class="p">:</span>
+<span class="k">class</span> <span class="nc">TLC59711</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    :param spi:  an instance of the SPI bus connected to the chip.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spi</span><span class="p">:</span> <span class="n">SpiDev</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spi</span><span class="p">:</span> <span class="n">SpiDev</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">spi</span> <span class="o">=</span> <span class="n">spi</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pixel_count</span> <span class="o">=</span> <span class="mi">4</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">channel_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pixel_count</span> <span class="o">*</span> <span class="n">_COLORS_PER_PIXEL</span>
@@ -158,7 +159,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_buffer_index_lookuptable</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_lookuptable</span><span class="p">()</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_init_buffer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_init_buffer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">chip_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chip_count</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">chip_set_BCData</span><span class="p">(</span><span class="n">chip_index</span><span class="p">,</span> <span class="n">bcr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bcr</span><span class="p">,</span> <span class="n">bcg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bcg</span><span class="p">,</span> <span class="n">bcb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bcb</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_chip_set_FunctionControl</span><span class="p">(</span><span class="n">chip_index</span><span class="p">)</span>
@@ -166,7 +167,7 @@
 
 <div class="viewcode-block" id="TLC59711.set_chipheader_bits_in_buffer">
 <a class="viewcode-back" href="../../modules.html#hardware.tlc59711.TLC59711.set_chipheader_bits_in_buffer">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_chipheader_bits_in_buffer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">chip_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">part_bit_offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">set_chipheader_bits_in_buffer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">chip_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">part_bit_offset</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Set chip header bits in buffer.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -185,7 +186,7 @@
 
 <div class="viewcode-block" id="TLC59711.chip_set_BCData">
 <a class="viewcode-back" href="../../modules.html#hardware.tlc59711.TLC59711.chip_set_BCData">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">chip_set_BCData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chip_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">bcr</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">127</span><span class="p">,</span> <span class="n">bcg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">127</span><span class="p">,</span> <span class="n">bcb</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">127</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">chip_set_BCData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chip_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">bcr</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">127</span><span class="p">,</span> <span class="n">bcg</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">127</span><span class="p">,</span> <span class="n">bcb</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">127</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Set BC-Data.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -194,7 +195,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">set_chipheader_bits_in_buffer</span><span class="p">(</span><span class="n">chip_index</span><span class="o">=</span><span class="n">chip_index</span><span class="p">,</span> <span class="n">part_bit_offset</span><span class="o">=</span><span class="n">_BC_CHIP_BUFFER_BIT_OFFSET</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="n">_BC_FIELDS</span><span class="p">[</span><span class="s2">&quot;BCB&quot;</span><span class="p">],</span> <span class="n">value</span><span class="o">=</span><span class="n">bcb</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_chip_set_FunctionControl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chip_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_chip_set_FunctionControl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chip_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Set Function Control Bits in Buffer.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -204,13 +205,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">set_chipheader_bits_in_buffer</span><span class="p">(</span><span class="n">chip_index</span><span class="o">=</span><span class="n">chip_index</span><span class="p">,</span> <span class="n">part_bit_offset</span><span class="o">=</span><span class="n">_FC_CHIP_BUFFER_BIT_OFFSET</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="n">_FC_FIELDS</span><span class="p">[</span><span class="s2">&quot;DSPRPT&quot;</span><span class="p">],</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dsprpt</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_chipheader_bits_in_buffer</span><span class="p">(</span><span class="n">chip_index</span><span class="o">=</span><span class="n">chip_index</span><span class="p">,</span> <span class="n">part_bit_offset</span><span class="o">=</span><span class="n">_FC_CHIP_BUFFER_BIT_OFFSET</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="n">_FC_FIELDS</span><span class="p">[</span><span class="s2">&quot;BLANK&quot;</span><span class="p">],</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">blank</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_chip_set_WriteCommand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chip_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_chip_set_WriteCommand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chip_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Set WRITE_COMMAND.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_chipheader_bits_in_buffer</span><span class="p">(</span><span class="n">chip_index</span><span class="o">=</span><span class="n">chip_index</span><span class="p">,</span> <span class="n">part_bit_offset</span><span class="o">=</span><span class="n">_WC_CHIP_BUFFER_BIT_OFFSET</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="n">_WC_FIELDS</span><span class="p">[</span><span class="s2">&quot;WRITE_COMMAND&quot;</span><span class="p">],</span> <span class="n">value</span><span class="o">=</span><span class="n">_WRITE_COMMAND</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_init_lookuptable</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_init_lookuptable</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">channel_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channel_count</span><span class="p">):</span>
             <span class="n">buffer_index</span> <span class="o">=</span> <span class="p">(</span><span class="n">_CHIP_BUFFER_BYTE_COUNT</span> <span class="o">//</span> <span class="n">_BUFFER_BYTES_PER_COLOR</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span> <span class="n">channel_index</span> <span class="o">//</span> <span class="n">_CHANNEL_PER_CHIP</span><span class="p">)</span> <span class="o">+</span> <span class="n">channel_index</span> <span class="o">%</span> <span class="n">_CHANNEL_PER_CHIP</span>
             <span class="n">buffer_index</span> <span class="o">*=</span> <span class="n">_BUFFER_BYTES_PER_COLOR</span>
@@ -219,7 +220,7 @@
 
 <div class="viewcode-block" id="TLC59711.set_pixel_16bit_value">
 <a class="viewcode-back" href="../../modules.html#hardware.tlc59711.TLC59711.set_pixel_16bit_value">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_pixel_16bit_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pixel_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">value_r</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">value_g</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">value_b</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">set_pixel_16bit_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pixel_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">value_r</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">value_g</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">value_b</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Set the value for pixel.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -237,7 +238,7 @@
 
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">_check_and_convert</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+    <span class="k">def</span> <span class="nf">_check_and_convert</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">float</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;value[0] </span><span class="si">{</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> not in range: 0..1&quot;</span><span class="p">)</span>
@@ -257,7 +258,7 @@
         <span class="k">elif</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">value</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">65535</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;value[2] </span><span class="si">{</span><span class="n">value</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2"> not in range: 0..65535&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Set the R, G, B values for the pixel.</span>
 
@@ -274,7 +275,7 @@
             <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;index </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> out of range [0..</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">pixel_count</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_write</span><span class="p">()</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_write</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_write</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Write the current buffer to the SPI device.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -282,7 +283,7 @@
 
 <div class="viewcode-block" id="TLC59711.stop">
 <a class="viewcode-back" href="../../modules.html#hardware.tlc59711.TLC59711.stop">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span></div>
 </div>
 

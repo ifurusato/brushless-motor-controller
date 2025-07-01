@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Brushless Motor Controller &mdash; Brushless Motor Controller 0.1.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
@@ -41,10 +41,11 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Features</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html#modules">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#pinout">Pinout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#module-core.component">Modules</a></li>
 </ul>
 
         </div>
@@ -73,7 +74,7 @@
              
   <div class="admonition-important admonition">
 <p class="admonition-title">Important</p>
-<p>This documentation was last updated 29 Jun 2025, so it may not be up to date with the repository.</p>
+<p>This documentation was last updated 01 Jul 2025, so it may not be up to date with the repository.</p>
 <p>The project is still a work in progress, i.e., things are still changing frequently, not everything works, or works as expected.</p>
 </div>
 <section id="brushless-motor-controller">
@@ -107,18 +108,19 @@ reliably handles the PWM to the motors, but may be limited by the performance of
 </ol>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>One of the options is a microcontroller connected over a UART; with this approach
-the Raspberry Pi would not be necessary if control of the MotorController were
-fleshed out with a higher-level controller (though beyond the scope of this project).
-That is, e.g., a robot based solely on a microcontroller could use the MotorController
-as a design component without the Raspberry Pi as master.</p>
+<p>While the fourth option describes a Raspberry Pi master connected to a microcontroller slave,
+strictly speaking the Raspberry Pi is not necessary if control of the MotorController were
+fleshed out with a higher-level robot controller on the microcontroller (though beyond the
+scope of this project). That is, e.g., a robot based solely on a microcontroller could use
+this project’s MotorController without a Raspberry Pi at all.</p>
 </div>
 <p>The motor controller itself includes support for open- or closed-loop control,
 stall-and-recovery, deadband control, and control by target RPM when operating in
 closed-loop mode. Provided a wheel diameter this also provides for odometric
 distance and speed measurements.</p>
-<p>This uses a YAML configuration file for the application itself, and another for
-the motor pin configuraion when using the UART in the MicroPython environent.</p>
+<p>This uses a YAML configuration file for the application itself, and another on the
+microcontroller for the motor pin configuration, specifically when using the UART
+in the MicroPython environent.</p>
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="id2" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">*</a><span class="fn-bracket">]</span></span>
@@ -140,10 +142,18 @@ Copyright 2020-2025 by Ichiro Furusato. All rights reserved.</p>
 <p>Software and documentation are distributed under the MIT License, see the LICENSE
 file included with the project.</p>
 <div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<p class="caption" role="heading"><span class="caption-text">Features</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html#modules">Modules</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#see">See</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#pinout">Pinout</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#uart-pins">UART Pins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#motor-pins">Motor Pins</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#module-core.component">Modules</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="modules.html#core.component.Component"><code class="docutils literal notranslate"><span class="pre">Component</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="modules.html#core.component.ComponentRegistry"><code class="docutils literal notranslate"><span class="pre">ComponentRegistry</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="modules.html#core.component.ConfigurationError"><code class="docutils literal notranslate"><span class="pre">ConfigurationError</span></code></a></li>
@@ -169,6 +179,7 @@ file included with the project.</p>
 <li class="toctree-l2"><a class="reference internal" href="modules.html#hardware.value_provider.DigitalPotSpeedProvider"><code class="docutils literal notranslate"><span class="pre">DigitalPotSpeedProvider</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="modules.html#hardware.value_provider.RotaryEncoderCommandProvider"><code class="docutils literal notranslate"><span class="pre">RotaryEncoderCommandProvider</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="modules.html#hardware.value_provider.ValueProvider"><code class="docutils literal notranslate"><span class="pre">ValueProvider</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#motor_table_renderer.MotorTableRenderer"><code class="docutils literal notranslate"><span class="pre">MotorTableRenderer</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="modules.html#uart.async_uart_manager.AsyncUARTManager"><code class="docutils literal notranslate"><span class="pre">AsyncUARTManager</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="modules.html#uart.payload.Payload"><code class="docutils literal notranslate"><span class="pre">Payload</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="modules.html#uart.sync_uart_manager.SyncUARTManager"><code class="docutils literal notranslate"><span class="pre">SyncUARTManager</span></code></a></li>

@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Overview &mdash; Brushless Motor Controller 0.1.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
@@ -41,10 +41,18 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Features</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#modules">Modules</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#see">See</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#pinout">Pinout</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#uart-pins">UART Pins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#motor-pins">Motor Pins</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#module-core.component">Modules</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#core.component.Component"><code class="docutils literal notranslate"><span class="pre">Component</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#core.component.Component.classname"><code class="docutils literal notranslate"><span class="pre">Component.classname</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#core.component.Component.close"><code class="docutils literal notranslate"><span class="pre">Component.close()</span></code></a></li>
@@ -261,6 +269,13 @@
 <li class="toctree-l3"><a class="reference internal" href="#hardware.value_provider.ValueProvider.off"><code class="docutils literal notranslate"><span class="pre">ValueProvider.off()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#motor_table_renderer.MotorTableRenderer"><code class="docutils literal notranslate"><span class="pre">MotorTableRenderer</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#motor_table_renderer.MotorTableRenderer.get_enc_timer"><code class="docutils literal notranslate"><span class="pre">MotorTableRenderer.get_enc_timer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#motor_table_renderer.MotorTableRenderer.get_pwm_timer"><code class="docutils literal notranslate"><span class="pre">MotorTableRenderer.get_pwm_timer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#motor_table_renderer.MotorTableRenderer.prepend_template"><code class="docutils literal notranslate"><span class="pre">MotorTableRenderer.prepend_template()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#motor_table_renderer.MotorTableRenderer.render_table"><code class="docutils literal notranslate"><span class="pre">MotorTableRenderer.render_table()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#uart.async_uart_manager.AsyncUARTManager"><code class="docutils literal notranslate"><span class="pre">AsyncUARTManager</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#uart.async_uart_manager.AsyncUARTManager.close"><code class="docutils literal notranslate"><span class="pre">AsyncUARTManager.close()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#uart.async_uart_manager.AsyncUARTManager.open"><code class="docutils literal notranslate"><span class="pre">AsyncUARTManager.open()</span></code></a></li>
@@ -331,9 +346,9 @@
              
   <section id="overview">
 <h1>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h1>
-<p>This project uses Python and MicroPython for control of up to four DC brushless motors.
-It is designed for use with a Raspberry Pi but could be adapted to any hardware with
-similar capabilities.</p>
+<p>This project uses Python and MicroPython for control of up to four DFRobot 12V DC
+brushless motors (model number FIT0441). It is designed for use with a Raspberry Pi
+but could be adapted to any hardware with similar capabilities.</p>
 <p>The DFRobot brushless motors require a Pulse-Width Modified (PWM) signal to control
 their speed, in an inverted mode: when fed a 100% duty cycle the motor is stopped,
 a 50% duty cycle is half speed, a 0% duty cycle is full speed.</p>
@@ -344,16 +359,112 @@ two motors you’ll need either an external PWM board or connect to a microcontr
 over a UART. In this latter mode the project supports either an RP2040 or an STM32
 (i.e., the STM32H562, though it could with some pin configuration changes be used with
 others).</p>
+<section id="see">
+<h2>See<a class="headerlink" href="#see" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Product page: <a class="reference external" href="https://www.dfrobot.com/product-1364.html">Brushless DC Motor with Encoder 12V 159RPM FIT0441</a></p></li>
+<li><p>Documentation: <a class="reference external" href="https://wiki.dfrobot.com/FIT0441_Brushless_DC_Motor_with_Encoder_12V_159RPM">FIT0441 Brushless DC Motor with Encoder 12V 159RPM</a></p></li>
+</ul>
 </section>
-<section id="modules">
-<h1>Modules<a class="headerlink" href="#modules" title="Link to this heading"></a></h1>
+</section>
+<section id="pinout">
+<h1>Pinout<a class="headerlink" href="#pinout" title="Link to this heading"></a></h1>
+<p>Here are the pin configurations for connecting a Raspberry Pi to a STM32H562.</p>
+<section id="uart-pins">
+<h2>UART Pins<a class="headerlink" href="#uart-pins" title="Link to this heading"></a></h2>
+<p>This uses a custom build of MicroPython for the STM32H562, whose board definition
+can be found at <a class="reference external" href="https://github.com/ifurusato/mp-weact-stm32h562/">mp-weact-stm32h562</a>.
+The pins used for this implementation are defined in the board definition.</p>
+<p>A custom build of Micro</p>
+<p>The UART slave for the STM32 is able to use UART 1-3.</p>
+<p>UART 1 is discouraged as it is used to print console communications over <code class="docutils literal notranslate"><span class="pre">/dev/serial0</span></code>
+when connected to the board (e.g., over rshell). UART 4’s pins conflict with the SD card
+so support for it as not built into MicroPython for the STM32H562.</p>
+<p>Therefore, only UART 2 or 3 are suitable: UART 2 is configured as the default.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>UART</p></th>
+<th class="head"><p>TX</p></th>
+<th class="head"><p>RX</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>UART1</p></td>
+<td><p>PA9</p></td>
+<td><p>PA10</p></td>
+</tr>
+<tr class="row-odd"><td><p>UART2</p></td>
+<td><p>PA2</p></td>
+<td><p>PA3</p></td>
+</tr>
+<tr class="row-even"><td><p>UART3</p></td>
+<td><p>PB10</p></td>
+<td><p>PB11</p></td>
+</tr>
+</tbody>
+</table>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The following modules are automatically documented using <a class="reference external" href="https://www.sphinx-doc.org/">Sphinx</a>.</p>
+<p>You cannot specify tx/rx pins in MicroPython’s <code class="docutils literal notranslate"><span class="pre">UART()</span></code> constructor;
+it will use the default pins for each.</p>
 </div>
-<dl class="py class" id="module-core.component">
+</section>
+<section id="motor-pins">
+<h2>Motor Pins<a class="headerlink" href="#motor-pins" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Id</p></th>
+<th class="head"><p>Name</p></th>
+<th class="head"><p>PWM Ch</p></th>
+<th class="head"><p>PWM Pin</p></th>
+<th class="head"><p>Dir Pin</p></th>
+<th class="head"><p>Enc Pin</p></th>
+<th class="head"><p>Enc Ch</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>M0</p></td>
+<td><p>1</p></td>
+<td><p>PB6</p></td>
+<td><p>B12</p></td>
+<td><p>PC6</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>M1</p></td>
+<td><p>2</p></td>
+<td><p>PB7</p></td>
+<td><p>B14</p></td>
+<td><p>PC7</p></td>
+<td><p>2</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>M2</p></td>
+<td><p>3</p></td>
+<td><p>PB8</p></td>
+<td><p>B3</p></td>
+<td><p>PC8</p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-odd"><td><p>3</p></td>
+<td><p>M3</p></td>
+<td><p>4</p></td>
+<td><p>PB9</p></td>
+<td><p>B5</p></td>
+<td><p>PC9</p></td>
+<td><p>4</p></td>
+</tr>
+</tbody>
+</table>
+<p>All four motors use the same PWM timer (4) and encoder timer (3).</p>
+</section>
+</section>
+<section id="module-core.component">
+<span id="modules"></span><h1>Modules<a class="headerlink" href="#module-core.component" title="Link to this heading"></a></h1>
+<dl class="py class">
 <dt class="sig sig-object py" id="core.component.Component">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.component.</span></span><span class="sig-name descname"><span class="pre">Component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logger</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suppressed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enabled</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/component.html#Component"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.component.Component" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.component.</span></span><span class="sig-name descname"><span class="pre">Component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logger</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suppressed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enabled</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/component.html#Component"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.component.Component" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A basic component providing support for enable or disable, suppress or
 release, and close flags. The enable/disable and suppress/release differ
@@ -377,7 +488,7 @@ name.</p>
 </dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="core.component.Component.classname">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">classname</span></span><a class="headerlink" href="#core.component.Component.classname" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">classname</span></span><a class="headerlink" href="#core.component.Component.classname" title="Link to this definition"></a></dt>
 <dd><p>Return the name of this Component’s class.</p>
 </dd></dl>
 
@@ -390,7 +501,7 @@ This returns a True value to force currency.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="core.component.Component.closed">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">closed</span></span><a class="headerlink" href="#core.component.Component.closed" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">closed</span></span><a class="headerlink" href="#core.component.Component.closed" title="Link to this definition"></a></dt>
 <dd><p>Returns True if this Component is closed.</p>
 </dd></dl>
 
@@ -403,7 +514,7 @@ This returns a True value to force currency.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="core.component.Component.disabled">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">disabled</span></span><a class="headerlink" href="#core.component.Component.disabled" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">disabled</span></span><a class="headerlink" href="#core.component.Component.disabled" title="Link to this definition"></a></dt>
 <dd><p>Return the disabled state of this Component.
 This is a convenience method.</p>
 </dd></dl>
@@ -416,13 +527,13 @@ This is a convenience method.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="core.component.Component.enabled">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">enabled</span></span><a class="headerlink" href="#core.component.Component.enabled" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">enabled</span></span><a class="headerlink" href="#core.component.Component.enabled" title="Link to this definition"></a></dt>
 <dd><p>Return the enabled state of this Component.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="core.component.Component.is_active">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_active</span></span><a class="headerlink" href="#core.component.Component.is_active" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_active</span></span><a class="headerlink" href="#core.component.Component.is_active" title="Link to this definition"></a></dt>
 <dd><p>A convenience method that returns True if this Component is enabled
 and released (i.e., not suppressed).</p>
 </dd></dl>
@@ -441,7 +552,7 @@ and released (i.e., not suppressed).</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="core.component.Component.suppressed">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">suppressed</span></span><a class="headerlink" href="#core.component.Component.suppressed" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">suppressed</span></span><a class="headerlink" href="#core.component.Component.suppressed" title="Link to this definition"></a></dt>
 <dd><p>Return True if this Component is suppressed.</p>
 </dd></dl>
 
@@ -449,7 +560,7 @@ and released (i.e., not suppressed).</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="core.component.ComponentRegistry">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.component.</span></span><span class="sig-name descname"><span class="pre">ComponentRegistry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/component.html#ComponentRegistry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.component.ComponentRegistry" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.component.</span></span><span class="sig-name descname"><span class="pre">ComponentRegistry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/component.html#ComponentRegistry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.component.ComponentRegistry" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Maintains a registry of all Components, in the order in which they were created.</p>
 <dl class="py method">
@@ -482,28 +593,28 @@ the registry.</p>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="core.component.ConfigurationError">
-<em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.component.</span></span><span class="sig-name descname"><span class="pre">ConfigurationError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/component.html#ConfigurationError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.component.ConfigurationError" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.component.</span></span><span class="sig-name descname"><span class="pre">ConfigurationError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/component.html#ConfigurationError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.component.ConfigurationError" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></p>
 <p>This exception is thrown when any error due to configuration occurs.</p>
 </dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="core.component.IllegalStateError">
-<em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.component.</span></span><span class="sig-name descname"><span class="pre">IllegalStateError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/component.html#IllegalStateError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.component.IllegalStateError" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.component.</span></span><span class="sig-name descname"><span class="pre">IllegalStateError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/component.html#IllegalStateError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.component.IllegalStateError" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></p>
 <p>Signals that a method has been invoked at an illegal or inappropriate time.</p>
 </dd></dl>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="core.component.MissingComponentError">
-<em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.component.</span></span><span class="sig-name descname"><span class="pre">MissingComponentError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/component.html#MissingComponentError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.component.MissingComponentError" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.component.</span></span><span class="sig-name descname"><span class="pre">MissingComponentError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/component.html#MissingComponentError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.component.MissingComponentError" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 <p>Thrown when a required component is not available.</p>
 </dd></dl>
 
 <dl class="py class" id="module-core.config_loader">
 <dt class="sig sig-object py" id="core.config_loader.ConfigLoader">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.config_loader.</span></span><span class="sig-name descname"><span class="pre">ConfigLoader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Level.INFO</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/config_loader.html#ConfigLoader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.config_loader.ConfigLoader" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.config_loader.</span></span><span class="sig-name descname"><span class="pre">ConfigLoader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Level.INFO</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/config_loader.html#ConfigLoader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.config_loader.ConfigLoader" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A loader for a YAML configuration file.</p>
 <dl class="py method">
@@ -529,8 +640,9 @@ the registry.</p>
 
 <dl class="py class" id="module-core.logger">
 <span id="module-core.globals"></span><dt class="sig sig-object py" id="core.logger.Level">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.logger.</span></span><span class="sig-name descname"><span class="pre">Level</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/logger.html#Level"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.logger.Level" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.logger.</span></span><span class="sig-name descname"><span class="pre">Level</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/logger.html#Level"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.logger.Level" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>An enumeration.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="core.logger.Level.CRITICAL">
 <span class="sig-name descname"><span class="pre">CRITICAL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">50</span></em><a class="headerlink" href="#core.logger.Level.CRITICAL" title="Link to this definition"></a></dt>
@@ -558,14 +670,14 @@ the registry.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="core.logger.Level.from_string">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/logger.html#Level.from_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.logger.Level.from_string" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/logger.html#Level.from_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.logger.Level.from_string" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="core.logger.Logger">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.logger.</span></span><span class="sig-name descname"><span class="pre">Logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/logger.html#Logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.logger.Logger" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.logger.</span></span><span class="sig-name descname"><span class="pre">Logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/logger.html#Logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.logger.Logger" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="core.logger.Logger.close">
@@ -624,13 +736,13 @@ argument. E.g.,</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="core.logger.Logger.level">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">level</span></span><a class="headerlink" href="#core.logger.Logger.level" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">level</span></span><a class="headerlink" href="#core.logger.Logger.level" title="Link to this definition"></a></dt>
 <dd><p>Return the level of this logger.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="core.logger.Logger.name">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#core.logger.Logger.name" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#core.logger.Logger.name" title="Link to this definition"></a></dt>
 <dd><p>Return the name of this Logger.</p>
 </dd></dl>
 
@@ -657,7 +769,7 @@ messages. This is global across all Loggers.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="core.logger.Logger.suppressed">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">suppressed</span></span><a class="headerlink" href="#core.logger.Logger.suppressed" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">suppressed</span></span><a class="headerlink" href="#core.logger.Logger.suppressed" title="Link to this definition"></a></dt>
 <dd><p>Return True if this logger has been suppressed.</p>
 </dd></dl>
 
@@ -672,12 +784,12 @@ messages. This is global across all Loggers.</p>
 
 <dl class="py class" id="module-core.util">
 <dt class="sig sig-object py" id="core.util.Util">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.util.</span></span><span class="sig-name descname"><span class="pre">Util</span></span><a class="reference internal" href="_modules/core/util.html#Util"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.util.</span></span><span class="sig-name descname"><span class="pre">Util</span></span><a class="reference internal" href="_modules/core/util.html#Util"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A collection of static utility methods.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="core.util.Util.already_running">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">already_running</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">process_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.already_running"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.already_running" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">already_running</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">process_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.already_running"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.already_running" title="Link to this definition"></a></dt>
 <dd><p>Returns true if there is already an instance of a process running.</p>
 <p>This is a static method so other processes can check prior to
 starting a process rather than dealing with the RuntimeException
@@ -693,7 +805,7 @@ pi          5985    1058 95 13:18 pts/0    00:00:00 python3 monitor_exec.py</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="core.util.Util.clip">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">clip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.clip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.clip" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">clip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.clip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.clip" title="Link to this definition"></a></dt>
 <dd><p>A replacement for numpy’s clip():</p>
 <blockquote>
 <div><p>_value = numpy.clip(target_value, _min, _max)</p>
@@ -702,13 +814,13 @@ pi          5985    1058 95 13:18 pts/0    00:00:00 python3 monitor_exec.py</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="core.util.Util.ellipsis">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ellipsis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_length</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.ellipsis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.ellipsis" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ellipsis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_length</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.ellipsis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.ellipsis" title="Link to this definition"></a></dt>
 <dd><p>Repeat ‘string’ a given number of times.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="core.util.Util.export_configuration">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">export_configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.export_configuration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.export_configuration" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">export_configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.export_configuration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.export_configuration" title="Link to this definition"></a></dt>
 <dd><p>Dump the configuration to a JSON file.</p>
 <p>:param logger     the logger to capture the result
 :param config     the configuration dict to be serialised to JSON
@@ -717,33 +829,33 @@ pi          5985    1058 95 13:18 pts/0    00:00:00 python3 monitor_exec.py</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="core.util.Util.frange">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">frange</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jump</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.frange"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.frange" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">frange</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jump</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.frange"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.frange" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="core.util.Util.get_class_name_of_method">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_class_name_of_method</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.get_class_name_of_method"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.get_class_name_of_method" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_class_name_of_method</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.get_class_name_of_method"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.get_class_name_of_method" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="core.util.Util.get_formatted_time">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_formatted_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.get_formatted_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.get_formatted_time" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_formatted_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.get_formatted_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.get_formatted_time" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="core.util.Util.get_formatted_value">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_formatted_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.get_formatted_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.get_formatted_value" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_formatted_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.get_formatted_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.get_formatted_value" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="core.util.Util.get_timestamp">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_timestamp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.get_timestamp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.get_timestamp" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_timestamp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.get_timestamp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.get_timestamp" title="Link to this definition"></a></dt>
 <dd><p>Return an ISO UTC timestamp.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="core.util.Util.import_configuration">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">import_configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.import_configuration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.import_configuration" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">import_configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.import_configuration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.import_configuration" title="Link to this definition"></a></dt>
 <dd><p>Read configuration from a JSON file.</p>
 <p>:param logger     the logger to capture the result
 :param filepath   the source file path</p>
@@ -751,50 +863,50 @@ pi          5985    1058 95 13:18 pts/0    00:00:00 python3 monitor_exec.py</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="core.util.Util.is_true">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_true</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.is_true"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.is_true" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_true</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.is_true"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.is_true" title="Link to this definition"></a></dt>
 <dd><p>Returns True if the value is a 1, a “1”, “y”, “yes”, or “true” (with
 case-insensitive matching).</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="core.util.Util.list_methods">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">list_methods</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.list_methods"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.list_methods" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">list_methods</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.list_methods"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.list_methods" title="Link to this definition"></a></dt>
 <dd><p>Print the methods of the provided class.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="core.util.Util.remap_range">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">remap_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_max</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.remap_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.remap_range" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">remap_range</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_max</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.remap_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.remap_range" title="Link to this definition"></a></dt>
 <dd><p>Remaps a value in the input range to the same ratio’d value
 in the output range.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="core.util.Util.repeat">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">repeat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.repeat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.repeat" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">repeat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.repeat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.repeat" title="Link to this definition"></a></dt>
 <dd><p>Repeat ‘string’ a given number of times.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="core.util.Util.to_bin">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">to_bin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">decimal</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.to_bin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.to_bin" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">to_bin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">decimal</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.to_bin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.to_bin" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="core.util.Util.to_bin_v2">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">to_bin_v2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.to_bin_v2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.to_bin_v2" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">to_bin_v2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.to_bin_v2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.to_bin_v2" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="core.util.Util.to_decimal">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">to_decimal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binary</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.to_decimal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.to_decimal" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">to_decimal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">binary</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/util.html#Util.to_decimal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.util.Util.to_decimal" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class" id="module-hardware.brushless_motor">
 <dt class="sig sig-object py" id="hardware.brushless_motor.BrushlessMotor">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.brushless_motor.</span></span><span class="sig-name descname"><span class="pre">BrushlessMotor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">pi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctrl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pwm_pin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir_pin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closed_loop_enabled</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pwm_impl</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hardware.pwm_controller_impl.PWMControllerImpl" title="hardware.pwm_controller_impl.PWMControllerImpl"><span class="pre">PWMControllerImpl</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">PWMControllerImpl.HARDWARE_CONTROLLER</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tlc_controller</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hardware.tlc59711.TLC59711" title="hardware.tlc59711.TLC59711"><span class="pre">TLC59711</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hardware.controller_channel.ControllerChannel" title="hardware.controller_channel.ControllerChannel"><span class="pre">ControllerChannel</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Level.INFO</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/brushless_motor.html#BrushlessMotor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.brushless_motor.BrushlessMotor" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.brushless_motor.</span></span><span class="sig-name descname"><span class="pre">BrushlessMotor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ctrl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pwm_pin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir_pin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closed_loop_enabled</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pwm_impl</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hardware.pwm_controller_impl.PWMControllerImpl" title="hardware.pwm_controller_impl.PWMControllerImpl"><span class="pre">PWMControllerImpl</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">PWMControllerImpl.HARDWARE_CONTROLLER</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tlc_controller</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hardware.tlc59711.TLC59711" title="hardware.tlc59711.TLC59711"><span class="pre">TLC59711</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hardware.controller_channel.ControllerChannel" title="hardware.controller_channel.ControllerChannel"><span class="pre">ControllerChannel</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Level.INFO</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/brushless_motor.html#BrushlessMotor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.brushless_motor.BrushlessMotor" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="hardware.brushless_motor.BrushlessMotor.CALIBRATION_MM_PER_PERCENT_PER_SEC">
@@ -864,13 +976,13 @@ delay between steps.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="hardware.brushless_motor.BrushlessMotor.closed_loop_enabled">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">closed_loop_enabled</span></span><a class="headerlink" href="#hardware.brushless_motor.BrushlessMotor.closed_loop_enabled" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">closed_loop_enabled</span></span><a class="headerlink" href="#hardware.brushless_motor.BrushlessMotor.closed_loop_enabled" title="Link to this definition"></a></dt>
 <dd><p>Returns True if closed loop mode is enabled.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="hardware.brushless_motor.BrushlessMotor.cumulative_distance_mm">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cumulative_distance_mm</span></span><a class="headerlink" href="#hardware.brushless_motor.BrushlessMotor.cumulative_distance_mm" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cumulative_distance_mm</span></span><a class="headerlink" href="#hardware.brushless_motor.BrushlessMotor.cumulative_distance_mm" title="Link to this definition"></a></dt>
 <dd><p>Return the cumulative distance in millimeters.
 Returns None if running in open loop mode.</p>
 </dd></dl>
@@ -892,7 +1004,7 @@ Returns None if running in open loop mode.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="hardware.brushless_motor.BrushlessMotor.enabled">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">enabled</span></span><a class="headerlink" href="#hardware.brushless_motor.BrushlessMotor.enabled" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">enabled</span></span><a class="headerlink" href="#hardware.brushless_motor.BrushlessMotor.enabled" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -910,7 +1022,7 @@ and current speed using the calibration constant.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="hardware.brushless_motor.BrushlessMotor.measured_mm_per_sec">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">measured_mm_per_sec</span></span><a class="headerlink" href="#hardware.brushless_motor.BrushlessMotor.measured_mm_per_sec" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">measured_mm_per_sec</span></span><a class="headerlink" href="#hardware.brushless_motor.BrushlessMotor.measured_mm_per_sec" title="Link to this definition"></a></dt>
 <dd><p>Returns the current measured speed in mm/sec using the formula:</p>
 <blockquote>
 <div><p>linear speed = wheel circumference * RPM / 60</p>
@@ -920,7 +1032,7 @@ and current speed using the calibration constant.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="hardware.brushless_motor.BrushlessMotor.measured_rpm">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">measured_rpm</span></span><a class="headerlink" href="#hardware.brushless_motor.BrushlessMotor.measured_rpm" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">measured_rpm</span></span><a class="headerlink" href="#hardware.brushless_motor.BrushlessMotor.measured_rpm" title="Link to this definition"></a></dt>
 <dd><p>Returns the RPM indicated by counting the pulses coming from FG,
 the motor feedback pin. Returns None if running in open loop mode.</p>
 </dd></dl>
@@ -963,7 +1075,7 @@ the motor feedback pin. Returns None if running in open loop mode.</p>
 
 <dl class="py class" id="module-hardware.controller_channel">
 <dt class="sig sig-object py" id="hardware.controller_channel.ControllerChannel">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.controller_channel.</span></span><span class="sig-name descname"><span class="pre">ControllerChannel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/controller_channel.html#ControllerChannel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.controller_channel.ControllerChannel" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.controller_channel.</span></span><span class="sig-name descname"><span class="pre">ControllerChannel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/controller_channel.html#ControllerChannel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.controller_channel.ControllerChannel" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
 <p>An enumeration of the 12 channels of the TLC59711 PWM controller.</p>
 <dl class="py attribute">
@@ -988,19 +1100,19 @@ the motor feedback pin. Returns None if running in open loop mode.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="hardware.controller_channel.ControllerChannel.channel">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channel</span></span><a class="headerlink" href="#hardware.controller_channel.ControllerChannel.channel" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channel</span></span><a class="headerlink" href="#hardware.controller_channel.ControllerChannel.channel" title="Link to this definition"></a></dt>
 <dd><p>Return the integer value of the enum member.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="hardware.controller_channel.ControllerChannel.from_string">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pin_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#hardware.controller_channel.ControllerChannel" title="hardware.controller_channel.ControllerChannel"><span class="pre">ControllerChannel</span></a></span></span><a class="reference internal" href="_modules/hardware/controller_channel.html#ControllerChannel.from_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.controller_channel.ControllerChannel.from_string" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pin_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#hardware.controller_channel.ControllerChannel" title="hardware.controller_channel.ControllerChannel"><span class="pre">ControllerChannel</span></a></span></span><a class="reference internal" href="_modules/hardware/controller_channel.html#ControllerChannel.from_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.controller_channel.ControllerChannel.from_string" title="Link to this definition"></a></dt>
 <dd><p>Convert a string pin name (e.g., ‘R0’) to a ControllerChannel enum member.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="hardware.controller_channel.ControllerChannel.pin">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pin</span></span><a class="headerlink" href="#hardware.controller_channel.ControllerChannel.pin" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pin</span></span><a class="headerlink" href="#hardware.controller_channel.ControllerChannel.pin" title="Link to this definition"></a></dt>
 <dd><p>Return the pin name on the TCL59711.</p>
 </dd></dl>
 
@@ -1008,7 +1120,7 @@ the motor feedback pin. Returns None if running in open loop mode.</p>
 
 <dl class="py class" id="module-hardware.digital_pot_async">
 <dt class="sig sig-object py" id="hardware.digital_pot_async.DigitalPotentiometer">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.digital_pot_async.</span></span><span class="sig-name descname"><span class="pre">DigitalPotentiometer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Level.INFO</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/digital_pot_async.html#DigitalPotentiometer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.digital_pot_async.DigitalPotentiometer" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.digital_pot_async.</span></span><span class="sig-name descname"><span class="pre">DigitalPotentiometer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Level.INFO</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/digital_pot_async.html#DigitalPotentiometer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.digital_pot_async.DigitalPotentiometer" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="hardware.digital_pot_async.DigitalPotentiometer.BRIGHTNESS">
@@ -1057,17 +1169,17 @@ the motor feedback pin. Returns None if running in open loop mode.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="hardware.digital_pot_async.DigitalPotentiometer.analog">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">analog</span></span><a class="headerlink" href="#hardware.digital_pot_async.DigitalPotentiometer.analog" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">analog</span></span><a class="headerlink" href="#hardware.digital_pot_async.DigitalPotentiometer.analog" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="hardware.digital_pot_async.DigitalPotentiometer.data">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#hardware.digital_pot_async.DigitalPotentiometer.data" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#hardware.digital_pot_async.DigitalPotentiometer.data" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="hardware.digital_pot_async.DigitalPotentiometer.normalised_value">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">normalised_value</span></span><a class="headerlink" href="#hardware.digital_pot_async.DigitalPotentiometer.normalised_value" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">normalised_value</span></span><a class="headerlink" href="#hardware.digital_pot_async.DigitalPotentiometer.normalised_value" title="Link to this definition"></a></dt>
 <dd><p>Return a normalised int value between -100 and 100.</p>
 </dd></dl>
 
@@ -1078,7 +1190,7 @@ the motor feedback pin. Returns None if running in open loop mode.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="hardware.digital_pot_async.DigitalPotentiometer.rgb">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rgb</span></span><a class="headerlink" href="#hardware.digital_pot_async.DigitalPotentiometer.rgb" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rgb</span></span><a class="headerlink" href="#hardware.digital_pot_async.DigitalPotentiometer.rgb" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1093,7 +1205,7 @@ the motor feedback pin. Returns None if running in open loop mode.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="hardware.digital_pot_async.DigitalPotentiometer.value">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#hardware.digital_pot_async.DigitalPotentiometer.value" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#hardware.digital_pot_async.DigitalPotentiometer.value" title="Link to this definition"></a></dt>
 <dd><p>Return the analog value (voltage) from the ADC pin.</p>
 </dd></dl>
 
@@ -1101,7 +1213,7 @@ the motor feedback pin. Returns None if running in open loop mode.</p>
 
 <dl class="py class" id="module-hardware.payload">
 <dt class="sig sig-object py" id="hardware.payload.Payload">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.payload.</span></span><span class="sig-name descname"><span class="pre">Payload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pfwd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sfwd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paft</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saft</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/payload.html#Payload"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.payload.Payload" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.payload.</span></span><span class="sig-name descname"><span class="pre">Payload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pfwd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sfwd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paft</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saft</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/payload.html#Payload"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.payload.Payload" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="hardware.payload.Payload.PACKET_SIZE">
@@ -1115,12 +1227,12 @@ the motor feedback pin. Returns None if running in open loop mode.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="hardware.payload.Payload.calculate_crc8">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calculate_crc8</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/hardware/payload.html#Payload.calculate_crc8"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.payload.Payload.calculate_crc8" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calculate_crc8</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/hardware/payload.html#Payload.calculate_crc8"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.payload.Payload.calculate_crc8" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="hardware.payload.Payload.from_bytes">
-<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">packet</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/payload.html#Payload.from_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.payload.Payload.from_bytes" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">packet</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/payload.html#Payload.from_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.payload.Payload.from_bytes" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1132,7 +1244,7 @@ the motor feedback pin. Returns None if running in open loop mode.</p>
 
 <dl class="py class" id="module-hardware.pwm_controller">
 <dt class="sig sig-object py" id="hardware.pwm_controller.HardwarePWMController">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.pwm_controller.</span></span><span class="sig-name descname"><span class="pre">HardwarePWMController</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pwm_pin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pwm_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Level.INFO</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/pwm_controller.html#HardwarePWMController"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.pwm_controller.HardwarePWMController" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.pwm_controller.</span></span><span class="sig-name descname"><span class="pre">HardwarePWMController</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pwm_pin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pwm_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Level.INFO</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/pwm_controller.html#HardwarePWMController"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.pwm_controller.HardwarePWMController" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#hardware.pwm_controller.PWMController" title="hardware.pwm_controller.PWMController"><code class="xref py py-class docutils literal notranslate"><span class="pre">PWMController</span></code></a></p>
 <p>A hardware PWM controller, using one of the Raspberry Pi specific hardware PWM pins.</p>
 <dl class="py method">
@@ -1149,7 +1261,7 @@ the motor feedback pin. Returns None if running in open loop mode.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="hardware.pwm_controller.PWMController">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.pwm_controller.</span></span><span class="sig-name descname"><span class="pre">PWMController</span></span><a class="reference internal" href="_modules/hardware/pwm_controller.html#PWMController"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.pwm_controller.PWMController" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.pwm_controller.</span></span><span class="sig-name descname"><span class="pre">PWMController</span></span><a class="reference internal" href="_modules/hardware/pwm_controller.html#PWMController"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.pwm_controller.PWMController" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
 <p>Abstract base class for motor PWM controllers.
 All PWM controllers must implement set_pwm and stop_pwm.</p>
@@ -1165,19 +1277,19 @@ All PWM controllers must implement set_pwm and stop_pwm.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="hardware.pwm_controller.PWMController.set_pwm">
-<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">set_pwm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">speed_percent</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/pwm_controller.html#PWMController.set_pwm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.pwm_controller.PWMController.set_pwm" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">set_pwm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">speed_percent</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/pwm_controller.html#PWMController.set_pwm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.pwm_controller.PWMController.set_pwm" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="hardware.pwm_controller.PWMController.stop_pwm">
-<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">stop_pwm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/pwm_controller.html#PWMController.stop_pwm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.pwm_controller.PWMController.stop_pwm" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">stop_pwm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/pwm_controller.html#PWMController.stop_pwm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.pwm_controller.PWMController.stop_pwm" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="hardware.pwm_controller.SoftwarePWMController">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.pwm_controller.</span></span><span class="sig-name descname"><span class="pre">SoftwarePWMController</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pwm_pin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pwm_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Level.INFO</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/pwm_controller.html#SoftwarePWMController"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.pwm_controller.SoftwarePWMController" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.pwm_controller.</span></span><span class="sig-name descname"><span class="pre">SoftwarePWMController</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pwm_pin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pwm_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Level.INFO</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/pwm_controller.html#SoftwarePWMController"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.pwm_controller.SoftwarePWMController" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#hardware.pwm_controller.PWMController" title="hardware.pwm_controller.PWMController"><code class="xref py py-class docutils literal notranslate"><span class="pre">PWMController</span></code></a></p>
 <p>A software PWM controller, using one of the Raspberry Pi GPIO pins.</p>
 <dl class="py method">
@@ -1194,8 +1306,9 @@ All PWM controllers must implement set_pwm and stop_pwm.</p>
 
 <dl class="py class" id="module-hardware.pwm_controller_impl">
 <dt class="sig sig-object py" id="hardware.pwm_controller_impl.PWMControllerImpl">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.pwm_controller_impl.</span></span><span class="sig-name descname"><span class="pre">PWMControllerImpl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/pwm_controller_impl.html#PWMControllerImpl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.pwm_controller_impl.PWMControllerImpl" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.pwm_controller_impl.</span></span><span class="sig-name descname"><span class="pre">PWMControllerImpl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/pwm_controller_impl.html#PWMControllerImpl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.pwm_controller_impl.PWMControllerImpl" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>An enumeration.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="hardware.pwm_controller_impl.PWMControllerImpl.HARDWARE_CONTROLLER">
 <span class="sig-name descname"><span class="pre">HARDWARE_CONTROLLER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'hardware'</span></em><a class="headerlink" href="#hardware.pwm_controller_impl.PWMControllerImpl.HARDWARE_CONTROLLER" title="Link to this definition"></a></dt>
@@ -1215,12 +1328,12 @@ with a factory method and a utility to return the member matching its name.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="hardware.pwm_controller_impl.PWMControllerImpl.create">
-<span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">pi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tlc_controller</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hardware.tlc59711.TLC59711" title="hardware.tlc59711.TLC59711"><span class="pre">TLC59711</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hardware.controller_channel.ControllerChannel" title="hardware.controller_channel.ControllerChannel"><span class="pre">ControllerChannel</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/pwm_controller_impl.html#PWMControllerImpl.create"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.pwm_controller_impl.PWMControllerImpl.create" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tlc_controller</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hardware.tlc59711.TLC59711" title="hardware.tlc59711.TLC59711"><span class="pre">TLC59711</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hardware.controller_channel.ControllerChannel" title="hardware.controller_channel.ControllerChannel"><span class="pre">ControllerChannel</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/pwm_controller_impl.html#PWMControllerImpl.create"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.pwm_controller_impl.PWMControllerImpl.create" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="hardware.pwm_controller_impl.PWMControllerImpl.from_string">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#hardware.pwm_controller_impl.PWMControllerImpl" title="hardware.pwm_controller_impl.PWMControllerImpl"><span class="pre">PWMControllerImpl</span></a></span></span><a class="reference internal" href="_modules/hardware/pwm_controller_impl.html#PWMControllerImpl.from_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.pwm_controller_impl.PWMControllerImpl.from_string" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#hardware.pwm_controller_impl.PWMControllerImpl" title="hardware.pwm_controller_impl.PWMControllerImpl"><span class="pre">PWMControllerImpl</span></a></span></span><a class="reference internal" href="_modules/hardware/pwm_controller_impl.html#PWMControllerImpl.from_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.pwm_controller_impl.PWMControllerImpl.from_string" title="Link to this definition"></a></dt>
 <dd><p>Convert a string representation to a PWMControllerImpl enum member.</p>
 </dd></dl>
 
@@ -1228,7 +1341,7 @@ with a factory method and a utility to return the member matching its name.</p>
 
 <dl class="py class" id="module-hardware.rotary_encoder">
 <dt class="sig sig-object py" id="hardware.rotary_encoder.RotaryEncoder">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.rotary_encoder.</span></span><span class="sig-name descname"><span class="pre">RotaryEncoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i2c_addr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiplier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">brightness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/rotary_encoder.html#RotaryEncoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.rotary_encoder.RotaryEncoder" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.rotary_encoder.</span></span><span class="sig-name descname"><span class="pre">RotaryEncoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i2c_addr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiplier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">brightness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/rotary_encoder.html#RotaryEncoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.rotary_encoder.RotaryEncoder" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="hardware.rotary_encoder.RotaryEncoder.I2C_ADDR">
@@ -1267,7 +1380,7 @@ with a factory method and a utility to return the member matching its name.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="hardware.rotary_encoder.RotaryEncoder.bounded_rollover">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">bounded_rollover</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/rotary_encoder.html#RotaryEncoder.bounded_rollover"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.rotary_encoder.RotaryEncoder.bounded_rollover" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">bounded_rollover</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/rotary_encoder.html#RotaryEncoder.bounded_rollover"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.rotary_encoder.RotaryEncoder.bounded_rollover" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1289,7 +1402,7 @@ with a factory method and a utility to return the member matching its name.</p>
 
 <dl class="py class" id="module-hardware.slew_limiter">
 <dt class="sig sig-object py" id="hardware.slew_limiter.SlewLimiter">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.slew_limiter.</span></span><span class="sig-name descname"><span class="pre">SlewLimiter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_delta_per_sec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/slew_limiter.html#SlewLimiter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.slew_limiter.SlewLimiter" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.slew_limiter.</span></span><span class="sig-name descname"><span class="pre">SlewLimiter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_delta_per_sec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/slew_limiter.html#SlewLimiter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.slew_limiter.SlewLimiter" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A slew limiter for the BrushlessMotor, used to limit the rate of change
 of the motor’s target speed, preventing sudden, abrupt changes that could
@@ -1311,7 +1424,7 @@ gradual, more elegant, rather than instantaneous.</p>
 
 <dl class="py class" id="module-hardware.stm32_pwm_controller">
 <dt class="sig sig-object py" id="hardware.stm32_pwm_controller.STM32PWMController">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.stm32_pwm_controller.</span></span><span class="sig-name descname"><span class="pre">STM32PWMController</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Level.INFO</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/stm32_pwm_controller.html#STM32PWMController"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.stm32_pwm_controller.STM32PWMController" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.stm32_pwm_controller.</span></span><span class="sig-name descname"><span class="pre">STM32PWMController</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Level.INFO</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/stm32_pwm_controller.html#STM32PWMController"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.stm32_pwm_controller.STM32PWMController" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#hardware.pwm_controller.PWMController" title="hardware.pwm_controller.PWMController"><code class="xref py py-class docutils literal notranslate"><span class="pre">PWMController</span></code></a></p>
 <p>Implements the PWMController API using an STM32F405 Pyboard for motor control.</p>
 <dl class="py method">
@@ -1343,7 +1456,7 @@ the value of the direction pin, therefore it’s not handled here.</p>
 
 <dl class="py class" id="module-hardware.tlc59711">
 <dt class="sig sig-object py" id="hardware.tlc59711.TLC59711">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.tlc59711.</span></span><span class="sig-name descname"><span class="pre">TLC59711</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">spidev.SpiDev</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/tlc59711.html#TLC59711"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.tlc59711.TLC59711" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.tlc59711.</span></span><span class="sig-name descname"><span class="pre">TLC59711</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">spidev.SpiDev</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/tlc59711.html#TLC59711"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.tlc59711.TLC59711" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1358,7 +1471,7 @@ the value of the direction pin, therefore it’s not handled here.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="hardware.tlc59711.TLC59711.set_chipheader_bits_in_buffer">
-<span class="sig-name descname"><span class="pre">set_chipheader_bits_in_buffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">chip_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">part_bit_offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/hardware/tlc59711.html#TLC59711.set_chipheader_bits_in_buffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.tlc59711.TLC59711.set_chipheader_bits_in_buffer" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_chipheader_bits_in_buffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chip_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">part_bit_offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/hardware/tlc59711.html#TLC59711.set_chipheader_bits_in_buffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.tlc59711.TLC59711.set_chipheader_bits_in_buffer" title="Link to this definition"></a></dt>
 <dd><p>Set chip header bits in buffer.</p>
 </dd></dl>
 
@@ -1377,7 +1490,7 @@ the value of the direction pin, therefore it’s not handled here.</p>
 
 <dl class="py class" id="module-hardware.tlc59711_pwm_controller">
 <dt class="sig sig-object py" id="hardware.tlc59711_pwm_controller.TLC59711PWMController">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.tlc59711_pwm_controller.</span></span><span class="sig-name descname"><span class="pre">TLC59711PWMController</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pwm_controller</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hardware.tlc59711.TLC59711" title="hardware.tlc59711.TLC59711"><span class="pre">TLC59711</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hardware.controller_channel.ControllerChannel" title="hardware.controller_channel.ControllerChannel"><span class="pre">ControllerChannel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Level.INFO</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/tlc59711_pwm_controller.html#TLC59711PWMController"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.tlc59711_pwm_controller.TLC59711PWMController" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.tlc59711_pwm_controller.</span></span><span class="sig-name descname"><span class="pre">TLC59711PWMController</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pwm_controller</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hardware.tlc59711.TLC59711" title="hardware.tlc59711.TLC59711"><span class="pre">TLC59711</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hardware.controller_channel.ControllerChannel" title="hardware.controller_channel.ControllerChannel"><span class="pre">ControllerChannel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Level.INFO</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/tlc59711_pwm_controller.html#TLC59711PWMController"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.tlc59711_pwm_controller.TLC59711PWMController" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#hardware.pwm_controller.PWMController" title="hardware.pwm_controller.PWMController"><code class="xref py py-class docutils literal notranslate"><span class="pre">PWMController</span></code></a></p>
 <p>Implements the PWMController API using the Adafruit 12-channel 16-bit PWM
 controller board with the TLC59711 chip for motor control.</p>
@@ -1410,7 +1523,7 @@ the value of the direction pin, therefore it’s not handled here.</p>
 
 <dl class="py class" id="module-hardware.value_provider">
 <dt class="sig sig-object py" id="hardware.value_provider.DigitalPotSpeedProvider">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.value_provider.</span></span><span class="sig-name descname"><span class="pre">DigitalPotSpeedProvider</span></span><a class="reference internal" href="_modules/hardware/value_provider.html#DigitalPotSpeedProvider"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.value_provider.DigitalPotSpeedProvider" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.value_provider.</span></span><span class="sig-name descname"><span class="pre">DigitalPotSpeedProvider</span></span><a class="reference internal" href="_modules/hardware/value_provider.html#DigitalPotSpeedProvider"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.value_provider.DigitalPotSpeedProvider" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#hardware.value_provider.ValueProvider" title="hardware.value_provider.ValueProvider"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueProvider</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="hardware.value_provider.DigitalPotSpeedProvider.close">
@@ -1421,7 +1534,7 @@ the value of the direction pin, therefore it’s not handled here.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="hardware.value_provider.RotaryEncoderCommandProvider">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.value_provider.</span></span><span class="sig-name descname"><span class="pre">RotaryEncoderCommandProvider</span></span><a class="reference internal" href="_modules/hardware/value_provider.html#RotaryEncoderCommandProvider"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.value_provider.RotaryEncoderCommandProvider" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.value_provider.</span></span><span class="sig-name descname"><span class="pre">RotaryEncoderCommandProvider</span></span><a class="reference internal" href="_modules/hardware/value_provider.html#RotaryEncoderCommandProvider"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.value_provider.RotaryEncoderCommandProvider" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#hardware.value_provider.ValueProvider" title="hardware.value_provider.ValueProvider"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueProvider</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="hardware.value_provider.RotaryEncoderCommandProvider.close">
@@ -1432,7 +1545,7 @@ the value of the direction pin, therefore it’s not handled here.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="hardware.value_provider.ValueProvider">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.value_provider.</span></span><span class="sig-name descname"><span class="pre">ValueProvider</span></span><a class="reference internal" href="_modules/hardware/value_provider.html#ValueProvider"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.value_provider.ValueProvider" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.value_provider.</span></span><span class="sig-name descname"><span class="pre">ValueProvider</span></span><a class="reference internal" href="_modules/hardware/value_provider.html#ValueProvider"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.value_provider.ValueProvider" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="hardware.value_provider.ValueProvider.off">
@@ -1441,9 +1554,36 @@ the value of the direction pin, therefore it’s not handled here.</p>
 
 </dd></dl>
 
+<dl class="py class" id="module-motor_table_renderer">
+<dt class="sig sig-object py" id="motor_table_renderer.MotorTableRenderer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">motor_table_renderer.</span></span><span class="sig-name descname"><span class="pre">MotorTableRenderer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">yaml_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/motor_table_renderer.html#MotorTableRenderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#motor_table_renderer.MotorTableRenderer" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="motor_table_renderer.MotorTableRenderer.get_enc_timer">
+<span class="sig-name descname"><span class="pre">get_enc_timer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/motor_table_renderer.html#MotorTableRenderer.get_enc_timer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#motor_table_renderer.MotorTableRenderer.get_enc_timer" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="motor_table_renderer.MotorTableRenderer.get_pwm_timer">
+<span class="sig-name descname"><span class="pre">get_pwm_timer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/motor_table_renderer.html#MotorTableRenderer.get_pwm_timer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#motor_table_renderer.MotorTableRenderer.get_pwm_timer" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="motor_table_renderer.MotorTableRenderer.prepend_template">
+<span class="sig-name descname"><span class="pre">prepend_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/motor_table_renderer.html#MotorTableRenderer.prepend_template"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#motor_table_renderer.MotorTableRenderer.prepend_template" title="Link to this definition"></a></dt>
+<dd><p>Reads text from the given file and prepends it to the result buffer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="motor_table_renderer.MotorTableRenderer.render_table">
+<span class="sig-name descname"><span class="pre">render_table</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/motor_table_renderer.html#MotorTableRenderer.render_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#motor_table_renderer.MotorTableRenderer.render_table" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="py class" id="module-uart.async_uart_manager">
 <span id="module-temp.source.conf"></span><span id="module-stop_motor"></span><dt class="sig sig-object py" id="uart.async_uart_manager.AsyncUARTManager">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">uart.async_uart_manager.</span></span><span class="sig-name descname"><span class="pre">AsyncUARTManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/dev/serial0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baudrate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">115200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tx_timeout_ms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rx_timeout_ms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/uart/async_uart_manager.html#AsyncUARTManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#uart.async_uart_manager.AsyncUARTManager" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">uart.async_uart_manager.</span></span><span class="sig-name descname"><span class="pre">AsyncUARTManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/dev/serial0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baudrate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">115200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tx_timeout_ms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rx_timeout_ms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/uart/async_uart_manager.html#AsyncUARTManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#uart.async_uart_manager.AsyncUARTManager" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="uart.async_uart_manager.AsyncUARTManager.close">
@@ -1477,7 +1617,7 @@ the value of the direction pin, therefore it’s not handled here.</p>
 
 <dl class="py class" id="module-uart.payload">
 <span id="module-uart.crc8_table"></span><dt class="sig sig-object py" id="uart.payload.Payload">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">uart.payload.</span></span><span class="sig-name descname"><span class="pre">Payload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pfwd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sfwd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paft</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saft</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/uart/payload.html#Payload"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#uart.payload.Payload" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">uart.payload.</span></span><span class="sig-name descname"><span class="pre">Payload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pfwd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sfwd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paft</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saft</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/uart/payload.html#Payload"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#uart.payload.Payload" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="uart.payload.Payload.CRC_SIZE">
@@ -1506,37 +1646,37 @@ the value of the direction pin, therefore it’s not handled here.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="uart.payload.Payload.calculate_crc8">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calculate_crc8</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/uart/payload.html#Payload.calculate_crc8"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#uart.payload.Payload.calculate_crc8" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calculate_crc8</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/uart/payload.html#Payload.calculate_crc8"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#uart.payload.Payload.calculate_crc8" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="uart.payload.Payload.cmd">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cmd</span></span><a class="headerlink" href="#uart.payload.Payload.cmd" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cmd</span></span><a class="headerlink" href="#uart.payload.Payload.cmd" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="uart.payload.Payload.from_bytes">
-<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">packet</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/uart/payload.html#Payload.from_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#uart.payload.Payload.from_bytes" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">packet</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/uart/payload.html#Payload.from_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#uart.payload.Payload.from_bytes" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="uart.payload.Payload.paft">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">paft</span></span><a class="headerlink" href="#uart.payload.Payload.paft" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">paft</span></span><a class="headerlink" href="#uart.payload.Payload.paft" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="uart.payload.Payload.pfwd">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pfwd</span></span><a class="headerlink" href="#uart.payload.Payload.pfwd" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pfwd</span></span><a class="headerlink" href="#uart.payload.Payload.pfwd" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="uart.payload.Payload.saft">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">saft</span></span><a class="headerlink" href="#uart.payload.Payload.saft" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">saft</span></span><a class="headerlink" href="#uart.payload.Payload.saft" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="uart.payload.Payload.sfwd">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sfwd</span></span><a class="headerlink" href="#uart.payload.Payload.sfwd" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sfwd</span></span><a class="headerlink" href="#uart.payload.Payload.sfwd" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1550,7 +1690,7 @@ certain cases __bytes__() doesn’t get triggered correctly in MicroPython.</p>
 
 <dl class="py class" id="module-uart.sync_uart_manager">
 <dt class="sig sig-object py" id="uart.sync_uart_manager.SyncUARTManager">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">uart.sync_uart_manager.</span></span><span class="sig-name descname"><span class="pre">SyncUARTManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/dev/serial0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baudrate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">115200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tx_timeout_ms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rx_timeout_ms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/uart/sync_uart_manager.html#SyncUARTManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#uart.sync_uart_manager.SyncUARTManager" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">uart.sync_uart_manager.</span></span><span class="sig-name descname"><span class="pre">SyncUARTManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/dev/serial0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baudrate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">115200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tx_timeout_ms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rx_timeout_ms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/uart/sync_uart_manager.html#SyncUARTManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#uart.sync_uart_manager.SyncUARTManager" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="uart.sync_uart_manager.SyncUARTManager.close">
@@ -1583,7 +1723,7 @@ certain cases __bytes__() doesn’t get triggered correctly in MicroPython.</p>
 
 <dl class="py class" id="module-uart.uart_master">
 <dt class="sig sig-object py" id="uart.uart_master.UARTMaster">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">uart.uart_master.</span></span><span class="sig-name descname"><span class="pre">UARTMaster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/dev/ttyAMA0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baudrate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">115200</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/uart/uart_master.html#UARTMaster"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#uart.uart_master.UARTMaster" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">uart.uart_master.</span></span><span class="sig-name descname"><span class="pre">UARTMaster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/dev/ttyAMA0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baudrate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">115200</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/uart/uart_master.html#UARTMaster"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#uart.uart_master.UARTMaster" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="uart.uart_master.UARTMaster.ERROR_PAYLOAD">

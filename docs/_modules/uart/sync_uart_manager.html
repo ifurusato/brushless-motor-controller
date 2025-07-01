@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>uart.sync_uart_manager &mdash; Brushless Motor Controller 0.1.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -39,10 +39,11 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Features</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../modules.html#modules">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html#pinout">Pinout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html#module-core.component">Modules</a></li>
 </ul>
 
         </div>
@@ -81,18 +82,18 @@
 <span class="c1"># created:  2025-06-23</span>
 <span class="c1"># modified: 2025-06-23</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">serial</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">colorama</span><span class="w"> </span><span class="kn">import</span> <span class="n">init</span><span class="p">,</span> <span class="n">Fore</span><span class="p">,</span> <span class="n">Style</span>
+<span class="kn">import</span> <span class="nn">serial</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">colorama</span> <span class="kn">import</span> <span class="n">init</span><span class="p">,</span> <span class="n">Fore</span><span class="p">,</span> <span class="n">Style</span>
 <span class="n">init</span><span class="p">()</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">uart.payload</span><span class="w"> </span><span class="kn">import</span> <span class="n">Payload</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">core.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">Logger</span><span class="p">,</span> <span class="n">Level</span>
+<span class="kn">from</span> <span class="nn">uart.payload</span> <span class="kn">import</span> <span class="n">Payload</span>
+<span class="kn">from</span> <span class="nn">core.logger</span> <span class="kn">import</span> <span class="n">Logger</span><span class="p">,</span> <span class="n">Level</span>
 
 <div class="viewcode-block" id="SyncUARTManager">
 <a class="viewcode-back" href="../../modules.html#uart.sync_uart_manager.SyncUARTManager">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">SyncUARTManager</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="s1">&#39;/dev/serial0&#39;</span><span class="p">,</span> <span class="n">baudrate</span><span class="o">=</span><span class="mi">115200</span><span class="p">,</span> <span class="n">tx_timeout_ms</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">rx_timeout_ms</span><span class="o">=</span><span class="mi">25</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">SyncUARTManager</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="s1">&#39;/dev/serial0&#39;</span><span class="p">,</span> <span class="n">baudrate</span><span class="o">=</span><span class="mi">115200</span><span class="p">,</span> <span class="n">tx_timeout_ms</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">rx_timeout_ms</span><span class="o">=</span><span class="mi">25</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">(</span><span class="s1">&#39;sync-uart-mgr&#39;</span><span class="p">,</span> <span class="n">Level</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_port_name</span>  <span class="o">=</span> <span class="n">port</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_baudrate</span>   <span class="o">=</span> <span class="n">baudrate</span>
@@ -106,7 +107,7 @@
 
 <div class="viewcode-block" id="SyncUARTManager.open">
 <a class="viewcode-back" href="../../modules.html#uart.sync_uart_manager.SyncUARTManager.open">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_serial</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_serial</span><span class="o">.</span><span class="n">is_open</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_rx_buffer</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_serial</span> <span class="o">=</span> <span class="n">serial</span><span class="o">.</span><span class="n">Serial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_port_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_baudrate</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_tx_timeout_s</span><span class="p">)</span>
@@ -115,7 +116,7 @@
 
 <div class="viewcode-block" id="SyncUARTManager.close">
 <a class="viewcode-back" href="../../modules.html#uart.sync_uart_manager.SyncUARTManager.close">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_serial</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_serial</span><span class="o">.</span><span class="n">is_open</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_serial</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;serial port closed.&quot;</span><span class="p">)</span>
@@ -124,7 +125,7 @@
 
 <div class="viewcode-block" id="SyncUARTManager.send_packet">
 <a class="viewcode-back" href="../../modules.html#uart.sync_uart_manager.SyncUARTManager.send_packet">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">send_packet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">send_packet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
         <span class="n">packet_bytes</span> <span class="o">=</span> <span class="n">payload</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">()</span>
         <span class="c1"># ensure sync header is present for robust protocol</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">packet_bytes</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">Payload</span><span class="o">.</span><span class="n">SYNC_HEADER</span><span class="p">):</span>
@@ -136,7 +137,7 @@
 
 <div class="viewcode-block" id="SyncUARTManager.receive_packet">
 <a class="viewcode-back" href="../../modules.html#uart.sync_uart_manager.SyncUARTManager.receive_packet">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">receive_packet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">receive_packet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Reads bytes, synchronizes on sync header, and returns the first valid Payload found.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -185,7 +186,7 @@
 
 <div class="viewcode-block" id="SyncUARTManager.receive_values">
 <a class="viewcode-back" href="../../modules.html#uart.sync_uart_manager.SyncUARTManager.receive_values">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">receive_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">receive_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Convenience method to receive a Payload and return the tuple (cmd, pfwd, sfwd, paft, saft).</span>
 <span class="sd">        &#39;&#39;&#39;</span>

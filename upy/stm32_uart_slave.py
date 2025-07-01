@@ -7,30 +7,17 @@
 #
 # author:   Murray Altheim
 # created:  2025-06-12
-# modified: 2025-06-29
+# modified: 2025-07-01
 #
 # A UART slave for the STM32, using UART 1-3.
 #
 # UART 4's pins conflict with use of the SD card so support for it was not
-# built into MicroPython for the STM32H562.
-#
-# STM32H562 (WeActStudio 64-pin CoreBoard) UART Default Pin Mapping
-#
-#     +--------+-------+-------+
-#     | UART   |  TX   |  RX   |
-#     +--------+-------+-------+
-#     | UART1  |  PA9  | PA10  |
-#     | UART2  |  PA2  | PA3   |
-#     | UART3  | PB10  | PB11  |
-#     +--------+-------+-------+
-#
-# Note: You cannot specify tx/rx pins in MicroPython's UART() constructor,
-#       it will use the default pins for each.
+# built into MicroPython for the STM32H562. UART 1 is used for communications
+# when connecting between the Raspberry Pi, so only UART 2 or 3 are suitable.
 #
 # Example usage:
 #
-#   uart4 = UART(2, baudrate=115200)  # Uses PA2 (TX), PA3 (RX)
-#
+#   uart2 = UART(2, baudrate=115200)  # uses PA2 (TX), PA3 (RX)
 
 import uasyncio as asyncio
 import time
@@ -48,6 +35,5 @@ class Stm32UartSlave(UartSlaveBase):
         self._led   = LED(1)
         self._uart  = UART(uart_id)
         self._uart.init(baudrate=baudrate, bits=8, parity=None, stop=1)
-        # ready
 
 #EOF

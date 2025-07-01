@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>uart.payload &mdash; Brushless Motor Controller 0.1.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -39,10 +39,11 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Features</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../modules.html#modules">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html#pinout">Pinout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html#module-core.component">Modules</a></li>
 </ul>
 
         </div>
@@ -81,12 +82,12 @@
 <span class="c1"># created:  2025-06-12</span>
 <span class="c1"># modified: 2025-06-24</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">struct</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">uart.crc8_table</span><span class="w"> </span><span class="kn">import</span> <span class="n">CRC8_TABLE</span>
+<span class="kn">import</span> <span class="nn">struct</span>
+<span class="kn">from</span> <span class="nn">uart.crc8_table</span> <span class="kn">import</span> <span class="n">CRC8_TABLE</span>
 
 <div class="viewcode-block" id="Payload">
 <a class="viewcode-back" href="../../modules.html#uart.payload.Payload">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">Payload</span><span class="p">:</span>
+<span class="k">class</span> <span class="nc">Payload</span><span class="p">:</span>
     <span class="c1"># sync header: &#39;zz&#39; for human-readability. To switch to a binary header, just uncomment the next line.</span>
     <span class="n">SYNC_HEADER</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x7A\x7A</span><span class="s1">&#39;</span>
 <span class="c1">#   SYNC_HEADER = b&#39;\xAA\x55&#39;</span>
@@ -95,7 +96,7 @@
     <span class="n">CRC_SIZE</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">PACKET_SIZE</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">SYNC_HEADER</span><span class="p">)</span> <span class="o">+</span> <span class="n">PAYLOAD_SIZE</span> <span class="o">+</span> <span class="n">CRC_SIZE</span>  <span class="c1"># header + payload + crc</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">pfwd</span><span class="p">,</span> <span class="n">sfwd</span><span class="p">,</span> <span class="n">paft</span><span class="p">,</span> <span class="n">saft</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">pfwd</span><span class="p">,</span> <span class="n">sfwd</span><span class="p">,</span> <span class="n">paft</span><span class="p">,</span> <span class="n">saft</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cmd</span> <span class="o">=</span> <span class="n">cmd</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">cmd</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pfwd</span> <span class="o">=</span> <span class="n">pfwd</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sfwd</span> <span class="o">=</span> <span class="n">sfwd</span>
@@ -103,33 +104,33 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_saft</span> <span class="o">=</span> <span class="n">saft</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cmd</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">pfwd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">pfwd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pfwd</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">sfwd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">sfwd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sfwd</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">paft</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">paft</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_paft</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">saft</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">saft</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_saft</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;Payload(cmd=</span><span class="si">{}</span><span class="s2">, pfwd=</span><span class="si">{}</span><span class="s2">, sfwd=</span><span class="si">{}</span><span class="s2">, paft=</span><span class="si">{}</span><span class="s2">, saft=</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_cmd</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pfwd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sfwd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_paft</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_saft</span>
         <span class="p">)</span>
 
 <div class="viewcode-block" id="Payload.to_bytes">
 <a class="viewcode-back" href="../../modules.html#uart.payload.Payload.to_bytes">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">to_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">to_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        A convenience method that calls __bytes__(). This is probably safer as in</span>
 <span class="sd">        certain cases __bytes__() doesn&#39;t get triggered correctly in MicroPython.</span>
@@ -137,7 +138,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__bytes__</span><span class="p">()</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__bytes__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__bytes__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># pack the data into bytes (cmd, floats)</span>
         <span class="n">packed</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PACK_FORMAT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cmd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pfwd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sfwd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_paft</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_saft</span><span class="p">)</span>
         <span class="n">crc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_crc8</span><span class="p">(</span><span class="n">packed</span><span class="p">)</span>
@@ -146,7 +147,7 @@
 <div class="viewcode-block" id="Payload.from_bytes">
 <a class="viewcode-back" href="../../modules.html#uart.payload.Payload.from_bytes">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_bytes</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">packet</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_bytes</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">packet</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">packet</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">PACKET_SIZE</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid packet size: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">packet</span><span class="p">)))</span>
         <span class="k">if</span> <span class="n">packet</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">Payload</span><span class="o">.</span><span class="n">SYNC_HEADER</span><span class="p">)]</span> <span class="o">!=</span> <span class="n">Payload</span><span class="o">.</span><span class="n">SYNC_HEADER</span><span class="p">:</span>
@@ -163,7 +164,7 @@
 <div class="viewcode-block" id="Payload.calculate_crc8">
 <a class="viewcode-back" href="../../modules.html#uart.payload.Payload.calculate_crc8">[docs]</a>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_crc8</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">calculate_crc8</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="n">crc</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
             <span class="n">crc</span> <span class="o">=</span> <span class="n">CRC8_TABLE</span><span class="p">[</span><span class="n">crc</span> <span class="o">^</span> <span class="n">b</span><span class="p">]</span>

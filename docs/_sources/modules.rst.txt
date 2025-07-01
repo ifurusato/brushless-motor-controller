@@ -3,9 +3,9 @@
 Overview
 ========
 
-This project uses Python and MicroPython for control of up to four DC brushless motors.
-It is designed for use with a Raspberry Pi but could be adapted to any hardware with
-similar capabilities.
+This project uses Python and MicroPython for control of up to four DFRobot 12V DC
+brushless motors (model number FIT0441). It is designed for use with a Raspberry Pi
+but could be adapted to any hardware with similar capabilities.
 
 The DFRobot brushless motors require a Pulse-Width Modified (PWM) signal to control
 their speed, in an inverted mode: when fed a 100% duty cycle the motor is stopped,
@@ -19,14 +19,75 @@ over a UART. In this latter mode the project supports either an RP2040 or an STM
 (i.e., the STM32H562, though it could with some pin configuration changes be used with
 others).
 
+See
+---
+
+* Product page: `Brushless DC Motor with Encoder 12V 159RPM FIT0441 <https://www.dfrobot.com/product-1364.html>`__
+* Documentation: `FIT0441 Brushless DC Motor with Encoder 12V 159RPM <https://wiki.dfrobot.com/FIT0441_Brushless_DC_Motor_with_Encoder_12V_159RPM>`__
+
+
+======
+Pinout
+======
+
+Here are the pin configurations for connecting a Raspberry Pi to a STM32H562.
+
+UART Pins
+---------
+
+This uses a custom build of MicroPython for the STM32H562, whose board definition
+can be found at `mp-weact-stm32h562 <https://github.com/ifurusato/mp-weact-stm32h562/>`__.
+The pins used for this implementation are defined in the board definition.
+
+A custom build of Micro
+
+The UART slave for the STM32 is able to use UART 1-3. 
+
+UART 1 is discouraged as it is used to print console communications over ``/dev/serial0``
+when connected to the board (e.g., over rshell). UART 4's pins conflict with the SD card
+so support for it as not built into MicroPython for the STM32H562.
+
+Therefore, only UART 2 or 3 are suitable: UART 2 is configured as the default.
+
++--------+-------+-------+
+| UART   |  TX   |  RX   |
++========+=======+=======+
+| UART1  |  PA9  | PA10  |
++--------+-------+-------+
+| UART2  |  PA2  | PA3   |
++--------+-------+-------+
+| UART3  | PB10  | PB11  |
++--------+-------+-------+
+
+.. note::
+
+    You cannot specify tx/rx pins in MicroPython's ``UART()`` constructor;
+    it will use the default pins for each.
+
+
+Motor Pins
+----------
+
++----+------+--------+---------+---------+---------+--------+
+| Id | Name | PWM Ch | PWM Pin | Dir Pin | Enc Pin | Enc Ch |
++====+======+========+=========+=========+=========+========+
+| 0  | M0   | 1      | PB6     | B12     | PC6     | 1      |
++----+------+--------+---------+---------+---------+--------+
+| 1  | M1   | 2      | PB7     | B14     | PC7     | 2      |
++----+------+--------+---------+---------+---------+--------+
+| 2  | M2   | 3      | PB8     | B3      | PC8     | 3      |
++----+------+--------+---------+---------+---------+--------+
+| 3  | M3   | 4      | PB9     | B5      | PC9     | 4      |
++----+------+--------+---------+---------+---------+--------+
+
+
+All four motors use the same PWM timer (4) and encoder timer (3).
+
+
 
 =======
 Modules
 =======
-
-.. note::
-
-   The following modules are automatically documented using `Sphinx <https://www.sphinx-doc.org/>`__.
 
 
 .. automodule:: core.component
@@ -126,6 +187,12 @@ Modules
     :exclude-members: main, init
 
 .. automodule:: hardware.value_provider
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: motor_table_renderer
     :members:
     :undoc-members:
     :show-inheritance:
