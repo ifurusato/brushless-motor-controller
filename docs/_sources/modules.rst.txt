@@ -27,6 +27,8 @@ The Python files for the project are located in the root directory, ``core``, ``
 and ``uart`` directories. The ``upy`` directory contains the contents to be uploaded to
 the microcontroller.
 
+Also, depending on your implementation choices you will be able to trim unused files.
+
 
 
 ======
@@ -91,11 +93,13 @@ All four motors use the same PWM Timer (4) and encoder Timer
 (3).
 
 
-
 =======
 Modules
 =======
 
+This project documentation intermixes the CPython and MicroPython code
+indescriminately. To differentiate, check the ``upy`` directory, which
+contains all the MicroPython code.
 
 .. automodule:: core.component
     :members:

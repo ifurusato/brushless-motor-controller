@@ -27,4 +27,6 @@ The Python files for the project are located in the root directory, ``core``, ``
 and ``uart`` directories. The ``upy`` directory contains the contents to be uploaded to
 the microcontroller.
 
+Also, depending on your implementation choices you will be able to trim unused files.
+
 

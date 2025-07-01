@@ -167,7 +167,7 @@ if outline_file.exists():
     for _line in _lines:
         lines.append(_line)
 
-# append lines from table-rendered sphinx-outline.rst
+# append lines from table-rendered motor_config.yaml
 renderer = MotorTableRenderer("upy/motor_config.yaml")
 #renderer.prepend_template("sphinx-pinout.rst")
 rendered_table = renderer.render_table()
@@ -175,6 +175,7 @@ rendered_table = renderer.render_table()
 pwm_timer = str(renderer.get_pwm_timer())
 enc_timer = str(renderer.get_enc_timer())
 
+# append lines from sphinx-pinout.rst
 pinout_file = project_root / "sphinx-pinout.rst"
 if pinout_file.exists():
     _text = pinout_file.read_text()
@@ -186,14 +187,12 @@ if pinout_file.exists():
 #       print("line: '{}'".format(_line))
         lines.append(_line)
 
-# add modules header
-lines.append("")
-lines.append("")
-lines.append("=======")
-lines.append("Modules")
-lines.append("=======")
-lines.append("")
-lines.append("")
+# append lines from sphinx-modules.rst
+modules_file = project_root / "sphinx-modules.rst"
+if modules_file.exists():
+    _lines = modules_file.read_text().splitlines()
+    for _line in _lines:
+        lines.append(_line)
 
 for mod in sorted(modules):
     lines.append(f".. automodule:: {mod}")

@@ -52,7 +52,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#motor-pins">Motor Pins</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="#module-core.component">Modules</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="#modules">Modules</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#core.component.Component"><code class="docutils literal notranslate"><span class="pre">Component</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#core.component.Component.classname"><code class="docutils literal notranslate"><span class="pre">Component.classname</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#core.component.Component.close"><code class="docutils literal notranslate"><span class="pre">Component.close()</span></code></a></li>
@@ -364,6 +364,7 @@ others).</p>
 <p>The Python files for the project are located in the root directory, <code class="docutils literal notranslate"><span class="pre">core</span></code>, <code class="docutils literal notranslate"><span class="pre">hardware</span></code>
 and <code class="docutils literal notranslate"><span class="pre">uart</span></code> directories. The <code class="docutils literal notranslate"><span class="pre">upy</span></code> directory contains the contents to be uploaded to
 the microcontroller.</p>
+<p>Also, depending on your implementation choices you will be able to trim unused files.</p>
 </section>
 </section>
 <section id="pinout">
@@ -464,9 +465,12 @@ two Timers to supply our PWM and encoder signals.</p>
 (3).</p>
 </section>
 </section>
-<section id="module-core.component">
-<span id="modules"></span><h1>Modules<a class="headerlink" href="#module-core.component" title="Link to this heading"></a></h1>
-<dl class="py class">
+<section id="modules">
+<h1>Modules<a class="headerlink" href="#modules" title="Link to this heading"></a></h1>
+<p>This project documentation intermixes the CPython and MicroPython code
+indescriminately. To differentiate, check the <code class="docutils literal notranslate"><span class="pre">upy</span></code> directory, which
+contains all the MicroPython code.</p>
+<dl class="py class" id="module-core.component">
 <dt class="sig sig-object py" id="core.component.Component">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.component.</span></span><span class="sig-name descname"><span class="pre">Component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logger</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suppressed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enabled</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/component.html#Component"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.component.Component" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
