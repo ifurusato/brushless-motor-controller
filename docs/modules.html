@@ -398,8 +398,10 @@ UART 3 are suitable: UART 2 is configured as the default.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>You cannot specify tx/rx pins in MicroPython’s <code class="docutils literal notranslate"><span class="pre">UART()</span></code> constructor;
-it will use the default pins for each.</p>
+it will use the defined pins for each.</p>
 </div>
+<p>The primary UART on the Raspberry Pi is GPIO 14 (TX) and GPIO 15 (RX). Using
+UART 2, GPIO 14 is therefore connected to PA3, GPIO 15 to PA2.</p>
 </section>
 <section id="motor-pins">
 <h2>Motor Pins<a class="headerlink" href="#motor-pins" title="Link to this heading"></a></h2>
