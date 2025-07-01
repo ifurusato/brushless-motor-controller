@@ -36,6 +36,9 @@ UART 3 are suitable: UART 2 is configured as the default.
 The primary UART on the Raspberry Pi is GPIO 14 (TX) and GPIO 15 (RX). Using
 UART 2, GPIO 14 is therefore connected to PA3, GPIO 15 to PA2.
 
+If using a NeoPixel or NeoPixel strip, it is connected to PA1. This is currently
+hard-coded in the ``upy/pixel.py`` class.
+
 
 Motor Pins
 ----------

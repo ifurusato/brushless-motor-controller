@@ -179,7 +179,7 @@ class MotorController:
                         for motor in self._motor_list
                     )
                     if self._verbose:
-                        self._log.info(Fore.MAGENTA + "current RPM: {}".format(rpm_values))
+                        self._log.debug(Fore.MAGENTA + "current RPM: {}".format(rpm_values))
                 else:
                     self._log.warning("no motors configured for RPM logging.")
                 await asyncio.sleep_ms(interval_ms)
