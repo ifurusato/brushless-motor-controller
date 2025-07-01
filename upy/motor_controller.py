@@ -27,12 +27,32 @@ class MotorController:
         self._enabled    = False
         self._motors     = {}
         self._motor_list = []
+        _cfg             = config["kros"]["motor_controller"]
+        _app_cfg         = config["kros"]["application"]
+        _motor_cfg       = config["kros"]["motors"]
+        _pwm_frequency   = _cfg['pwm_frequency']
+        _enc_frequency   = _cfg['encoder_frequency']
+        self._verbose    = _app_cfg["verbose"]
+        self._log.info(Fore.MAGENTA + 'verbose: {}'.format(self._verbose))
         try:
-            _cfg = config["kros"]["motor_controller"]
-            _motor_cfg         = config["kros"]["motors"]
-            _pwm_frequency     = _cfg['pwm_frequency']
-            _encoder_frequency = _cfg['encoder_frequency']
-            # motors
+            # RPM timer ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+            _rpm_timer_number  = _cfg['rpm_timer_number']
+            _rpm_timer_freq    = _cfg['rpm_timer_frequency']
+            self._rpm_timer    = Timer(_rpm_timer_number, freq=_rpm_timer_freq)
+            # RPM timer callback enabled by enable()
+#           self._rpm_timer.callback(self._rpm_timer_callback)
+            self._log.info(Fore.MAGENTA + 'configured Timer {} for RPM calculation at {}Hz'.format(_rpm_timer_number, _rpm_timer_freq))
+            # Logging timer ┈┈┈┈┈┈┈┈┈┈┈┈
+            _log_timer_number  = _cfg['log_timer_number']
+            _log_timer_freq    = _cfg['log_timer_frequency']
+            self._logging_task = None # store the logging task to manage it
+            self._logging_enabled = False
+            self._loop         = None # asyncio loop instance
+            self._timer        = None # timer for logging
+            self._asyncio_event_from_isr = asyncio.Event() # Event to signal asyncio from ISR
+            self._needs_pid_update = False
+            self._pid_task     = None
+            # motors ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
             for index in range(4):
                 if not motors_enabled[index]:
                     continue
@@ -40,9 +60,10 @@ class MotorController:
                 self._log.info('configuring {}…'.format(motor_key))
                 mcfg      = _motor_cfg[motor_key]
                 pwm_timer = Timer(mcfg["pwm_timer"], freq=_pwm_frequency)
-                enc_timer = Timer(mcfg["enc_timer"], freq=_encoder_frequency)
+                enc_timer = Timer(mcfg["enc_timer"], freq=_enc_frequency)
+                _id = mcfg["id"],
                 motor = Motor(
-                    name=mcfg["name"],
+                    id=_id,
                     pwm_timer=pwm_timer,
                     pwm_channel=mcfg["pwm_channel"],
                     pwm_pin=mcfg["pwm_pin"],
@@ -58,25 +79,9 @@ class MotorController:
                 motor.speed = Motor.STOPPED
                 self._motors[index] = motor
                 self._motor_list.append(motor)
+            self._log.debug('configuring additional timers…')
             # immediately stop all motors
             self.stop()
-            self._log.debug('configuring additional timers…')
-            # RPM timer
-            _rpm_timer_number  = _cfg['rpm_timer_number']
-            _rpm_timer_freq    = _cfg['rpm_timer_frequency']
-            self._rpm_timer    = Timer(_rpm_timer_number, freq=_rpm_timer_freq)
-            self._rpm_timer.callback(self._rpm_timer_callback)
-            self._log.info(Fore.MAGENTA + 'configured Timer {} for RPM calculation at {}Hz'.format(_rpm_timer_number, _rpm_timer_freq))
-            # Logging timer
-            _log_timer_number  = _cfg['log_timer_number']
-            _log_timer_freq    = _cfg['log_timer_frequency']
-            self._logging_task = None # store the logging task to manage it
-            self._logging_enabled = False
-            self._loop         = None # asyncio loop instance
-            self._timer        = None # timer for logging
-            self._asyncio_event_from_isr = asyncio.Event() # Event to signal asyncio from ISR
-            self._needs_pid_update = False
-            self._pid_task     = None
             self._log.info('ready.')
 
         except Exception as e:
@@ -153,7 +158,8 @@ class MotorController:
         """
         Periodically logs the current RPM and tick count for all motors.
         """
-        self._log.info(Fore.MAGENTA + "called RPM logger coroa with interval: {}ms.".format(interval_ms))
+        if self._verbose:
+            self._log.info(Fore.MAGENTA + "called RPM logger coroa with interval: {}ms.".format(interval_ms))
         try:
             while self._logging_enabled:
                 if self._motor_list:
@@ -161,7 +167,8 @@ class MotorController:
                         "{}: {:.2f} RPM; {} ticks".format(motor.name, motor.rpm, motor.tick_count)
                         for motor in self._motor_list
                     )
-                    self._log.info(Fore.MAGENTA + "🍆 current RPM: {}".format(rpm_values))
+                    if self._verbose:
+                        self._log.info(Fore.MAGENTA + "🍆 current RPM: {}".format(rpm_values))
                 else:
                     self._log.warning("no motors configured for RPM logging.")
                 await asyncio.sleep_ms(interval_ms)
@@ -177,6 +184,7 @@ class MotorController:
             for motor in self.motors:
                 motor.enable()
             self._enabled = True
+            self._rpm_timer.callback(self._rpm_timer_callback)
             self.enable_rpm_logger() # already starts timer & logging
             if self._pid_task is None:
                 self._pid_task = self._loop.create_task(self._pid_control_coro())
@@ -188,8 +196,8 @@ class MotorController:
         else:
             for motor in self.motors:
                 motor.disable()
+            self._rpm_timer.callback(None)
             self._encoder_channel.callback(None)
-            self._stop_auto_tick()
             if self._pid_task is not None:
                 self._pid_task.cancel()
                 self._pid_task = None
@@ -200,18 +208,21 @@ class MotorController:
             return self._motors[motor_num]
         raise ValueError('expected an int.')
 
-    def set_motor_speed(self, motor_nums, speed):
+    def set_motor_speed(self, motor_nums, speeds):
         '''
-        Set speed for one or more motors.
+        Set speed for the motors.
         :param motor_nums: int or list/tuple of ints (motor numbers 0–3)
         :param speed: speed percentage (0–100)
         '''
-        self._log.info(Fore.WHITE + Style.BRIGHT + 'set motor(s) {} speed to {}'.format(motor_nums, speed))
         if not self.enabled:
             raise RuntimeError('motor controller not enabled.')
-        if isinstance(motor_nums, int):
-            motor_nums = [motor_nums]
-        for motor in self.iter_valid_motors(motor_nums):
+        if self._verbose:
+            self._log.info(Fore.WHITE + Style.BRIGHT + 'set motor(s) {} speed to {}'.format(motor_nums, speed))
+        motor_nums = [motor_nums] if isinstance(motor_nums, int) else list(motor_nums)
+        speeds = list(speeds)
+#       if self._verbose:
+        self._log.info(Fore.WHITE + 'set motor(s) {} speed to {}'.format(motor_nums, speeds))
+        for motor, speed in zip(self.iter_valid_motors(motor_nums), speeds):
             motor.speed = speed
 
     def set_motor_direction(self, motor_nums, direction):
@@ -266,7 +277,8 @@ class MotorController:
         Gradually slow one or more motors to a stop (speed = 100).
         :param motor_nums: int or list/tuple of ints
         '''
-        self._log.info("Decelerating motor(s) {} to stop...".format(motor_nums))
+        if self._verbose:
+            self._log.info("decelerating motor(s) {} to stop...".format(motor_nums))
         await self.accelerate(motor_nums, target_speed=Motor.STOPPED, step=step, delay_ms=delay_ms)
 
     def log_pin_configuration(self):
@@ -292,7 +304,8 @@ class MotorController:
         '''
         for motor in self.motors:
             motor.stop()
-        self._log.info("all motors stopped.")
+        if self._verbose:
+            self._log.info("all motors stopped.")
 
     def disable(self):
         self.stop()

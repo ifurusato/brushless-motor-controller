@@ -7,9 +7,10 @@
 #
 # author:   Murray Altheim
 # created:  2025-06-23
-# modified: 2025-06-25
+# modified: 2025-06-30
 #
-# This is the entry point to the UART slave application.
+# This is the entry point to the UART slave application. This uses UART 2 on the
+# STM32 and UART 1 (the default) on the RP2040.
 #
 
 import uasyncio as asyncio
@@ -19,21 +20,36 @@ from core.logger import Logger, Level
 from payload import Payload
 from pixel import Pixel
 from payload_router import PayloadRouter
-from fake_motor import FakeMotor
 from colors import *
 
+import cwd
 import free
 
+__IS_PYBOARD = True   # use Pyboard or MP2040
+__IS_MOCK    = False  # use mocked or real motor controller
+
 class UartSlaveApp:
-    def __init__(self, is_pyboard=True):
+    def __init__(self, mock=False, is_pyboard=True):
         self._is_pyboard = is_pyboard
         self._log = Logger('main', Level.INFO)
         self._pixel    = Pixel(brightness=0.1)
         self._slave    = None
         self._uart_id  = None
         self._verbose  = False
-        self._baudrate = 1_000_000 # default: can be configured if needed
-        self._motor_controller = FakeMotor() # for now
+        self._baudrate = 1_000_000 # default: can be configured if needed 
+        if mock:
+            from mock_motor_controller import MockMotorController
+
+            self._motor_controller = MockMotorController() # for now
+        else:
+            from config_loader import ConfigLoader
+            from motor_controller import MotorController
+
+            _config = ConfigLoader.configure('motor_config.yaml')
+            if _config is None:
+                raise ValueError('failed to import configuration.')
+            self._motor_controller = MotorController(config=_config, motors_enabled=(True, True, False, False), level=Level.INFO)
+            self._motor_controller.enable()
         self._router   = PayloadRouter(self._motor_controller)
         self._log.info('ready.')
 
@@ -71,21 +87,21 @@ class UartSlaveApp:
 
     async def _setup_uart_slave(self):
         if self._is_pyboard:
-            self._log.info("configuring UART slave for STM32 Pyboard…")
             from stm32_uart_slave import Stm32UartSlave
             await self._pyb_wait_a_bit()
-            self._uart_id = 4
+            self._uart_id = 2
+            self._log.info('configuring UART{} slave for STM32 Pyboard…'.format(self._uart_id))
             self._slave = Stm32UartSlave(uart_id=self._uart_id, baudrate=self._baudrate, pixel=self._pixel)
-
+        
         else:
-            self._log.info("configuring UART slave for RP2040…")
             from rp2040_uart_slave import RP2040UartSlave
             await self._wait_a_bit()
             self._uart_id = 1
+            self._log.info('configuring UART{} slave for RP2040…'.format(self._uart_id))
             self._slave = RP2040UartSlave(uart_id=self._uart_id, baudrate=self._baudrate, pixel=self._pixel)
 
         self._slave.set_verbose(False)
-        self._log.info('UART slave: ' + Fore.WHITE + 'waiting for command from master…')
+        self._log.info('UART{} slave: '.format(self._uart_id) + Fore.WHITE + 'waiting for command from master…')
 
     async def run(self):
         await self._setup_uart_slave()
@@ -93,7 +109,7 @@ class UartSlaveApp:
         try:
             while True:
                 _payload = await self._slave.receive_packet()
-                if isinstance(_payload , Payload):
+                if isinstance(_payload, Payload):
                     if self._verbose:
                         self._log.info("payload: {}".format(_payload))
                     self._router.route(_payload)
@@ -119,11 +135,11 @@ class UartSlaveApp:
 
 # for REPL usage or testing
 def exec():
-    app = UartSlaveApp(is_pyboard=True)
+    app = UartSlaveApp(mock=__IS_MOCK, is_pyboard=__IS_PYBOARD)
     asyncio.run(app.run())
 
 if __name__ == "__main__":
-    app = UartSlaveApp(is_pyboard=True)
+    app = UartSlaveApp(mock=__IS_MOCK, is_pyboard=__IS_PYBOARD)
     asyncio.run(app.run())
 
 #EOF

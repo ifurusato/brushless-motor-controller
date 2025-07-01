@@ -11,6 +11,8 @@
 #
 
 kros:
+    application:
+        verbose:                False   # application-level verbosity
     motor_controller:
         rpm_timer_number:           2   # RPM timer number
         rpm_timer_frequency:      100   # RPM timer frequency in Hz
@@ -21,6 +23,7 @@ kros:
         
     motors:
         motor0:
+            id:                     0
             name:                'M0'
             pwm_timer:              4
             pwm_channel:            1
@@ -34,6 +37,7 @@ kros:
             enc_channel:            1
             reverse:            False
         motor1:
+            id:                     1
             name:                'M1'
             pwm_timer:              4
             pwm_channel:            2
@@ -47,6 +51,7 @@ kros:
             enc_channel:            2
             reverse:             True
         motor2:
+            id:                     2
             name:                'M2'
             pwm_timer:              4
             pwm_channel:            3
@@ -60,6 +65,7 @@ kros:
             enc_channel:            3
             reverse:            False
         motor3:
+            id:                     3
             name:                'M3'
             pwm_timer:              4
             pwm_channel:            4

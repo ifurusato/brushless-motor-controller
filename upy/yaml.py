@@ -36,6 +36,7 @@ def load(fpath):
             text = f.read()
             return parse(text)
     except OSError as e:
+        print('{} raised opening file: {}'.format(type(e), e))
         raise FileNotFoundError("file not found: {}".format(fpath))
 
 def dump(obj, indent=4):

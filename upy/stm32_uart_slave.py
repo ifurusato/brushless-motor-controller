@@ -7,9 +7,12 @@
 #
 # author:   Murray Altheim
 # created:  2025-06-12
-# modified: 2025-06-24
+# modified: 2025-06-29
 #
-# A UART slave for the STM32, using UART 1-4.
+# A UART slave for the STM32, using UART 1-3.
+#
+# UART 4's pins conflict with use of the SD card so support for it was not
+# built into MicroPython for the STM32H562.
 #
 # STM32H562 (WeActStudio 64-pin CoreBoard) UART Default Pin Mapping
 #
@@ -19,7 +22,6 @@
 #     | UART1  |  PA9  | PA10  |
 #     | UART2  |  PA2  | PA3   |
 #     | UART3  | PB10  | PB11  |
-#     | UART4  | PC10  | PC11  |
 #     +--------+-------+-------+
 #
 # Note: You cannot specify tx/rx pins in MicroPython's UART() constructor,
@@ -27,7 +29,7 @@
 #
 # Example usage:
 #
-#   uart4 = UART(4, baudrate=115200)  # Uses PC10 (TX), PC11 (RX)
+#   uart4 = UART(2, baudrate=115200)  # Uses PA2 (TX), PA3 (RX)
 #
 
 import uasyncio as asyncio
@@ -41,7 +43,7 @@ from payload import Payload
 from uart_slave_base import UartSlaveBase
 
 class Stm32UartSlave(UartSlaveBase):
-    def __init__(self, uart_id=1, baudrate=115200, pixel=None):
+    def __init__(self, uart_id=2, baudrate=115200, pixel=None):
         UartSlaveBase.__init__(self, 'stm32-uart', uart_id=uart_id, baudrate=baudrate, pixel=pixel)
         self._led   = LED(1)
         self._uart  = UART(uart_id)

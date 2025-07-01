@@ -19,7 +19,7 @@ class Motor:
     FULL_SPEED        = 100
     DIRECTION_FORWARD = 1
     DIRECTION_REVERSE = 0
-    def __init__(self, name, pwm_timer, pwm_channel,
+    def __init__(self, id, pwm_timer, pwm_channel,
             pwm_pin, pwm_pin_name=None,
             direction_pin=None, direction_pin_name=None,
             encoder_pin=None, encoder_pin_name=None,
@@ -27,9 +27,10 @@ class Motor:
             reverse=False, log_level=Level.INFO):
         try:
             self._enabled = False
-            self._name = name
-            self._log = Logger('motor-{}'.format(name), level=log_level)
-            self._log.info('initialising motor {}'.format(name))
+            self._id   = id
+            self._name = 'M{}'.format(id)
+            self._log = Logger('motor-{}'.format(self._name), level=log_level)
+            self._log.info('initialising motor {}'.format(self._name))
             self._tick_count      = 0
             self._last_capture    = None
             self._prev_capture    = None
@@ -56,17 +57,21 @@ class Motor:
             self._encoder_channel  = enc_timer.channel(enc_channel, Timer.IC, pin=self._encoder_pin, polarity=Timer.RISING) # or Timer.BOTH
             self._timer_freq = enc_timer.freq()
             # info
-            self._log.info('Motor {}: PWM timer:  '.format(name) + Fore.GREEN + '{}'.format(pwm_timer))
-            self._log.info('Motor {} channel:     '.format(name) + Fore.GREEN + '{}'.format(self._pwm_channel))
-            self._log.info('Motor {} pins: PWM:   '.format(name) + Fore.GREEN + '{}'.format(pwm_pin)
+            self._log.info('Motor {}: PWM timer:  '.format(self._name) + Fore.GREEN + '{}'.format(pwm_timer))
+            self._log.info('Motor {} channel:     '.format(self._name) + Fore.GREEN + '{}'.format(self._pwm_channel))
+            self._log.info('Motor {} pins: PWM:   '.format(self._name) + Fore.GREEN + '{}'.format(pwm_pin)
                     + Fore.CYAN + '; direction:   ' + Fore.GREEN + '{}'.format(direction_pin)
                     + Fore.CYAN + '; encoder:     ' + Fore.GREEN + '{}'.format(encoder_pin))
-            self._log.info('Motor {} enc channel: '.format(name) + Fore.GREEN + '{}'.format(self._encoder_channel)
+            self._log.info('Motor {} enc channel: '.format(self._name) + Fore.GREEN + '{}'.format(self._encoder_channel)
                     + Fore.CYAN + '; frequency:   ' + Fore.GREEN + '{}Hz.'.format(self._timer_freq))
-            self._log.info('motor {} ready.'.format(name))
+            self._log.info('motor {} ready.'.format(self._name))
         except Exception as e:
             self._log.error('{} raised by motor: {}'.format(type(e), e))
             raise
+
+    @property
+    def id(self):
+        return self._id
 
     @property
     def name(self):
@@ -105,23 +110,6 @@ class Motor:
         return self._tick_count
 
     @property
-    def speed(self):
-        return self._speed
-
-    @speed.setter
-    def speed(self, value):
-        '''
-        Set the motor speed as a percentage between 0 and 100.
-        '''
-        if not 0 <= value <= 100:
-            raise ValueError('speed must be between 0 and 100')
-        self._speed = value
-        duty_percent = value # inverted PWM
-#       duty_percent = 100 - value # inverted PWM
-        self._pwm_channel.pulse_width_percent(duty_percent)
-        self._log.debug('motor {} speed set to {}% (PWM duty {}%)'.format(self._name, value, duty_percent))
-
-    @property
     def direction(self):
         return self._direction_pin.value()
 
@@ -136,6 +124,29 @@ class Motor:
             self._direction_pin.value(Motor.DIRECTION_REVERSE)
         else:
             raise ValueError("invalid value for direction: '{}'",format(value))
+
+    @property
+    def speed(self):
+        return self._speed
+
+    @speed.setter
+    def speed(self, value):
+        '''
+        Set the motor speed as a percentage between 0 and 100.
+        We also set the direction pin depending on the value.
+        '''
+        if value < 0:
+            self.direction = Motor.DIRECTION_REVERSE
+            value = abs(value)
+        else:
+            self.direction = Motor.DIRECTION_FORWARD
+        if not 0 <= value <= 100:
+            raise ValueError('speed must be between 0 and 100')
+        self._speed = value
+        duty_percent = value # inverted PWM
+#       duty_percent = 100 - value # inverted PWM
+        self._pwm_channel.pulse_width_percent(duty_percent)
+        self._log.debug('motor {} speed set to {}% (PWM duty {}%)'.format(self._name, value, duty_percent))
 
     @property
     def rpm(self):
@@ -178,7 +189,7 @@ class Motor:
             self._interval = interval
         self._prev_capture = self._last_capture
 
-    async def measure_ticks_per_second(self, test_duration=1.0):
+    def measure_ticks_per_second(self, test_duration=1.0):
         '''
         Run the motor at full speed for `test_duration` seconds,
         then return the number of pulses counted during that period.

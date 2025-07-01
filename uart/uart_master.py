@@ -37,6 +37,7 @@ class UARTMaster:
             self.uart = SyncUARTManager(port=port, baudrate=baudrate)
         self.uart.open()
         self._hindered = True
+        self._log.info(Style.BRIGHT + 'UART master is {}.'.format('hindered' if self._hindered else 'unhindered'))
         self._last_tx  = None
         self._last_rx  = None
         self._verbose  = True
@@ -99,6 +100,7 @@ class UARTMaster:
             speed   = 0.0
             red = green = blue = 0.0
             counter = itertools.count()
+            div     = 1
             cmd     = 'CO'
 
             while True:
@@ -126,7 +128,7 @@ class UARTMaster:
                     continue  # optionally, continue the loop without stopping
                 # calculate elapsed time
                 elapsed_time = (dt.now() - start_time).total_seconds() * 1000  # Convert to milliseconds
-                if next(counter) % 10 == 0: # every 10th time
+                if next(counter) % div == 0: # every 10th time
                     self._log.info("tx: {:.2f} ms elapsed.".format(elapsed_time))
                 # with no sleep here, would be running as fast as the system allows
                 if self._hindered:

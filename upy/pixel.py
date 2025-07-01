@@ -4,7 +4,7 @@
 # Copyright 2024 by Murray Altheim. All rights reserved. This file is part of
 # the Robot Operating System project and is released under the "Apache Licence,
 # Version 2.0". Please see the LICENSE file included as part of this package.
-#
+#   
 # author:   Murray Altheim
 # created:  2025-05-23
 # modified: 2025-05-25
@@ -21,14 +21,15 @@ class Pixel:
         self._pixel_index = 0
         self._neopixel = NeoPixel(pyb.Pin(pin, pyb.Pin.OUT), pixel_count, color_order=color_order, brightness=brightness)
 
-    def set_color(self, color=None):
+    def set_color(self, index=None, color=None):
         '''
         Function to set a single pixel to a color as a tuple.
         '''
+        _index = self._pixel_index if index is None else index
         if color is None:
-            self._neopixel[self._pixel_index] = (0, 0, 0)
+            self._neopixel[_index] = (0, 0, 0)
         else:
-            self._neopixel[self._pixel_index] = color
+            self._neopixel[_index] = color
         self._neopixel.write()
 
     def off(self):
@@ -49,7 +50,7 @@ class Pixel:
 
         :param np:             (NeoPixel) An instance of the NeoPixel class.
         :param delay:          (float) Time in seconds to wait between color updates. Default is 0.01.
-        :param steps:          (int) Number of color steps to cycle through the rainbow.
+        :param steps:          (int) Number of color steps to cycle through the rainbow. 
                                      Higher = smoother. Default is 255. If -1 runs indefinitely.
         '''
         step = 0

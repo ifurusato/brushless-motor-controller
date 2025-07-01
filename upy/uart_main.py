@@ -41,7 +41,7 @@ async def main():
 
     _slave = None
     _log = Logger('main', Level.INFO)
-    _baudrate = 1_000_000 # 115200 460800 921600
+    _baudrate = 1_000_000 # 115200 460800 921600 
 
     # delay the inevitable
     if _IS_PYBOARD:

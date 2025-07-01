@@ -7,8 +7,9 @@
 #
 # author:   Murray Altheim
 # created:  2025-06-24
-# modified: 2025-06-27
+# modified: 2025-06-29
 
+import uasyncio as asyncio
 from colorama import Fore, Style
 
 from core.logger import Logger, Level
@@ -19,12 +20,26 @@ from colors import *
 class PayloadRouter:
     def __init__(self, motor_controller):
         self._log = Logger('router', Level.INFO)
-        self.motor_controller = motor_controller
+        self._motor_controller = motor_controller
         self._errors   = 0
         self._pixel    = Pixel(brightness=0.1)
         self._last_cmd = None
-        self._verbose  = True
+        self._verbose  = False
+        self._motor_numbers = [1, 2, 3, 4]
+        self._check_event_loop()
         self._log.info('ready.')
+            
+    def _check_event_loop(self):
+        try:
+            loop = asyncio.get_event_loop()
+            # try scheduling a no-op coroutine to confirm the loop is "usable"
+            loop.create_task(self._noop())
+            self._log.info('asyncio loop is running.')
+        except Exception:
+            self._log.warning('no asyncio event loop running: payloads will not be routed.')
+        
+    async def _noop(self):
+        pass
 
     def pixel_on(self, color=COLOR_CYAN):
         self._pixel.set_color(color=color)
@@ -32,23 +47,15 @@ class PayloadRouter:
     def pixel_off(self):
         self._pixel.set_color(color=None)
 
-    def route(self, payload):
-        '''
-        Routes the Payload to an appropriate recipient, then returns
-        True if successfully routed.
-        '''
-        if payload is None:
-            raise ValueError('null Payload.')
-        elif not isinstance(payload, Payload):
-            raise TypeError('expected a Payload, not a {}'.format(type(payload)))
+    async def _handle_payload(self, payload):
         cmd = payload.cmd
         if self._verbose:
             if cmd != self._last_cmd:
                 self._log.info(Fore.MAGENTA + "route: '{}' from payload: {}".format(payload.cmd, payload))
         if cmd == 'EN':
-            self.motor_controller.enable()
+            self._motor_controller.enable()
         elif cmd == 'DS':
-            self.motor_controller.disable()
+            self._motor_controller.disable()
             self.pixel_off()
         elif cmd == 'CO':
             if self._verbose:
@@ -59,24 +66,33 @@ class PayloadRouter:
                     self._log.info(Fore.MAGENTA + 'color: {}'.format(rgb))
             self.pixel_on(color=payload.rgb)
         elif cmd == 'GO':
-            self.motor_controller.set_speeds(payload.values)
-        elif cmd == 'ST':
-            self.motor_controller.stop()
+            self._motor_controller.go(payload.values)
         elif cmd == 'RO':
-            self.motor_controller.rotate(payload.values)
+            self._motor_controller.rotate(payload.values)
         elif cmd == 'CR':
-            self.motor_controller.crab(payload.values)
+            self._motor_controller.crab(payload.values)
+        elif cmd == 'ST':
+            self._motor_controller.stop()
         elif cmd == 'AK':
             if self._verbose:
                 self._log.info(Fore.MAGENTA + 'ACK.')
         elif cmd == 'ER':
             self._errors += 1
             self._log.error('ERROR. count: {}'.format(self._errors))
-            return False
         else:
             self._log.error("unknown command: {}".format(payload.cmd))
-            return False
-        self._last_cmd = cmd
+
+    def route(self, payload):
+        '''
+        Routes the Payload to an appropriate recipient, then returns
+        True if successfully routed.
+        '''
+        if payload is None:
+            raise ValueError('null Payload.')
+        elif not isinstance(payload, Payload):
+            raise TypeError('expected a Payload, not a {}'.format(type(payload)))
+        asyncio.create_task(self._handle_payload(payload))
+        self._last_cmd = payload.cmd
         return True
 
     def close(self):
