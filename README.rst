@@ -1,6 +1,6 @@
-*********************************************************************************
-A Python Controller for the DFRobot Brushless DC Motor with Encoder 12V 159RPM (FIT0441)
-*********************************************************************************
+******************************************************************************
+A Python Controller for the DFRobot Brushless DC Motor with Encoder 12V 159RPM
+******************************************************************************
 
 Background
 **********
@@ -25,40 +25,35 @@ closed-loop control.
 
 Note that its PWM is *inverted*: 100% is stopped, 0% is full speed.
 
-`Generated documentation <https://ifurusato.github.io/brushless-motor-controller/>`__
-for the project is also available.
 
+Documentation
+*************
 
-Features
-********
+`Documentation <https://ifurusato.github.io/brushless-motor-controller/>`__
+for the project is available.
 
-This motor controller includes support for open- or closed-loop control,
-stall-and-recovery, deadband control, and control by target RPM when operating in
-closed-loop mode. Provided a wheel diameter this also provides for odometric
-distance and speed measurements.
-
-There are three PWM controller implementations: software PWM, hardware PWM, and
-using a TI TLC59711 PWM controller (supplied by an Adafruit board, see below).
-
-The TLC69711 is usually designed to control up to 12 channels of LEDs, or four
-RGB LEDs. In our case we only need a much smaller number of channels, on per
-motor. These channels are enumerated in ControllerChannel.
-
-This uses a YAML configuration file.
+**Note:**  The primary documentation for this project is the generated documentation as
+linked above, not this README file. Specifically, pin configuration is located there.
 
 
 Software Requirements
 *********************
 
-A requirements.txt file is provided. There are four dependencies::
+A `requirements.txt` file is provided. There are four dependencies::
 
     colorama==0.4.6
     pigpio==1.78
+    pyserial==3.5
     PyYAML==6.0.2
     spidev==3.5
 
-The implementation uses `pigpio <https://abyz.me.uk/rpi/pigpio/>`__, which
-requires running a daemon, so if you are not familiar please read the
+though if you are using the UART connection you will not need pigpio or spidev.
+
+When Using pigpio
+-----------------
+
+If you use the software or hardware PWM you will need `pigpio <https://abyz.me.uk/rpi/pigpio/>`__, 
+which requires running a daemon, so if you are not familiar please read the
 available `pigpiod documentation <https://abyz.me.uk/rpi/pigpio/pigpiod.html>`__.
 If running a daemon isn't your cup of tea, it probably wouldn't be horribly
 difficult to replace pigpio with a different Raspberry Pi GPIO support library,
@@ -91,63 +86,16 @@ If you choose to use the TCL59711 as a PWM controller, one option is the
 with support documentation at `TLC5947 and TLC59711 PWM LED Driver Breakouts <https://learn.adafruit.com/tlc5947-tlc59711-pwm-led-driver-breakout>`__
 
 
-Hardware Configuration
-**********************
-
-Depending on your choice of software PWM, hardware PWM, or a TLC59711 the wiring
-will be different. The Raspberry Pi has two channels available for hardware PWM,
-with two pins (on standard, one alternate) for each. Hardware PWM will provide a
-much more stable, reliable signal than the software PWM, which can wobble due to
-system load.
-
-If your project requires two motors then just use the hardware PWM pins, but if
-your project requires four motors, you can either use the software PWM pins (less
-than ideal) or the external PWM controller board.
-
-The direction and FG (encoder feedback) pins can be configured to use any
-available GPIO pins.
-
-+-----------------+-----------------+---------------+
-| Pin             |  GPIO pin/alt   | Notes         |
-+=================+=================+===============+
-| PWM Channel 0   |  GPIO 18 / 12   | hardware PWM  |
-+-----------------+-----------------+---------------+
-| PWM Channel 1   |  GPIO 19 / 13   | hardware PWM  |
-+-----------------+-----------------+---------------+
-| Direction       |  GPIO 23        | any GPIO pin  |
-+-----------------+-----------------+---------------+
-| FG (encoder)    |  GPIO 24        | any GPIO pin  |
-+-----------------+-----------------+---------------+
-
-When operating over UART4 the connections are as follows:
-
-+-----------------+------------+-----------------+---------------+
-| Pin             |  GPIO pin  |  STM32H562 pin  | Notes         |
-+=================+============+=================+===============+
-| UART1 TX        |  GPIO 14   |  UART4_RX/PC11  | hardware UART |
-+-----------------+------------+-----------------+---------------+
-| UART1 RX        |  GPIO 15   |  UART4_TX/PC10  | hardware UART |
-+-----------------+------------+-----------------+---------------+
-| Direction       |  GPIO 23   |                 | any GPIO pin  |
-+-----------------+------------+-----------------+---------------+
-| FG (encoder)    |  GPIO 24   |                 | any GPIO pin  |
-+-----------------+------------+-----------------+---------------+
-
-Note that using UART1 is unadvised as communications with the STM32 is occurring
-over /dev/serial0, which is UART1.
-
-
 Status
 ******
 
-This is a first release and the motor has only been tested on the bench, with
-the motor spinning free, so it's expected that PID tuning, deadband configuration,
+This is an early release, and the motors have only been tested on the bench, with
+the motors spinning free, so it's expected that PID tuning, deadband configuration,
 etc. will be necessary once the motor has been installed and is running under load.
 
-.. note::
-    The project is being exposed publicly so that those interested can follow its progress.
-    It is not remotely considered production quality and there are very likely bugs that
-    have not yet been uncovered, and a few that are known but have not been fixed†.
+The project is being exposed publicly so that those interested can follow its progress.
+It is not remotely considered production quality and there are very likely bugs that
+have not yet been uncovered, and a few that are known but have not been fixed†.
 
 † e.g., you can fool the controller by rapidly switching from high speed positive to
 high speed negative, as the FG encoder feedback pin is not directional. So far,

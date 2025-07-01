@@ -41,9 +41,10 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Features</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#pinout">Pinout</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html#modules">Modules</a></li>
 </ul>
 
@@ -90,8 +91,15 @@ pin, and an <code class="docutils literal notranslate"><span class="pre">FG</spa
 closed-loop control. Note that the encoder pin does not provide direction information,
 only an indication of movement.</p>
 <p>Also note that the motor’s PWM is <em>inverted</em>: 100% is stopped, 0% is full speed.</p>
-<p>The repository may be found at:
+<p>The GitHub repository for this project may be found at:
 <a class="reference external" href="https://github.com/ifurusato/brushless-motor-controller/tree/main">brushless_motor_controller</a></p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Product page: <a class="reference external" href="https://www.dfrobot.com/product-1364.html">Brushless DC Motor with Encoder 12V 159RPM FIT0441</a></p></li>
+<li><p>Documentation: <a class="reference external" href="https://wiki.dfrobot.com/FIT0441_Brushless_DC_Motor_with_Encoder_12V_159RPM">FIT0441 Brushless DC Motor with Encoder 12V 159RPM</a></p></li>
+</ul>
 <section id="features">
 <h3>Features<a class="headerlink" href="#features" title="Link to this heading"></a></h3>
 <p>The project operates in one of five hardware modes:</p>
@@ -107,18 +115,19 @@ reliably handles the PWM to the motors, but may be limited by the performance of
 </ol>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>One of the options is a microcontroller connected over a UART; with this approach
-the Raspberry Pi would not be necessary if control of the MotorController were
-fleshed out with a higher-level controller (though beyond the scope of this project).
-That is, e.g., a robot based solely on a microcontroller could use the MotorController
-as a design component without the Raspberry Pi as master.</p>
+<p>While the fourth option describes a Raspberry Pi master connected to a microcontroller slave,
+strictly speaking the Raspberry Pi is not necessary if control of the MotorController were
+fleshed out with a higher-level robot controller on the microcontroller itself (though that
+is beyond the scope of this project). I.e., a robot based solely on a microcontroller could
+use this project’s MotorController without a Raspberry Pi at all.</p>
 </div>
 <p>The motor controller itself includes support for open- or closed-loop control,
 stall-and-recovery, deadband control, and control by target RPM when operating in
 closed-loop mode. Provided a wheel diameter this also provides for odometric
 distance and speed measurements.</p>
-<p>This uses a YAML configuration file for the application itself, and another for
-the motor pin configuraion when using the UART in the MicroPython environent.</p>
+<p>This uses a YAML configuration file for the application itself, and another on the
+microcontroller for the motor pin configuration, specifically when using the UART
+in the MicroPython environent.</p>
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="id2" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">*</a><span class="fn-bracket">]</span></span>
@@ -140,9 +149,17 @@ Copyright 2020-2025 by Ichiro Furusato. All rights reserved.</p>
 <p>Software and documentation are distributed under the MIT License, see the LICENSE
 file included with the project.</p>
 <div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<p class="caption" role="heading"><span class="caption-text">Features</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#installation">Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#pinout">Pinout</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#uart-pins">UART Pins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#motor-pins">Motor Pins</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html#modules">Modules</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="modules.html#core.component.Component"><code class="docutils literal notranslate"><span class="pre">Component</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="modules.html#core.component.ComponentRegistry"><code class="docutils literal notranslate"><span class="pre">ComponentRegistry</span></code></a></li>

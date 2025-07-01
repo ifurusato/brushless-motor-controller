@@ -13,7 +13,8 @@
 #
 # UART 1 is used for communications when connecting between the Raspberry Pi.
 # UART 4's pins conflict with use of the SD card so support for it was not
-# built into MicroPython for the STM32H562. So only UART 2 or 3 are suitable.
+# built into MicroPython for the STM32H562. UART 1 is used for communications
+# when connecting between the Raspberry Pi, so only UART 2 or 3 are suitable.
 #
 # Example usage:
 #

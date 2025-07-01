@@ -41,9 +41,17 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Features</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Overview</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#pinout">Pinout</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#uart-pins">UART Pins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#motor-pins">Motor Pins</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="#modules">Modules</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#core.component.Component"><code class="docutils literal notranslate"><span class="pre">Component</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#core.component.Component.classname"><code class="docutils literal notranslate"><span class="pre">Component.classname</span></code></a></li>
@@ -331,9 +339,9 @@
              
   <section id="overview">
 <h1>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h1>
-<p>This project uses Python and MicroPython for control of up to four DC brushless motors.
-It is designed for use with a Raspberry Pi but could be adapted to any hardware with
-similar capabilities.</p>
+<p>This project uses Python and MicroPython for control of up to four DFRobot 12V DC
+brushless motors (model number FIT0441). It is designed for use with a Raspberry Pi
+but could be adapted to any hardware with similar capabilities.</p>
 <p>The DFRobot brushless motors require a Pulse-Width Modified (PWM) signal to control
 their speed, in an inverted mode: when fed a 100% duty cycle the motor is stopped,
 a 50% duty cycle is half speed, a 0% duty cycle is full speed.</p>
@@ -344,13 +352,117 @@ two motors you’ll need either an external PWM board or connect to a microcontr
 over a UART. In this latter mode the project supports either an RP2040 or an STM32
 (i.e., the STM32H562, though it could with some pin configuration changes be used with
 others).</p>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<p>The Python files for the project are located in the root directory, <code class="docutils literal notranslate"><span class="pre">core</span></code>, <code class="docutils literal notranslate"><span class="pre">hardware</span></code>
+and <code class="docutils literal notranslate"><span class="pre">uart</span></code> directories. The <code class="docutils literal notranslate"><span class="pre">upy</span></code> directory contains the contents to be uploaded to
+the microcontroller.</p>
+<p>Also, depending on your implementation choices you will be able to trim unused files.</p>
+</section>
+</section>
+<section id="pinout">
+<h1>Pinout<a class="headerlink" href="#pinout" title="Link to this heading"></a></h1>
+<p>Here are the pin configurations for connecting a Raspberry Pi to a STM32H562.</p>
+<section id="uart-pins">
+<h2>UART Pins<a class="headerlink" href="#uart-pins" title="Link to this heading"></a></h2>
+<p>This uses a custom build of MicroPython for the STM32H562, whose board definition
+can be found at <a class="reference external" href="https://github.com/ifurusato/mp-weact-stm32h562/">mp-weact-stm32h562</a>.
+The pins used for this implementation are defined in the board definition.</p>
+<p>The STM32H562 build defines UARTs 1-3. UART 1 is discouraged as it is used to
+print console communications over <code class="docutils literal notranslate"><span class="pre">/dev/serial0</span></code> when connected to the board
+(e.g., over rshell). UART 4’s pins conflict with the SD card so support for it
+as not built into MicroPython for the STM32H562. Therefore, only UART 2 or
+UART 3 are suitable: UART 2 is configured as the default.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>UART</p></th>
+<th class="head"><p>TX</p></th>
+<th class="head"><p>RX</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>UART1</p></td>
+<td><p>PA9</p></td>
+<td><p>PA10</p></td>
+</tr>
+<tr class="row-odd"><td><p>UART2</p></td>
+<td><p>PA2</p></td>
+<td><p>PA3</p></td>
+</tr>
+<tr class="row-even"><td><p>UART3</p></td>
+<td><p>PB10</p></td>
+<td><p>PB11</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You cannot specify tx/rx pins in MicroPython’s <code class="docutils literal notranslate"><span class="pre">UART()</span></code> constructor;
+it will use the default pins for each.</p>
+</div>
+</section>
+<section id="motor-pins">
+<h2>Motor Pins<a class="headerlink" href="#motor-pins" title="Link to this heading"></a></h2>
+<p>Apart from power, there are three connections to each motor: a PWM pin used for
+speed control; a direction pin that sets the motor direction; and an encoder
+feedback pin whose ticks indicate motor rotation.</p>
+<p>Hardware Timers on the STM32 have four channels. We use all four channels of
+two Timers to supply our PWM and encoder signals.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Id</p></th>
+<th class="head"><p>Name</p></th>
+<th class="head"><p>PWM Ch</p></th>
+<th class="head"><p>PWM Pin</p></th>
+<th class="head"><p>Dir Pin</p></th>
+<th class="head"><p>Enc Pin</p></th>
+<th class="head"><p>Enc Ch</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>M0</p></td>
+<td><p>1</p></td>
+<td><p>PB6</p></td>
+<td><p>B12</p></td>
+<td><p>PC6</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>M1</p></td>
+<td><p>2</p></td>
+<td><p>PB7</p></td>
+<td><p>B14</p></td>
+<td><p>PC7</p></td>
+<td><p>2</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>M2</p></td>
+<td><p>3</p></td>
+<td><p>PB8</p></td>
+<td><p>B3</p></td>
+<td><p>PB0</p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-odd"><td><p>3</p></td>
+<td><p>M3</p></td>
+<td><p>4</p></td>
+<td><p>PB9</p></td>
+<td><p>B5</p></td>
+<td><p>PB1</p></td>
+<td><p>4</p></td>
+</tr>
+</tbody>
+</table>
+<p>All four motors use the same PWM Timer (4) and encoder Timer
+(3).</p>
+</section>
 </section>
 <section id="modules">
 <h1>Modules<a class="headerlink" href="#modules" title="Link to this heading"></a></h1>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The following modules are automatically documented using <a class="reference external" href="https://www.sphinx-doc.org/">Sphinx</a>.</p>
-</div>
+<p>This project documentation intermixes the CPython and MicroPython code
+indescriminately. To differentiate, check the <code class="docutils literal notranslate"><span class="pre">upy</span></code> directory, which
+contains all the MicroPython code.</p>
 <dl class="py class" id="module-core.component">
 <dt class="sig sig-object py" id="core.component.Component">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">core.component.</span></span><span class="sig-name descname"><span class="pre">Component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logger</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suppressed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enabled</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/core/component.html#Component"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#core.component.Component" title="Link to this definition"></a></dt>

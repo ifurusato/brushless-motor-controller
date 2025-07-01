@@ -15,18 +15,18 @@ from upy.stringbuilder import StringBuilder
 class MotorTableRenderer:
     def __init__(self, yaml_path):
         self.yaml_path = yaml_path
+#           ("pwm_timer", "PWM Timer"),
+#           ("enc_timer", "Enc Timer"),
         self.fields = [
             ("id", "Id"),
             ("name", "Name"),
-            ("pwm_timer", "PWM Timer"),
             ("pwm_channel", "PWM Ch"),
             ("pwm_pin_name", "PWM Pin"),
             ("direction_pin_name", "Dir Pin"),
             ("encoder_pin_name", "Enc Pin"),
-            ("enc_timer", "Enc Timer"),
             ("enc_channel", "Enc Ch")
         ]
-        self.motors = self._load_motors()
+        self._motors = self._load_motors()
         self.result = StringBuilder()
 
     def _load_motors(self):
@@ -53,29 +53,30 @@ class MotorTableRenderer:
     def _separator(self, col_widths, char="-"):
         return "+" + "+".join(char * (w + 2) for w in col_widths) + "+"
 
+    def get_pwm_timer(self):
+        return self._motors['motor0']['pwm_timer']
+
+    def get_enc_timer(self):
+        return self._motors['motor0']['enc_timer']
+
     def render_table(self):
         headers = [f[1] for f in self.fields]
         field_keys = [f[0] for f in self.fields]
-
         rows = []
-        for motor_name in sorted(self.motors):
-            motor = self.motors[motor_name]
+        for motor_name in sorted(self._motors):
+            motor = self._motors[motor_name]
             row = [str(motor.get(field, "")) for field in field_keys]
             rows.append(row)
-
         col_widths = self._compute_column_widths(headers, rows)
         result = StringBuilder()
-
-        result.append(self._separator(col_widths, "=") + "\n")
+        result.append(self._separator(col_widths, "-") + "\n")
         result.append(self._format_row(headers, col_widths) + "\n")
         result.append(self._separator(col_widths, "=") + "\n")
-
         for row in rows:
             result.append(self._format_row(row, col_widths) + "\n")
-            result.append(self._separator(col_widths) + "\n")
-
+            result.append(self._separator(col_widths) + "\n") 
         return result.to_string()
-
+        
     def prepend_template(self, filepath):
         '''
         Reads text from the given file and prepends it to the result buffer.
@@ -88,4 +89,5 @@ class MotorTableRenderer:
         new_result.append("\n")  # Ensure separation
         new_result.append(self.result.to_string())
         self.result = new_result
-
+        
+#EOF                                                                                                                                                                                      91,0-1        Bot

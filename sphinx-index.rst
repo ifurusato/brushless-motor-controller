@@ -26,8 +26,15 @@ only an indication of movement.
 
 Also note that the motor's PWM is *inverted*: 100% is stopped, 0% is full speed.
 
-The repository may be found at:
+The GitHub repository for this project may be found at:
 `brushless_motor_controller <https://github.com/ifurusato/brushless-motor-controller/tree/main>`__
+
+
+References
+----------
+
+* Product page: `Brushless DC Motor with Encoder 12V 159RPM FIT0441 <https://www.dfrobot.com/product-1364.html>`__
+* Documentation: `FIT0441 Brushless DC Motor with Encoder 12V 159RPM <https://wiki.dfrobot.com/FIT0441_Brushless_DC_Motor_with_Encoder_12V_159RPM>`__
 
 
 ========
@@ -46,19 +53,21 @@ The project operates in one of five hardware modes:
    reliably handles the PWM to the motors, but may be limited by the performance of the UART
 
 .. note::
-    One of the options is a microcontroller connected over a UART; with this approach
-    the Raspberry Pi would not be necessary if control of the MotorController were
-    fleshed out with a higher-level controller (though beyond the scope of this project).
-    That is, e.g., a robot based solely on a microcontroller could use the MotorController
-    as a design component without the Raspberry Pi as master.
+    While the fourth option describes a Raspberry Pi master connected to a microcontroller slave,
+    strictly speaking the Raspberry Pi is not necessary if control of the MotorController were
+    fleshed out with a higher-level robot controller on the microcontroller itself (though that
+    is beyond the scope of this project). I.e., a robot based solely on a microcontroller could
+    use this project's MotorController without a Raspberry Pi at all.
+
 
 The motor controller itself includes support for open- or closed-loop control,
 stall-and-recovery, deadband control, and control by target RPM when operating in
 closed-loop mode. Provided a wheel diameter this also provides for odometric
 distance and speed measurements.
 
-This uses a YAML configuration file for the application itself, and another for
-the motor pin configuraion when using the UART in the MicroPython environent.
+This uses a YAML configuration file for the application itself, and another on the
+microcontroller for the motor pin configuration, specifically when using the UART
+in the MicroPython environent.
 
 .. [*] The `Adafruit 12 Channel 16-bit PWM LED Driver - SPI Interface <https://www.adafruit.com/product/1455>`__
        is designed to control up to 12 channels of LEDs, or four RGB LEDs. In our case we only need a much smaller

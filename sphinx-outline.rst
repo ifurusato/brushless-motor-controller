@@ -3,9 +3,9 @@
 Overview
 ========
 
-This project uses Python and MicroPython for control of up to four DC brushless motors.
-It is designed for use with a Raspberry Pi but could be adapted to any hardware with
-similar capabilities.
+This project uses Python and MicroPython for control of up to four DFRobot 12V DC
+brushless motors (model number FIT0441). It is designed for use with a Raspberry Pi
+but could be adapted to any hardware with similar capabilities.
 
 The DFRobot brushless motors require a Pulse-Width Modified (PWM) signal to control
 their speed, in an inverted mode: when fed a 100% duty cycle the motor is stopped,
@@ -20,12 +20,13 @@ over a UART. In this latter mode the project supports either an RP2040 or an STM
 others).
 
 
-=======
-Modules
-=======
+Installation
+------------
 
-.. note::
+The Python files for the project are located in the root directory, ``core``, ``hardware``
+and ``uart`` directories. The ``upy`` directory contains the contents to be uploaded to
+the microcontroller.
 
-   The following modules are automatically documented using `Sphinx <https://www.sphinx-doc.org/>`__.
+Also, depending on your implementation choices you will be able to trim unused files.
 
 
