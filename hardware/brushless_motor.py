@@ -21,11 +21,8 @@
 # There are three PWM controller implementations: software PWM, hardware PWM,
 # and using a TI TLC59711 PWM controller.
 #
-# PWM0 pin:      GPIO 12 | 18
-# PWM1 pin:      GPIO 13 | 19
-# direction pin: GPIO 23
-# FG pin:        GPIO 24
-#
+# Status: note that this file is no longer maintained, and is only currently
+# suitable for use with for one motor.
 
 import time
 import traceback

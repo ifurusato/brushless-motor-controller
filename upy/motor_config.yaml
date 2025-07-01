@@ -1,14 +1,4 @@
 # YAML configuration for motors 0-3
-#
-#   +---------+------------+----------------+------------+----------------+--------------+----------------+
-#   | Motor   | PWM Out    | Direction GPIO | Encoder In | PWM Timer / Ch | Dir Pin Type | Enc Timer / Ch |
-#   +---------+------------+----------------+------------+----------------+--------------+----------------+
-#   | Motor 0 | PB6        | B12            | C6         | TIM4_CH1       | GPIO         | TIM3_CH1       |
-#   | Motor 1 | PB7        | B14            | C7         | TIM4_CH2       | GPIO         | TIM3_CH2       |
-#   | Motor 2 | PB8        | B3             | C8         | TIM4_CH3       | GPIO         | TIM3_CH3       |
-#   | Motor 3 | PB9        | B5             | C9         | TIM4_CH4       | GPIO         | TIM3_CH4       |
-#   +---------+------------+----------------+------------+----------------+--------------+----------------+
-#
 
 kros:
     application:
@@ -59,8 +49,8 @@ kros:
             pwm_pin_name:       'PB8'
             direction_pin:       'B3'
             direction_pin_name:  'B3'
-            encoder_pin:         'C8'
-            encoder_pin_name:   'PC8'
+            encoder_pin:         'B0'
+            encoder_pin_name:   'PB0'
             enc_timer:              3
             enc_channel:            3
             reverse:            False
@@ -73,8 +63,8 @@ kros:
             pwm_pin_name:       'PB9'
             direction_pin:       'B5'
             direction_pin_name:  'B5'
-            encoder_pin:         'C9'
-            encoder_pin_name:   'PC9'
+            encoder_pin:         'B1'
+            encoder_pin_name:   'PB1'
             enc_timer:              3
             enc_channel:            4
             reverse:             True

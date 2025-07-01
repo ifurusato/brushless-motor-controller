@@ -25,7 +25,6 @@ class PayloadRouter:
         self._pixel    = Pixel(brightness=0.1)
         self._last_cmd = None
         self._verbose  = False
-        self._motor_numbers = [1, 2, 3, 4]
         self._check_event_loop()
         self._log.info('ready.')
             
@@ -52,12 +51,7 @@ class PayloadRouter:
         if self._verbose:
             if cmd != self._last_cmd:
                 self._log.info(Fore.MAGENTA + "route: '{}' from payload: {}".format(payload.cmd, payload))
-        if cmd == 'EN':
-            self._motor_controller.enable()
-        elif cmd == 'DS':
-            self._motor_controller.disable()
-            self.pixel_off()
-        elif cmd == 'CO':
+        if cmd == 'CO':
             if self._verbose:
                 rgb = payload.rgb
                 if rgb == COLOR_BLACK:
@@ -67,12 +61,17 @@ class PayloadRouter:
             self.pixel_on(color=payload.rgb)
         elif cmd == 'GO':
             self._motor_controller.go(payload.values)
+        elif cmd == 'ST':
+            self._motor_controller.stop()
         elif cmd == 'RO':
             self._motor_controller.rotate(payload.values)
         elif cmd == 'CR':
             self._motor_controller.crab(payload.values)
-        elif cmd == 'ST':
-            self._motor_controller.stop()
+        elif cmd == 'EN':
+            self._motor_controller.enable()
+        elif cmd == 'DS':
+            self._motor_controller.disable()
+            self.pixel_off()
         elif cmd == 'AK':
             if self._verbose:
                 self._log.info(Fore.MAGENTA + 'ACK.')

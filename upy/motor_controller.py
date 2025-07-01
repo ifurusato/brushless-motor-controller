@@ -19,6 +19,14 @@ from colorama import Fore, Style
 from motor import Motor
 
 class MotorController:
+    '''
+    A controller for four brushless motors.
+
+    Args:
+        config:          The application-level configuration.
+        motors_enabled:  Four flags enabling or disabling individual motors.
+        level:           The log level.
+    '''
     def __init__(self, config=None, motors_enabled=(True, True, True, True), level=Level.INFO):
         self._log = Logger('motor-ctrl', level=level)
         self._log.info('initialising Motor Controller…')
@@ -27,12 +35,13 @@ class MotorController:
         self._enabled    = False
         self._motors     = {}
         self._motor_list = []
+        self._motor_numbers = [0, 1, 2, 3]
         _cfg             = config["kros"]["motor_controller"]
         _app_cfg         = config["kros"]["application"]
         _motor_cfg       = config["kros"]["motors"]
         _pwm_frequency   = _cfg['pwm_frequency']
         _enc_frequency   = _cfg['encoder_frequency']
-        self._verbose    = _app_cfg["verbose"]
+        self._verbose    = True # _app_cfg["verbose"]
         self._log.info(Fore.MAGENTA + 'verbose: {}'.format(self._verbose))
         try:
             # RPM timer ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
@@ -83,7 +92,6 @@ class MotorController:
             # immediately stop all motors
             self.stop()
             self._log.info('ready.')
-
         except Exception as e:
             self._log.error('{} raised by motor controller constructor: {}'.format(type(e), e))
             sys.print_exception(e)
@@ -113,9 +121,9 @@ class MotorController:
         return self._enabled
 
     async def _pid_control_coro(self, interval_ms: int = 10):
-        """
+        '''
         Coroutine to run PID control for all motors that need it.
-        """
+        '''
         self._log.info("PID control coroutine started, running every {}ms".format(interval_ms))
         try:
             while True:
@@ -130,9 +138,9 @@ class MotorController:
             self._log.info("PID control coroutine cancelled.")
 
     def enable_rpm_logger(self, interval_ms: int = 1000):
-        """
+        '''
         Starts the asynchronous RPM logger.
-        """
+        '''
         if self._loop is None:
             self._loop = asyncio.get_event_loop()
         if not self._logging_enabled:
@@ -143,9 +151,9 @@ class MotorController:
             self._log.info("RPM logger already running.")
 
     def disable_rpm_logger(self):
-        """
+        '''
         Cancels the RPM logger task if running.
-        """
+        '''
         if self._logging_enabled and self._logging_task is not None:
             self._logging_task.cancel()
             self._logging_task = None
@@ -155,9 +163,12 @@ class MotorController:
             self._log.info("RPM logger was not running.")
 
     async def _rpm_logger_coro(self, interval_ms: int):
-        """
+        '''
         Periodically logs the current RPM and tick count for all motors.
-        """
+
+        Args:
+            interval_ms: The interval between calls to the logger.
+        '''
         if self._verbose:
             self._log.info(Fore.MAGENTA + "called RPM logger coroa with interval: {}ms.".format(interval_ms))
         try:
@@ -168,16 +179,19 @@ class MotorController:
                         for motor in self._motor_list
                     )
                     if self._verbose:
-                        self._log.info(Fore.MAGENTA + "🍆 current RPM: {}".format(rpm_values))
+                        self._log.info(Fore.MAGENTA + "current RPM: {}".format(rpm_values))
                 else:
                     self._log.warning("no motors configured for RPM logging.")
                 await asyncio.sleep_ms(interval_ms)
         except asyncio.CancelledError:
             self._log.info("RPM logger task cancelled.")
         finally:
-            self._log.info(Fore.MAGENTA + "🍆 rpm_logger_coro done.")
+            self._log.info(Fore.MAGENTA + "rpm_logger_coro done.")
 
     def enable(self):
+        '''
+        Enables the motor controller.
+        '''
         if self.enabled:
             self._log.warning("motor controller already enabled.")
         else:
@@ -191,6 +205,9 @@ class MotorController:
             self._log.info("motor controller enabled.")
 
     def disable(self):
+        '''
+        Disables the motor controller.
+        '''
         if self.enabled:
             self._log.warning("motor controller already disabled.")
         else:
@@ -203,65 +220,73 @@ class MotorController:
                 self._pid_task = None
             self._enabled = False
 
-    def get_motor(self, motor_num):
-        if isinstance(motor_num, int):
-            return self._motors[motor_num]
-        raise ValueError('expected an int.')
-
-    def set_motor_speed(self, motor_nums, speeds):
+    def get_motor(self, index):
         '''
-        Set speed for the motors.
-        :param motor_nums: int or list/tuple of ints (motor numbers 0–3)
-        :param speed: speed percentage (0–100)
+        Returns the corresponding motor.
+
+        Args:
+            index (int):  The motor number (0-3).
+        '''
+        if isinstance(index, int):
+            return self._motors[index]
+        raise ValueError('expected an int, not a {}'.format(type(index)))
+
+    def go(self, speeds):
+        self._log.info('go speeds type: {}; value: {}'.format(type(speeds), speeds))
+        self._set_motor_speed(speeds)
+
+    def rotate(self, speeds):
+        self._log.info('rotate speeds type: {}; value: {}'.format(type(speeds), speeds))
+        # TODO modify for rotation
+        self._set_motor_speed(speeds)
+
+    def crab(self, speeds):
+        self._log.info('crab speeds type: {}; value: {}'.format(type(speeds), speeds))
+        # TODO modify for crab
+        self._set_motor_speed(speeds)
+
+    def _set_motor_speed(self, speeds):
+        '''
+        Set the speeds for all motors.
+
+        Args:
+            speed: Sets motor speed as a percentage (0–100).
         '''
         if not self.enabled:
             raise RuntimeError('motor controller not enabled.')
         if self._verbose:
-            self._log.info(Fore.WHITE + Style.BRIGHT + 'set motor(s) {} speed to {}'.format(motor_nums, speed))
-        motor_nums = [motor_nums] if isinstance(motor_nums, int) else list(motor_nums)
-        speeds = list(speeds)
-#       if self._verbose:
-        self._log.info(Fore.WHITE + 'set motor(s) {} speed to {}'.format(motor_nums, speeds))
-        for motor, speed in zip(self.iter_valid_motors(motor_nums), speeds):
+            self._log.info('set speeds to {}'.format(speeds))
+        for motor, speed in zip(self._motor_list, list(speeds)):
             motor.speed = speed
 
-    def set_motor_direction(self, motor_nums, direction):
+    def set_motor_direction(self, direction):
         '''
-        Set direction for one or more motors.
-        :param motor_nums: int, list/tuple of ints (motor numbers 0–3), or 'all'
-        :param direction: 0 or 1
+        Set the direction for all motors. This is generally not used during
+        movement, as individual motor direction is set by the polarity of 
+        the speed value sent to each motor.
+
+        Args:
+            direction (int): Sets the direction of all motors as 0 (reverse) or 1 (forward).
         '''
         if not self.enabled:
             raise RuntimeError('motor controller not enabled.')
-        if isinstance(motor_nums, str) and motor_nums == 'all':
-            motor_nums = self.motor_ids
-        elif isinstance(motor_nums, int):
-            motor_nums = [motor_nums]
-        for motor in self.iter_valid_motors(motor_nums):
+        for motor in self._motor_list:
             motor.direction = direction
 
-    def iter_valid_motors(self, motor_nums):
-        if isinstance(motor_nums, int):
-            motor_nums = [motor_nums]
-        return list(self._motors[m] for m in motor_nums if m in self._motors)
-
-    async def accelerate(self, motor_nums, target_speed, step=1, delay_ms=50):
+    async def accelerate(self, target_speed, step=1, delay_ms=50):
         '''
         Gradually change speed of one or more motors toward a target
         speed, starting from each motor's current speed.
 
-        :param motor_nums:    int or list/tuple of ints (motor numbers 0–3)
-        :param target_speed:  target speed (0–100)
-        :param step:          speed increment per step
-        :param delay_ms:      delay in milliseconds between steps
+        Args:
+            target_speed:  The target speed (0–100).
+            step:          The speed increment per step.
+            delay_ms:      The delay in milliseconds between steps.
         '''
-        if isinstance(motor_nums, int):
-            motor_nums = [motor_nums]
-        motors = self.iter_valid_motors(motor_nums)
         done = False
         while not done:
             done = True
-            for motor in motors:
+            for motor in self._motor_list:
                 current = motor.speed
                 if current == target_speed:
                     continue
@@ -272,14 +297,17 @@ class MotorController:
                 motor.speed = new_speed
             await asyncio.sleep_ms(delay_ms)
 
-    async def decelerate_to_stop(self, motor_nums, step=1, delay_ms=50):
+    async def decelerate_to_stop(self, step=1, delay_ms=50):
         '''
         Gradually slow one or more motors to a stop (speed = 100).
-        :param motor_nums: int or list/tuple of ints
+
+        Args:
+            step:          The speed increment per step.
+            delay_ms:      The delay in milliseconds between steps.
         '''
         if self._verbose:
-            self._log.info("decelerating motor(s) {} to stop...".format(motor_nums))
-        await self.accelerate(motor_nums, target_speed=Motor.STOPPED, step=step, delay_ms=delay_ms)
+            self._log.info("decelerating motors to stop…")
+        await self.accelerate(target_speed=Motor.STOPPED, step=step, delay_ms=delay_ms)
 
     def log_pin_configuration(self):
         '''

@@ -29,6 +29,8 @@ import shutil
 from colorama import init, Fore, Style
 init()
 
+from motor_table_renderer import MotorTableRenderer
+
 # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 
 REMOVE_BUILD_UPON_COMPLETE = True
@@ -144,7 +146,7 @@ def find_modules(base_dir: Path):
             continue
         if "upy" in f.parts:  # skip MicroPython code
             continue
-        if f.name in ("gen-docs.py", "generate-docs.py"):  # skip docs generator scripts
+        if f.name in ("gen-docs.py", "gen-table.py", "motor_table_renderer.py"):  # skip docs generator scripts
             continue
         rel = f.relative_to(base_dir).with_suffix("")
         parts = rel.parts
