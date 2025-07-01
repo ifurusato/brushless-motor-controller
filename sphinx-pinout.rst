@@ -12,15 +12,11 @@ This uses a custom build of MicroPython for the STM32H562, whose board definitio
 can be found at `mp-weact-stm32h562 <https://github.com/ifurusato/mp-weact-stm32h562/>`__.
 The pins used for this implementation are defined in the board definition.
 
-A custom build of Micro
-
-The UART slave for the STM32 is able to use UART 1-3. 
-
-UART 1 is discouraged as it is used to print console communications over ``/dev/serial0``
-when connected to the board (e.g., over rshell). UART 4's pins conflict with the SD card
-so support for it as not built into MicroPython for the STM32H562.
-
-Therefore, only UART 2 or 3 are suitable: UART 2 is configured as the default.
+The STM32H562 build defines UARTs 1-3. UART 1 is discouraged as it is used to
+print console communications over ``/dev/serial0`` when connected to the board
+(e.g., over rshell). UART 4's pins conflict with the SD card so support for it
+as not built into MicroPython for the STM32H562. Therefore, only UART 2 or
+UART 3 are suitable: UART 2 is configured as the default.
 
 +--------+-------+-------+
 | UART   |  TX   |  RX   |
@@ -41,7 +37,15 @@ Therefore, only UART 2 or 3 are suitable: UART 2 is configured as the default.
 Motor Pins
 ----------
 
+Apart from power, there are three connections to each motor: a PWM pin used for
+speed control; a direction pin that sets the motor direction; and an encoder
+feedback pin whose ticks indicate motor rotation.
+
+Hardware Timers on the STM32 have four channels. We use all four channels of
+two Timers to supply our PWM and encoder signals.
+
 {{PINOUT}}
 
-All four motors use the same PWM timer ({{PWM_TIMER}}) and encoder timer ({{ENC_TIMER}}).
+All four motors use the same PWM Timer ({{PWM_TIMER}}) and encoder Timer
+({{ENC_TIMER}}).
 
