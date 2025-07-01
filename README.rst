@@ -93,10 +93,9 @@ This is an early release, and the motors have only been tested on the bench, wit
 the motors spinning free, so it's expected that PID tuning, deadband configuration,
 etc. will be necessary once the motor has been installed and is running under load.
 
-.. note::
-    The project is being exposed publicly so that those interested can follow its progress.
-    It is not remotely considered production quality and there are very likely bugs that
-    have not yet been uncovered, and a few that are known but have not been fixed†.
+The project is being exposed publicly so that those interested can follow its progress.
+It is not remotely considered production quality and there are very likely bugs that
+have not yet been uncovered, and a few that are known but have not been fixed†.
 
 † e.g., you can fool the controller by rapidly switching from high speed positive to
 high speed negative, as the FG encoder feedback pin is not directional. So far,
