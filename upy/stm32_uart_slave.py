@@ -25,13 +25,13 @@ from pyb import LED, Pin, UART
 from pyb import LED
 from colorama import Fore, Style
 
-from core.logger import Logger, Level
+from logger import Logger, Level
 from payload import Payload
 from uart_slave_base import UartSlaveBase
 
 class Stm32UartSlave(UartSlaveBase):
-    def __init__(self, uart_id=2, baudrate=115200, pixel=None):
-        UartSlaveBase.__init__(self, 'stm32-uart', uart_id=uart_id, baudrate=baudrate, pixel=pixel)
+    def __init__(self, uart_id=2, baudrate=115200, status=None):
+        UartSlaveBase.__init__(self, 'stm32-uart', uart_id=uart_id, baudrate=baudrate, status=status)
         self._led   = LED(1)
         self._uart  = UART(uart_id)
         self._uart.init(baudrate=baudrate, bits=8, parity=None, stop=1)

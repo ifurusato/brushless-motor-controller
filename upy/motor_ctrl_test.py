@@ -12,7 +12,7 @@
 
 import uasyncio as asyncio
 from pyb import LED
-from core.logger import Logger, Level
+from logger import Logger, Level
 from config_loader import ConfigLoader
 from colorama import Fore, Style
 from motor import Motor
@@ -23,7 +23,7 @@ MOTOR_TEST  = False
 RPM_TEST    = False
 SIMPLE_TEST = True
 SPEED_TEST  = False
-PULSE_TEST  = False
+#PULSE_TEST  = False
 RAMP_TEST   = False
 
 _BLUE_LED = LED(1)
@@ -33,7 +33,7 @@ async def main():
     motor_ctrl = None
 
     try:
-        _config = ConfigLoader.configure('motor_config.yaml')
+        _config = ConfigLoader.configure('config.yaml')
         if _config is None:
             raise ValueError('failed to import configuration.')
         motor_ctrl = MotorController(config=_config, motors_enabled=(True, True, True, True), level=Level.INFO)
@@ -130,10 +130,10 @@ async def main():
                 motor_ctrl.stop()
                 await asyncio.sleep(1)
 
-        if PULSE_TEST:
-            motor_ctrl.go(100)
-            motor0 = motor_ctrl.get_motor(0)
-            await motor0.measure_ticks_per_second(test_duration=10.0)
+#       if PULSE_TEST:
+#           motor_ctrl.go(100)
+#           motor0 = motor_ctrl.get_motor(0)
+#           await motor0.measure_ticks_per_second(test_duration=10.0)
 
         if RAMP_TEST:
             ids = motor_ctrl.motor_ids

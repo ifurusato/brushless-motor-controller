@@ -15,20 +15,19 @@ from pyb import LED, Pin, UART
 from pyb import LED
 from colorama import Fore, Style
 
-from core.ucomponent import Component, IllegalStateError
-from core.logger import Logger, Level
+from ucomponent import Component, IllegalStateError
+from logger import Logger, Level
 from payload import Payload
 
 class UartSlaveBase(Component):
     COLOR_ERROR = (120, 8, 0)
-    COLOR_READY = (30, 70, 0)
-    def __init__(self, name, uart_id=1, baudrate=115200, pixel=None):
+    def __init__(self, name, uart_id=1, baudrate=115200, status=None):
         self._log = Logger(name, Level.INFO)
         Component.__init__(self, self._log, suppressed=False, enabled=False)
         self.baudrate    = baudrate
-        if pixel is None:
-            raise ValueError('no pixel provided.')
-        self._pixel      = pixel
+        if status is None:
+            raise ValueError('no status provided.')
+        self._status      = status
         self._buffer     = bytearray()
         self._last_rx    = time.ticks_ms()
         self._timeout_ms = 250
@@ -37,7 +36,7 @@ class UartSlaveBase(Component):
         try:
             self._uart = UART(uart_id)
             self._uart.init(baudrate=baudrate, bits=8, parity=None, stop=1)
-            self._pixel.set_color(color=UartSlaveBase.COLOR_READY)
+            self._status.ready()
             self._log.info('UART{} slave ready at {:,} baud.'.format(uart_id, baudrate))
         except Exception as e:
             self._signal_error()
@@ -48,7 +47,7 @@ class UartSlaveBase(Component):
 
     def _signal_error(self):
         self._log.error('error.')
-        self._pixel.set_color(color=self.COLOR_ERROR)
+        self._status.error()
 
     async def receive_packet(self):
         if not self.enabled:

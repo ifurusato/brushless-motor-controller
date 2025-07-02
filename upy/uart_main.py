@@ -13,7 +13,7 @@ import uasyncio as asyncio
 from colorama import Fore, Style
 
 from payload import Payload
-from core.logger import Logger, Level
+from logger import Logger, Level
 
 _IS_PYBOARD = True
 

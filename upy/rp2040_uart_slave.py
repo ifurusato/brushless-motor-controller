@@ -19,13 +19,13 @@ import time
 from machine import Pin, UART
 from colorama import Fore, Style
 
-from core.logger import Logger, Level
+from logger import Logger, Level
 from payload import Payload
 from uart_slave_base import UartSlaveBase
 
 class RP2040UartSlave(UartSlaveBase):
-    def __init__(self, uart_id=1, baudrate=115200, pixel=None, rx_pin=5, tx_pin=4, led_pin=25):
-        UartSlaveBase.__init__(self, 'rp2040-uart', uart_id=uart_id, baudrate=baudrate, pixel=pixel)
+    def __init__(self, uart_id=1, baudrate=115200, status=None, rx_pin=5, tx_pin=4, led_pin=25):
+        UartSlaveBase.__init__(self, 'rp2040-uart', uart_id=uart_id, baudrate=baudrate, status=status)
         self._log.info('pins: rx={}; tx={}.'.format(rx_pin, tx_pin))
         self.led_pin  = led_pin # Pin for the LED
         # set up LED pin

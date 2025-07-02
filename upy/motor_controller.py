@@ -13,7 +13,7 @@ import sys
 import uasyncio as asyncio
 import time
 from pyb import Timer
-from core.logger import Logger, Level
+from logger import Logger, Level
 from config_loader import ConfigLoader
 from colorama import Fore, Style
 from motor import Motor

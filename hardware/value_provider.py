@@ -52,11 +52,11 @@ class RotaryEncoderCommandProvider(ValueProvider):
             case 4:
                 return 'CR' # crab
             case 5:
-                return 'DS' # disable
+                return 'RS' # request status
             case 6:
-                return 'AK' # acknowledge
-            case 7:
-                return 'ER' # error
+                return 'DS' # disable
+#           case 7:
+#               return 'ER' # error
             case _:
                 return 'CO' # color
 

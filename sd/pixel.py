@@ -16,10 +16,14 @@ from neopixel import NeoPixel
 from colors import *
 
 class Pixel:
-    def __init__(self, pin='PA1', pixel_count=24, color_order='GRB', brightness=0.33):
+    def __init__(self, pin='PA1', pixel_count=1, color_order='GRB', brightness=0.33):
         self._pixel_count = pixel_count
         self._pixel_index = 0
         self._neopixel = NeoPixel(pyb.Pin(pin, pyb.Pin.OUT), pixel_count, color_order=color_order, brightness=brightness)
+
+    @property
+    def pixel_count(self):
+        return self._pixel_count
 
     def set_color(self, index=None, color=None):
         '''

@@ -9,9 +9,9 @@
 # created:  2025-06-04
 # modified: 2025-06-26
 
-import uasyncio as asyncio
+#import uasyncio as asyncio
 from pyb import Pin, Timer
-from core.logger import Logger, Level
+from logger import Logger, Level
 from colorama import Fore, Style
 
 class Motor:
@@ -189,21 +189,21 @@ class Motor:
             self._interval = interval
         self._prev_capture = self._last_capture
 
-    def measure_ticks_per_second(self, test_duration=1.0):
-        '''
-        Run the motor at full speed for `test_duration` seconds,
-        then return the number of pulses counted during that period.
-        '''
-        self._tick_count = 0
-        self.speed = self.FULL_SPEED       # full speed (0 if your scale is inverted)
-        await asyncio.sleep(test_duration) # async wait for pulses to accumulate
-        self.speed = self.STOPPED          # stop the motor
-        ticks = self._tick_count
-        ticks_per_sec = ticks / test_duration
-        self._log.info(Fore.WHITE + Style.BRIGHT + "measured {} pulses in {}s -> {} ticks/sec".format(
-            ticks, test_duration, ticks_per_sec)
-        )
-        return ticks_per_sec
+#   def measure_ticks_per_second(self, test_duration=1.0):
+#       '''
+#       Run the motor at full speed for `test_duration` seconds,
+#       then return the number of pulses counted during that period.
+#       '''
+#       self._tick_count = 0
+#       self.speed = self.FULL_SPEED       # full speed (0 if your scale is inverted)
+#       await asyncio.sleep(test_duration) # async wait for pulses to accumulate
+#       self.speed = self.STOPPED          # stop the motor
+#       ticks = self._tick_count
+#       ticks_per_sec = ticks / test_duration
+#       self._log.info(Fore.WHITE + Style.BRIGHT + "measured {} pulses in {}s -> {} ticks/sec".format(
+#           ticks, test_duration, ticks_per_sec)
+#       )
+#       return ticks_per_sec
 
     def stop(self):
         self.speed = Motor.STOPPED

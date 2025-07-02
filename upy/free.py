@@ -11,7 +11,7 @@
 
 import os
 from colorama import Fore, Style
-from core.logger import Logger, Level
+from logger import Logger, Level
 
 _log = Logger('free', level=Level.INFO)
 try:

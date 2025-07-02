@@ -12,6 +12,6 @@ def reload_module(name):
         del sys.modules[name]
     return __import__(name)
 
-main = reload_module('main')
+main = reload_module('uart_slave_app')
 main.exec()
 

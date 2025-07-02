@@ -12,14 +12,14 @@
 # Just stops all the motors.
 #
 
-from core.logger import Logger, Level
+from logger import Logger, Level
 from config_loader import ConfigLoader
 from motor_controller import MotorController
 
 def main():
     motor_ctrl = None
     try:
-        _config = ConfigLoader.configure('motor_config.yaml')
+        _config = ConfigLoader.configure('config.yaml')
         if _config is None:
             raise ValueError('failed to import configuration.')
         motor_ctrl = MotorController(config=_config, motors_enabled=(True, True, False, False), level=Level.INFO)

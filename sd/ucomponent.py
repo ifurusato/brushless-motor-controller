@@ -11,7 +11,7 @@
 #
 # IllegalStateError at bottom.
 
-from core.logger import Logger
+from logger import Logger
 from colorama import Fore, Style
 
 class Component(object):
