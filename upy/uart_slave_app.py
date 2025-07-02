@@ -7,13 +7,14 @@
 #
 # author:   Murray Altheim
 # created:  2025-06-23
-# modified: 2025-06-30
+# modified: 2025-07-03
 #
 # This is the entry point to the UART slave application. This uses UART 2 on the
 # STM32 and UART 1 (the default) on the RP2040.
 #
 
-import sys
+#import sys
+import traceback
 import uasyncio as asyncio
 from colorama import Fore, Style
 
@@ -130,7 +131,8 @@ class UartSlaveApp:
                     self._log.warning("no valid payload received.")
         except Exception as e:
             self._log.error("{} raised in run loop: {}".format(type(e), e))
-            sys.print_exception(e)
+            traceback.print_exc()
+#           sys.print_exception(e)
         except KeyboardInterrupt:
             pass
         finally:
