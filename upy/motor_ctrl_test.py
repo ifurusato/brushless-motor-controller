@@ -18,12 +18,13 @@ from colorama import Fore, Style
 from motor import Motor
 from motor_controller import MotorController
 
-DIAGNOSTIC = True
-MOTOR_TEST = False
-RPM_TEST   = False
-SPEED_TEST = False
-PULSE_TEST = False
-RAMP_TEST  = True
+DIAGNOSTIC  = True
+MOTOR_TEST  = False
+RPM_TEST    = False
+SIMPLE_TEST = True
+SPEED_TEST  = False
+PULSE_TEST  = False
+RAMP_TEST   = False
 
 _BLUE_LED = LED(1)
 
@@ -35,7 +36,7 @@ async def main():
         _config = ConfigLoader.configure('motor_config.yaml')
         if _config is None:
             raise ValueError('failed to import configuration.')
-        motor_ctrl = MotorController(config=_config, motors_enabled=(True, True, False, False), level=Level.INFO)
+        motor_ctrl = MotorController(config=_config, motors_enabled=(True, True, True, True), level=Level.INFO)
         motor_ctrl.enable()
         await asyncio.sleep(3)  # async sleep
 
@@ -44,15 +45,15 @@ async def main():
 
         if MOTOR_TEST:
             while True:
-                motor_ctrl.set_motor_speed([0, 1], 50)
+                motor_ctrl.go(50)
                 await asyncio.sleep(5)
-                motor_ctrl.set_motor_speed([0, 1], 0)
+                motor_ctrl.go(0)
                 await asyncio.sleep(1)
 
         if RPM_TEST:
             try:
                 log.info(Fore.GREEN + 'set to full speed…')
-                motor_ctrl.set_motor_speed([0, 1], 100)
+                motor_ctrl.go(100)
                 while True:
                     await asyncio.sleep(1)
             except KeyboardInterrupt:
@@ -63,42 +64,63 @@ async def main():
                 motor_ctrl.stop()
                 await asyncio.sleep_ms(1000)
 
+        if SIMPLE_TEST:
+            try:
+                _stopped = ( 0, 0, 0, 0 )
+                for speed in range(0, 100, 5):
+                    _speeds = ( 0, 0, 0, speed )
+                    log.info(Fore.GREEN + 'set to {}% speed…'.format(speed))
+                    motor_ctrl.go(_speeds)
+                    await asyncio.sleep(1)
+
+
+                log.info(Fore.GREEN + 'stopping…')
+                motor_ctrl.go(_stopped)
+                await asyncio.sleep(3)
+            except KeyboardInterrupt:
+                log.info('Ctrl-C caught, user stopped execution.')
+            except Exception as e:
+                log.error('{} raised: {}'.format(type(e), e))
+            finally:
+                motor_ctrl.stop()
+                await asyncio.sleep(1)
+
         if SPEED_TEST:
             try:
                 while True:
                     _BLUE_LED.toggle()
                     log.info(Fore.GREEN + 'set to 25% speed…')
-                    motor_ctrl.set_motor_speed([0, 1], 25)
+                    motor_ctrl.go(25)
                     await asyncio.sleep(3)
 
                     _BLUE_LED.toggle()
                     log.info(Fore.GREEN + 'set to 50% speed…')
-                    motor_ctrl.set_motor_speed([0, 1], 50)
+                    motor_ctrl.go(50)
                     await asyncio.sleep(3)
 
                     _BLUE_LED.toggle()
                     log.info(Fore.GREEN + 'set to 75% speed…')
-                    motor_ctrl.set_motor_speed([0, 1], 75)
+                    motor_ctrl.go(75)
                     await asyncio.sleep(3)
 
                     _BLUE_LED.toggle()
                     log.info(Fore.GREEN + 'set to 100% speed…')
-                    motor_ctrl.set_motor_speed([0, 1], 100)
+                    motor_ctrl.go(100)
                     await asyncio.sleep(3)
 
                     _BLUE_LED.toggle()
                     log.info(Fore.GREEN + 'set to 75% speed…')
-                    motor_ctrl.set_motor_speed([0, 1], 75)
+                    motor_ctrl.go(75)
                     await asyncio.sleep(3)
 
                     _BLUE_LED.toggle()
                     log.info(Fore.GREEN + 'set to 50% speed…')
-                    motor_ctrl.set_motor_speed([0, 1], 50)
+                    motor_ctrl.go(50)
                     await asyncio.sleep(3)
 
                     _BLUE_LED.toggle()
                     log.info(Fore.GREEN + 'set to 25% speed…')
-                    motor_ctrl.set_motor_speed([0, 1], 25)
+                    motor_ctrl.go(25)
                     await asyncio.sleep(3)
             except KeyboardInterrupt:
                 log.info('Ctrl-C caught, user stopped execution.')
@@ -109,7 +131,7 @@ async def main():
                 await asyncio.sleep(1)
 
         if PULSE_TEST:
-            motor_ctrl.set_motor_speed(1, 100)
+            motor_ctrl.go(100)
             motor0 = motor_ctrl.get_motor(0)
             await motor0.measure_ticks_per_second(test_duration=10.0)
 

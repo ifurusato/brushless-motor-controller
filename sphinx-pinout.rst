@@ -25,8 +25,6 @@ UART 3 are suitable: UART 2 is configured as the default.
 +--------+-------+-------+
 | UART2  |  PA2  | PA3   |
 +--------+-------+-------+
-| UART3  | PB10  | PB11  |
-+--------+-------+-------+
 
 .. note::
 
@@ -38,6 +36,12 @@ UART 2, GPIO 14 is therefore connected to PA3, GPIO 15 to PA2.
 
 If using a NeoPixel or NeoPixel strip, it is connected to PA1. This is currently
 hard-coded in the ``upy/pixel.py`` class.
+
++----------+-------+
+| Device   |  Pin  |
++==========+=======+
+| NeoPixel |  PA1  |
++----------+-------+
 
 
 Motor Pins

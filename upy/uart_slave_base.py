@@ -1,5 +1,13 @@
 #!/micropython
 # -*- coding: utf-8 -*-
+#
+# Copyright 2020-2025 by Murray Altheim. All rights reserved. This file is part
+# of the Robot Operating System project, released under the MIT License. Please
+# see the LICENSE file included as part of this package.
+#
+# author:   Murray Altheim
+# created:  2025-06-24
+# modified: 2025-07-02
 
 import uasyncio as asyncio
 import time
@@ -106,7 +114,6 @@ class UartSlaveBase(Component):
             self._uart.write(packet)
             if self._verbose:
                 self._log.info(Style.DIM + "tx: " + Fore.GREEN + 'AK')
-#               self._log.info(Style.DIM + "tx: " + Fore.GREEN + '{}'.format(payload))
             self._led.off()
         except Exception as e:
             self._signal_error()
