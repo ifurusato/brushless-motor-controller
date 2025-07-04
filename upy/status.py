@@ -15,7 +15,7 @@ from colors import *
 class Status:
     COLOR_ERROR    = (120, 8, 0)
     COLOR_READY    = (30, 70, 0)
-    COLOR_INACTIVE = (4, 4, 4)
+    COLOR_INACTIVE = (11, 11, 11)
     APP = 0
     M0  = 1
     M1  = 3
@@ -25,7 +25,9 @@ class Status:
     def __init__(self, pixel):
         if pixel.pixel_count < 8:
             raise ValueError('at least eight pixels required.')
+        self._motors = [ Status.M0, Status.M1, Status.M2, Status.M3 ]
         self._pixel = pixel
+        self._brightness = pixel.brightness
 
     def rgb(self, color=None):
             self._pixel.set_color(index=0, color=COLOR_CYAN if color == None else color)
@@ -36,12 +38,32 @@ class Status:
     def error(self):
             self._pixel.set_color(index=0, color=Status.COLOR_ERROR)
 
-    def motor(self, index, color):
-        if M0 >= index and index <= M3:
-            _index = self._map[index]
-            self._pixel.set_color(index=_index, color=color)
+    def motors(self, values):
+        if all(v == 0.0 for v in values):
+            self.off()
         else:
-            raise ValueError('expected 0-3 for index.')
+            for index in range(0,4):
+                speed = values[index]
+                if speed == 0.0:
+                    color = Status.COLOR_INACTIVE
+                else:
+                    color = self._get_color(speed)
+                self.motor(index, color)
+
+    def _get_color(self, speed):
+        if speed == 0:
+            return COLOR_BLACK
+        hue = 0.0 if speed < 0 else 0.27 # red or yellow-green 
+        value = abs(speed / 10.0) * self._brightness
+        rgb = Pixel.hsv_to_rgb(hue, 1.0, value)
+        return rgb
+
+    def motor(self, index, color):
+        if 0 <= index <= 3:
+            pixel = self._motors[index]
+            self._pixel.set_color(index=pixel, color=color)
+        else:
+            raise ValueError('expected 0-3 for index, not {}'.format(index))
 
     def off(self):
         self._pixel.off()

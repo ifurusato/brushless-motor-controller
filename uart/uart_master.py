@@ -93,9 +93,9 @@ class UARTMaster:
         '''
         try:
             if speed_source is None:
-                print(Fore.GREEN + "speed source not provided, using counter.")
+                self._log.info("speed source not provided, using counter.")
             else:
-                print(Fore.GREEN + "using speed source for data.")
+                self._log.info("using speed source for data.")
 
             speed   = 0.0
             red = green = blue = 0.0

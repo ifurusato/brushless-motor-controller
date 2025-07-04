@@ -56,6 +56,13 @@ class Payload:
     def values(self):
         return self._pfwd, self._sfwd, self._paft, self._saft
 
+    @property
+    def speeds(self):
+        '''
+        An alias for values when they are assumed a four motor speeds.
+        '''
+        return self.values
+
     def __repr__(self):
         return "Payload(cmd={:>2}, pfwd={:7.2f}, sfwd={:7.2f}, paft={:7.2f}, saft={:7.2f})".format(
             self._cmd, self._pfwd, self._sfwd, self._paft, self._saft

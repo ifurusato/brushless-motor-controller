@@ -20,7 +20,6 @@ from logger import Logger, Level
 from payload import Payload
 
 class UartSlaveBase(Component):
-    COLOR_ERROR = (120, 8, 0)
     def __init__(self, name, uart_id=1, baudrate=115200, status=None):
         self._log = Logger(name, Level.INFO)
         Component.__init__(self, self._log, suppressed=False, enabled=False)

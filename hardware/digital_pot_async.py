@@ -61,7 +61,7 @@ class DigitalPotentiometer:
             self._ioe.set_mode(DigitalPotentiometer.PIN_RED, io.PWM, invert=True)
             self._ioe.set_mode(DigitalPotentiometer.PIN_GREEN, io.PWM, invert=True)
             self._ioe.set_mode(DigitalPotentiometer.PIN_BLUE, io.PWM, invert=True)
-            self._log.info("running LED with {} brightness steps.".format(int(DigitalPotentiometer.PERIOD * DigitalPotentiometeDigitalPotentiometer.BRIGHTNESS)))
+            self._log.info("running LED with {} brightness steps.".format(int(DigitalPotentiometer.PERIOD * DigitalPotentiometer.BRIGHTNESS)))
             self._log.info('ready.')
         except Exception as e:
             self._log.info('{} raised: {}'.format(type(e), e))

@@ -19,11 +19,16 @@ class Pixel:
     def __init__(self, pin='PA1', pixel_count=1, color_order='GRB', brightness=0.33):
         self._pixel_count = pixel_count
         self._pixel_index = 0
+        self._brightness = brightness
         self._neopixel = NeoPixel(pyb.Pin(pin, pyb.Pin.OUT), pixel_count, color_order=color_order, brightness=brightness)
 
     @property
     def pixel_count(self):
         return self._pixel_count
+
+    @property
+    def brightness(self):
+        return self._brightness
 
     def set_color(self, index=None, color=None):
         '''
@@ -33,6 +38,8 @@ class Pixel:
         if color is None:
             self._neopixel[_index] = (0, 0, 0)
         else:
+#           hsv = Pixel.rgb_to_hsv(*color)
+#           hue = hsv[0]
             self._neopixel[_index] = color
         self._neopixel.write()
 
@@ -99,5 +106,42 @@ class Pixel:
             return (t, p, v)
         else:
             return (v, p, q)
+
+    @staticmethod
+    def rgb_to_hsv(r, g, b):
+        '''
+        Convert RGB color to HSV.
+
+        Returns:
+            tuple: (H, S, V) where:
+                H is hue in [0.0, 1.0]
+                S is saturation in [0.0, 1.0]
+                V is value (brightness) in [0.0, 1.0]
+
+        :param r: (int) Red, in range [0, 255]
+        :param g: (int) Green, in range [0, 255]
+        :param b: (int) Blue, in range [0, 255]
+        '''
+        r_f = r / 255.0
+        g_f = g / 255.0
+        b_f = b / 255.0
+        max_c = max(r_f, g_f, b_f)
+        min_c = min(r_f, g_f, b_f)
+        delta = max_c - min_c
+        # Hue calculation
+        if delta == 0:
+            h = 0.0
+        elif max_c == r_f:
+            h = ((g_f - b_f) / delta) % 6
+        elif max_c == g_f:
+            h = ((b_f - r_f) / delta) + 2
+        else:  # max_c == b_f
+            h = ((r_f - g_f) / delta) + 4
+        h /= 6.0
+        # Saturation
+        s = 0.0 if max_c == 0 else delta / max_c
+        # Value
+        v = max_c
+        return (h, s, v)
 
 #EOF

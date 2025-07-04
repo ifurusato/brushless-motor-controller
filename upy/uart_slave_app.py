@@ -13,8 +13,8 @@
 # STM32 and UART 1 (the default) on the RP2040.
 #
 
-#import sys
-import traceback
+import sys
+#import traceback
 import uasyncio as asyncio
 from colorama import Fore, Style
 
@@ -25,6 +25,7 @@ from pixel import Pixel
 from status import Status
 from payload_router import PayloadRouter
 from motor_controller import MotorController
+from mode import Mode
 from colors import *
 
 import cwd
@@ -42,10 +43,10 @@ class UartSlaveApp:
         self._uart_id  = None
         self._verbose  = False
         self._baudrate = 1_000_000 # default
-        _config = ConfigLoader.configure('/sd/config.yaml')
+        _config = ConfigLoader.configure('config.yaml')
         if _config is None:
             raise ValueError('failed to import configuration.')
-        self._motor_controller = MotorController(config=_config, motors_enabled=(True, True, False, False), level=Level.INFO)
+        self._motor_controller = MotorController(config=_config, status=self._status, motors_enabled=(True, True, False, False), level=Level.INFO)
         self._motor_controller.enable()
         self._router   = PayloadRouter(self._status, self._motor_controller)
         self._log.info('ready.')
@@ -111,16 +112,19 @@ class UartSlaveApp:
                         self._log.info("payload: {}".format(_payload))
                     if _payload.cmd == 'RS': # request status
                         self._log.info(Fore.MAGENTA + "request status…")
-                        code = float(self._router.get_error_code())
-                        status_cmd = "ER" if code != 0.0 else "OK"
-                        status_payload = Payload(status_cmd, code, 0.0, 0.0, 0.0)
+                        timestamp, code = self._router.get_error_info()
+                        status_cmd = "ER" if timestamp is not None else "OK"
+                        if timestamp is not None:
+                            status_payload = Payload(Mode.ERROR.code, timestamp, code, 0.0, 0.0)
+                        else:
+                            status_payload = Payload(Mode.ACK.code, 0.0, 0.0, 0.0, 0.0)
                         await self._slave.send_packet(status_payload)
                         self._router.clear_error()
                     else:
                         # route normal command payload (non-blocking)
                         asyncio.create_task(self._router.route(_payload))
                         self._router.route(_payload)
-                        ack_payload = Payload("AK", 0.0, 0.0, 0.0, 0.0)
+                        ack_payload = Payload(Mode.ACK.code, 0.0, 0.0, 0.0, 0.0)
                         await self._slave.send_packet(ack_payload)
                 elif _payload is not None:
                     if self._verbose:
@@ -131,8 +135,8 @@ class UartSlaveApp:
                     self._log.warning("no valid payload received.")
         except Exception as e:
             self._log.error("{} raised in run loop: {}".format(type(e), e))
-            traceback.print_exc()
-#           sys.print_exception(e)
+#           traceback.print_exc()
+            sys.print_exception(e)
         except KeyboardInterrupt:
             pass
         finally:

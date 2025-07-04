@@ -7,8 +7,9 @@
 #
 # author:   Murray Altheim
 # created:  2025-06-12
-# modified: 2025-06-26
+# modified: 2025-07-04
 
+from upy.mode import Mode
 from hardware.digital_pot_async import DigitalPotentiometer
 from hardware.rotary_encoder import RotaryEncoder
 
@@ -38,27 +39,13 @@ class RotaryEncoderCommandProvider(ValueProvider):
         self._encoder.start()
 
     def __call__(self):
-        mode, hue, r, g, b = self._encoder.update()
-        cmd_index = int(mode * 10)
-        match cmd_index:
-            case 0:
-                return 'CO' # color
-            case 1:
-                return 'EN' # enable
-            case 2:
-                return 'GO' # go
-            case 3:
-                return 'RO' # rotate
-            case 4:
-                return 'CR' # crab
-            case 5:
-                return 'RS' # request status
-            case 6:
-                return 'DS' # disable
-#           case 7:
-#               return 'ER' # error
-            case _:
-                return 'CO' # color
+        _mode, hue, r, g, b = self._encoder.update()
+        index = min(int(hue * 16), 15)
+        mode = Mode.from_index(index)
+        if mode is None:
+            raise ValueError("no mode for hue '{}'".format(hue))
+        else:
+            return mode.code
 
     def close(self):
         self._encoder.off()

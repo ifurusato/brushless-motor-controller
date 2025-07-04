@@ -1,10 +1,26 @@
-# a convenient alias for testing
+# a convenient alias for testing that forgets its self
 
 import sys
-#import main 
+from logger import Logger, Level
+from colorama import Fore, Style
 
-# Remove the cached module
-#sys.modules.pop('app', None)
+__log = Logger('app', level=Level.INFO)
+
+# Forget the modules you want to reload
+for mod in ['free', 'cwd', 'main', 'uart_slave_app']:
+    __log.debug("forgetting '{}'".format(mod))
+    sys.modules.pop(mod, None)
+
+# Import in the desired order (they now re-execute)
+import free
+import cwd
+
+# forget app.py itself so it re-runs next time
+sys.modules.pop(__name__, None)
+
+__log.info(Style.BRIGHT + '┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈')
+__log.info(Style.BRIGHT + 'executing UartSlaveApp…')
+#import uart_slave_app
 
 def reload_module(name):
     import sys

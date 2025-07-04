@@ -19,7 +19,7 @@ class Motor:
     FULL_SPEED        = 100
     DIRECTION_FORWARD = 1
     DIRECTION_REVERSE = 0
-    def __init__(self, id, pwm_timer, pwm_channel,
+    def __init__(self, id, name, pwm_timer, pwm_channel,
             pwm_pin, pwm_pin_name=None,
             direction_pin=None, direction_pin_name=None,
             encoder_pin=None, encoder_pin_name=None,
@@ -28,7 +28,7 @@ class Motor:
         try:
             self._enabled = False
             self._id   = id
-            self._name = 'M{}'.format(id)
+            self._name = name
             self._log = Logger('motor-{}'.format(self._name), level=log_level)
             self._log.info('initialising motor {}'.format(self._name))
             self._tick_count      = 0

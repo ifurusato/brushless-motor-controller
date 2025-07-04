@@ -108,9 +108,12 @@ def parse(text):
                 parent[key] = val_obj
             else:
                 raise ValueError('expected dict as parent')
-            if val == '':
+#           if val == '':
+#               stack.append((indent, val_obj))
+            if val == '' and isinstance(val_obj, (dict, list)):
                 # push new container for nested block
                 stack.append((indent, val_obj))
+
     return root
 
 #EOF

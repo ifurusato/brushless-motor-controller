@@ -17,6 +17,7 @@ from logger import Logger, Level
 from config_loader import ConfigLoader
 from colorama import Fore, Style
 from motor import Motor
+from mode import Mode
 
 class MotorController:
     '''
@@ -24,15 +25,17 @@ class MotorController:
 
     Args:
         config:          The application-level configuration.
+        status:          The Status indicator.
         motors_enabled:  Four flags enabling or disabling individual motors.
         level:           The log level.
     '''
-    def __init__(self, config=None, motors_enabled=(True, True, True, True), level=Level.INFO):
+    def __init__(self, config=None, status=None, motors_enabled=(True, True, True, True), level=Level.INFO):
         self._log = Logger('motor-ctrl', level=level)
         self._log.info('initialising Motor Controller…')
         if config is None:
             raise ValueError('no configuration provided.')
         self._enabled    = False
+        self._status     = status
         self._motors     = {}
         self._motor_list = []
         self._motor_numbers = [0, 1, 2, 3]
@@ -67,23 +70,23 @@ class MotorController:
                     continue
                 motor_key = "motor{}".format(index)
                 self._log.info('configuring {}…'.format(motor_key))
-                mcfg      = _motor_cfg[motor_key]
-                pwm_timer = Timer(mcfg["pwm_timer"], freq=_pwm_frequency)
-                enc_timer = Timer(mcfg["enc_timer"], freq=_enc_frequency)
-                _id = mcfg["id"],
+                _m_cfg    = _motor_cfg[motor_key]
+                pwm_timer = Timer(_m_cfg["pwm_timer"], freq=_pwm_frequency)
+                enc_timer = Timer(_m_cfg["enc_timer"], freq=_enc_frequency)
                 motor = Motor(
-                    id=_id,
+                    id=_m_cfg["id"],
+                    name=_m_cfg["name"],
                     pwm_timer=pwm_timer,
-                    pwm_channel=mcfg["pwm_channel"],
-                    pwm_pin=mcfg["pwm_pin"],
-                    pwm_pin_name=mcfg["pwm_pin_name"],
-                    direction_pin=mcfg["direction_pin"],
-                    direction_pin_name=mcfg["direction_pin_name"],
-                    encoder_pin=mcfg["encoder_pin"],
-                    encoder_pin_name=mcfg["encoder_pin_name"],
+                    pwm_channel=_m_cfg["pwm_channel"],
+                    pwm_pin=_m_cfg["pwm_pin"],
+                    pwm_pin_name=_m_cfg["pwm_pin_name"],
+                    direction_pin=_m_cfg["direction_pin"],
+                    direction_pin_name=_m_cfg["direction_pin_name"],
+                    encoder_pin=_m_cfg["encoder_pin"],
+                    encoder_pin_name=_m_cfg["encoder_pin_name"],
                     enc_timer=enc_timer,
-                    enc_channel=mcfg["enc_channel"],
-                    reverse=mcfg["reverse"]
+                    enc_channel=_m_cfg["enc_channel"],
+                    reverse=_m_cfg["reverse"]
                 )
                 motor.speed = Motor.STOPPED
                 self._motors[index] = motor
@@ -193,7 +196,7 @@ class MotorController:
         Enables the motor controller.
         '''
         if self.enabled:
-            self._log.warning("motor controller already enabled.")
+            self._log.warning(Style.DIM + "motor controller already enabled.")
         else:
             for motor in self.motors:
                 motor.enable()
@@ -231,23 +234,26 @@ class MotorController:
             return self._motors[index]
         raise ValueError('expected an int, not a {}'.format(type(index)))
 
-    def go(self, speeds):
-        self._log.info('go speeds type: {}; value: {}'.format(type(speeds), speeds))
-        self._set_motor_speed(speeds)
+    @staticmethod
+    def _apply_mode(base_power, mode):
+        return tuple(p * m for p, m in zip(base_power, mode.speeds))
+    
+    def go(self, mode=Mode.STOP, speeds=None):
+        '''
+        Set the navigation mode and speeds for all motors.
 
-    def rotate(self, speeds):
-        self._log.info('rotate speeds type: {}; value: {}'.format(type(speeds), speeds))
-        # TODO modify for rotation
-        self._set_motor_speed(speeds)
-
-    def crab(self, speeds):
-        self._log.info('crab speeds type: {}; value: {}'.format(type(speeds), speeds))
-        # TODO modify for crab
-        self._set_motor_speed(speeds)
+        Args:
+            mode:  the enumeated Mode, which includes a tuple multiplier against the speeds. 
+            speeds:  the four speeds of the motors, in order: pfwd, sfwd, paft, saft
+        '''
+        transform = MotorController._apply_mode(speeds, mode)
+        self._log.info('go mode: {}; speeds: {}; type: {}; transform: {}'.format(mode, speeds, type(transform), transform))
+        self._status.motors(transform)
+        self._set_motor_speed(transform)
 
     def _set_motor_speed(self, speeds):
         '''
-        Set the speeds for all motors.
+        An internal call to set the speeds for all motors.
 
         Args:
             speed: Sets motor speed as a percentage (0–100).
