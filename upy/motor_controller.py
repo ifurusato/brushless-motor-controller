@@ -43,7 +43,12 @@ class MotorController:
         _app_cfg         = config["kros"]["application"]
         _motor_cfg       = config["kros"]["motors"]
         _pwm_frequency   = _cfg['pwm_frequency']
-        _enc_frequency   = _cfg['encoder_frequency']
+
+        _pid_timer_number = _cfg['pid_timer_number']
+        _pid_timer_freq   = _cfg['pid_timer_frequency']
+        self._pid_timer = Timer(_pid_timer_number, freq=_pid_timer_freq)
+        self._log.info(Fore.MAGENTA + '🍆 PID timer {} configured with frequency of {}Hz; timer: {}'.format(_pid_timer_number, _pid_timer_freq, self._pid_timer))
+
         self._verbose    = True # _app_cfg["verbose"]
         self._log.info(Fore.MAGENTA + 'verbose: {}'.format(self._verbose))
         try:
@@ -52,8 +57,6 @@ class MotorController:
             _rpm_timer_number  = _cfg['rpm_timer_number']
             _rpm_timer_freq    = _cfg['rpm_timer_frequency']
             self._rpm_timer    = Timer(_rpm_timer_number, freq=_rpm_timer_freq)
-            # RPM timer callback enabled by enable()
-#           self._rpm_timer.callback(self._rpm_timer_callback)
             self._log.info(Fore.MAGENTA + 'configured Timer {} for RPM calculation at {}Hz'.format(_rpm_timer_number, _rpm_timer_freq))
             # Logging timer ┈┈┈┈┈┈┈┈┈┈┈┈
             _log_timer_number  = _cfg['log_timer_number']
@@ -119,22 +122,16 @@ class MotorController:
     def enabled(self):
         return self._enabled
 
-    async def _pid_control_coro(self, interval_ms: int = 10):
+    def _pid_control_callback(self, arg):
         '''
-        Coroutine to run PID control for all motors that need it.
+        Callback to run PID control for all motors that need it.
         '''
-        self._log.info("PID control coroutine started, running every {}ms".format(interval_ms))
-        try:
-            while True:
-                if self._needs_pid_update:
-                    for motor in self.motors:
-                        if motor._pid_needs_update:
-                            # Do PID logic here
-                            motor._pid_needs_update = False
-                    self._needs_pid_update = False  # Reset controller flag
-                await asyncio.sleep_ms(interval_ms)
-        except asyncio.CancelledError:
-            self._log.info("PID control coroutine cancelled.")
+        if self._needs_pid_update:
+            for motor in self.motors:
+                if motor._pid_needs_update:
+                    # do PID logic here
+                    motor._pid_needs_update = False
+            self._needs_pid_update = False  # Reset controller flag
 
     def enable_rpm_logger(self, interval_ms: int = 1000):
         '''
@@ -198,9 +195,8 @@ class MotorController:
                 motor.enable()
             self._enabled = True
             self._rpm_timer.callback(self._rpm_timer_callback)
+            self._pid_timer.callback(self._pid_control_callback)
             self.enable_rpm_logger() # already starts timer & logging
-            if self._pid_task is None:
-                self._pid_task = self._loop.create_task(self._pid_control_coro())
             self._log.info("motor controller enabled.")
 
     def get_motor(self, index):
@@ -334,6 +330,7 @@ class MotorController:
             for motor in self.motors:
                 motor.disable()
             self._rpm_timer.callback(None)
+            self._pid_timer.callback(None)
             self._encoder_channel.callback(None)
             if self._pid_task is not None:
                 self._pid_task.cancel()

@@ -7,9 +7,10 @@ kros:
     rpm_timer_number:        2  # RPM timer number
     rpm_timer_frequency:   100  # RPM timer frequency in Hz
     pwm_frequency:       20000  # frequency for PWM to motors (20-30kHz)
-    encoder_frequency:  1_000_000 # encoder frequency in Hz
     log_timer_number:        6  # log timer number
     log_timer_frequency:    20  # log timer frequency in 20Hz (50ms period)
+    pid_timer_number:        3  # log timer number
+    pid_timer_frequency:   100  # PID timer frequency
   motors:
     motor0:
       id:                    0
