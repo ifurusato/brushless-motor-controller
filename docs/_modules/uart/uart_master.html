@@ -115,7 +115,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">Style</span><span class="o">.</span><span class="n">BRIGHT</span> <span class="o">+</span> <span class="s1">&#39;UART master is </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;hindered&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hindered</span> <span class="k">else</span> <span class="s1">&#39;unhindered&#39;</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_last_tx</span>  <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_last_rx</span>  <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span>  <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span>  <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;UART master ready at baud rate: </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">baudrate</span><span class="p">))</span>
 
 <div class="viewcode-block" id="UARTMaster.send_payload">
@@ -179,9 +179,9 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">speed_source</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">Fore</span><span class="o">.</span><span class="n">GREEN</span> <span class="o">+</span> <span class="s2">&quot;speed source not provided, using counter.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;speed source not provided, using counter.&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">Fore</span><span class="o">.</span><span class="n">GREEN</span> <span class="o">+</span> <span class="s2">&quot;using speed source for data.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;using speed source for data.&quot;</span><span class="p">)</span>
 
             <span class="n">speed</span>   <span class="o">=</span> <span class="mf">0.0</span>
             <span class="n">red</span> <span class="o">=</span> <span class="n">green</span> <span class="o">=</span> <span class="n">blue</span> <span class="o">=</span> <span class="mf">0.0</span>
@@ -214,8 +214,16 @@
                     <span class="k">continue</span>  <span class="c1"># optionally, continue the loop without stopping</span>
                 <span class="c1"># calculate elapsed time</span>
                 <span class="n">elapsed_time</span> <span class="o">=</span> <span class="p">(</span><span class="n">dt</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span>  <span class="c1"># Convert to milliseconds</span>
+
+                <span class="k">if</span> <span class="n">cmd</span> <span class="o">==</span> <span class="s1">&#39;GO&#39;</span><span class="p">:</span>
+                    <span class="n">_color</span> <span class="o">=</span> <span class="n">Fore</span><span class="o">.</span><span class="n">GREEN</span>
+                <span class="k">elif</span> <span class="n">cmd</span> <span class="o">==</span> <span class="s1">&#39;ST&#39;</span><span class="p">:</span>
+                    <span class="n">_color</span> <span class="o">=</span> <span class="n">Fore</span><span class="o">.</span><span class="n">RED</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">_color</span> <span class="o">=</span> <span class="n">Fore</span><span class="o">.</span><span class="n">BLUE</span>
+
                 <span class="k">if</span> <span class="nb">next</span><span class="p">(</span><span class="n">counter</span><span class="p">)</span> <span class="o">%</span> <span class="n">div</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># every 10th time</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;tx: </span><span class="si">{:.2f}</span><span class="s2"> ms elapsed.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elapsed_time</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">_color</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span> <span class="o">+</span> <span class="n">Fore</span><span class="o">.</span><span class="n">CYAN</span> <span class="o">+</span> <span class="s2">&quot;; tx: </span><span class="si">{:.2f}</span><span class="s2"> ms elapsed.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elapsed_time</span><span class="p">))</span>
                 <span class="c1"># with no sleep here, would be running as fast as the system allows</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hindered</span><span class="p">:</span>
                     <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay_sec</span><span class="p">)</span>

@@ -167,20 +167,18 @@ if outline_file.exists():
     for _line in _lines:
         lines.append(_line)
 
-# append lines from table-rendered motor_config.yaml
-renderer = MotorTableRenderer("upy/motor_config.yaml")
+# append lines from table-rendered config.yaml
+renderer = MotorTableRenderer("upy/config.yaml")
 #renderer.prepend_template("sphinx-pinout.rst")
 rendered_table = renderer.render_table()
 
 pwm_timer = str(renderer.get_pwm_timer())
-enc_timer = str(renderer.get_enc_timer())
 
 # append lines from sphinx-pinout.rst
 pinout_file = project_root / "sphinx-pinout.rst"
 if pinout_file.exists():
     _text = pinout_file.read_text()
     _text = _text.replace('{{PWM_TIMER}}', pwm_timer)
-    _text = _text.replace('{{ENC_TIMER}}', enc_timer)
     _text = _text.replace('{{PINOUT}}', rendered_table)
     _lines = _text.splitlines()
     for _line in _lines:

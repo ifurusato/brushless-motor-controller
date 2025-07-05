@@ -83,24 +83,23 @@ Apart from power, there are three connections to each motor: a PWM pin used for
 speed control; a direction pin that sets the motor direction; and an encoder
 feedback pin whose ticks indicate motor rotation.
 
-Hardware Timers on the STM32 have four channels. We use all four channels of
-two Timers to supply our PWM and encoder signals.
+Hardware Timers on the STM32 have four channels. We use all four channels of a
+Timer to supply our PWM signals.
 
 +----+------+--------+---------+---------+---------+--------+
 | Id | Name | PWM Ch | PWM Pin | Dir Pin | Enc Pin | Enc Ch |
 +====+======+========+=========+=========+=========+========+
-| 0  | M0   | 1      | PB6     | B12     | PC6     | 1      |
+| 0  | M0   | 1      | PB6     | B12     | PC6     |        |
 +----+------+--------+---------+---------+---------+--------+
-| 1  | M1   | 2      | PB7     | B14     | PC7     | 2      |
+| 1  | M1   | 2      | PB7     | B14     | PC7     |        |
 +----+------+--------+---------+---------+---------+--------+
-| 2  | M2   | 3      | PB8     | B3      | PB0     | 3      |
+| 2  | M2   | 3      | PB8     | B3      | PB0     |        |
 +----+------+--------+---------+---------+---------+--------+
-| 3  | M3   | 4      | PB9     | B5      | PB1     | 4      |
+| 3  | M3   | 4      | PB9     | B5      | PB1     |        |
 +----+------+--------+---------+---------+---------+--------+
 
 
-All four motors use the same PWM Timer (4) and encoder Timer
-(3).
+All four motors use the same PWM Timer (4).
 
 
 =======
@@ -213,6 +212,78 @@ contains all the MicroPython code.
     :show-inheritance:
     :exclude-members: main, init
 
+.. automodule:: sd.colorama
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: sd.colors
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: sd.crc8_table
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: sd.i2cdetect
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: sd.logger
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: sd.neopixel
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: sd.pixel
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: sd.pprint
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: sd.stringbuilder
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: sd.traceback
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: sd.ucomponent
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: sd.yaml
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
 .. automodule:: stop_motor
     :members:
     :undoc-members:
@@ -250,6 +321,12 @@ contains all the MicroPython code.
     :exclude-members: main, init
 
 .. automodule:: uart.uart_master
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :exclude-members: main, init
+
+.. automodule:: uart_driver
     :members:
     :undoc-members:
     :show-inheritance:

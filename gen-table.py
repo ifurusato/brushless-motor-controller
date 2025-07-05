@@ -10,10 +10,10 @@
 # modified: 2025-07-01
 
 import yaml
-from upy.stringbuilder import StringBuilder
+from sd.stringbuilder import StringBuilder
 
 # Load YAML configuration
-with open("upy/motor_config.yaml", "r") as f:
+with open("upy/config.yaml", "r") as f:
     config = yaml.safe_load(f)
 
 # Fields to extract (and header labels)

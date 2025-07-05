@@ -7,7 +7,7 @@
 #
 # author:   Murray Altheim
 # created:  2025-06-23
-# modified: 2025-07-03
+# modified: 2025-07-05
 #
 # This is the entry point to the UART slave application. This uses UART 2 on the
 # STM32 and UART 1 (the default) on the RP2040.
@@ -31,12 +31,10 @@ from colors import *
 import cwd
 import free
 
-__IS_PYBOARD = True   # use Pyboard or MP2040
-
 class UartSlaveApp:
     def __init__(self, is_pyboard=True):
         self._is_pyboard = is_pyboard
-        self._log = Logger('main', Level.INFO)
+        self._log = Logger('uart_slave_app', Level.INFO)
         self._pixel    = Pixel(pixel_count=8, brightness=0.1)
         self._status   = Status(self._pixel)
         self._slave    = None
@@ -47,7 +45,6 @@ class UartSlaveApp:
         if _config is None:
             raise ValueError('failed to import configuration.')
         self._motor_controller = MotorController(config=_config, status=self._status, motors_enabled=(True, True, False, False), level=Level.INFO)
-        self._motor_controller.enable()
         self._router   = PayloadRouter(self._status, self._motor_controller)
         self._log.info('ready.')
 
@@ -99,6 +96,7 @@ class UartSlaveApp:
             self._slave = RP2040UartSlave(uart_id=self._uart_id, baudrate=self._baudrate, status=self._status)
 
         self._slave.set_verbose(False)
+        self._motor_controller.enable()
         self._log.info('UART{} slave: '.format(self._uart_id) + Fore.WHITE + 'waiting for command from master…')
 
     async def run(self):
@@ -133,26 +131,44 @@ class UartSlaveApp:
                     await self._slave.send_packet(ack_payload)
                 else:
                     self._log.warning("no valid payload received.")
+        except KeyboardInterrupt:
+            self._log.info("Ctrl-C caught, exiting application…")
         except Exception as e:
             self._log.error("{} raised in run loop: {}".format(type(e), e))
 #           traceback.print_exc()
             sys.print_exception(e)
-        except KeyboardInterrupt:
-            pass
         finally:
             self.close()
 
     def close(self):
-        self._slave.disable()
+        if self._motor_controller:
+            self._motor_controller.close()
+        if self._slave:
+            self._slave.disable()
         self.off()
+        self._log.info('closed.')
 
 # for REPL usage or testing
 def exec():
-    app = UartSlaveApp(is_pyboard=__IS_PYBOARD)
-    asyncio.run(app.run())
+    app = None
+    try:
+        app = UartSlaveApp()
+        asyncio.run(app.run())
+    except KeyboardInterrupt:
+        pass
+    finally:
+        if app: 
+            app.close()
 
 if __name__ == "__main__":
-    app = UartSlaveApp(is_pyboard=__IS_PYBOARD)
-    asyncio.run(app.run())
+    app = None
+    try:
+        app = UartSlaveApp()
+        asyncio.run(app.run())
+    except KeyboardInterrupt:
+        pass
+    finally:
+        if app: 
+            app.close()
 
 #EOF

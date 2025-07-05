@@ -51,11 +51,10 @@ Apart from power, there are three connections to each motor: a PWM pin used for
 speed control; a direction pin that sets the motor direction; and an encoder
 feedback pin whose ticks indicate motor rotation.
 
-Hardware Timers on the STM32 have four channels. We use all four channels of
-two Timers to supply our PWM and encoder signals.
+Hardware Timers on the STM32 have four channels. We use all four channels of a
+Timer to supply our PWM signals.
 
 {{PINOUT}}
 
-All four motors use the same PWM Timer ({{PWM_TIMER}}) and encoder Timer
-({{ENC_TIMER}}).
+All four motors use the same PWM Timer ({{PWM_TIMER}}).
 

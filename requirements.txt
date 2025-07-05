@@ -1,5 +1,5 @@
 colorama==0.4.6
 pigpio==1.78
 pyserial==3.5
-spidev==3.5
 PyYAML==6.0.2
+spidev==3.5

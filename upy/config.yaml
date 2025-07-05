@@ -7,7 +7,7 @@ kros:
     rpm_timer_number:        2  # RPM timer number
     rpm_timer_frequency:   100  # RPM timer frequency in Hz
     pwm_frequency:       20000  # frequency for PWM to motors (20-30kHz)
-    encoder_frequency:     100  # encoder frequency in Hz
+    encoder_frequency:  1_000_000 # encoder frequency in Hz
     log_timer_number:        6  # log timer number
     log_timer_frequency:    20  # log timer frequency in 20Hz (50ms period)
   motors:
@@ -22,8 +22,6 @@ kros:
       direction_pin_name: 'B12'
       encoder_pin:         'C6'
       encoder_pin_name:   'PC6'
-      enc_timer:             3
-      enc_channel:           1
       reverse:           False
     motor1:
       id:                    1
@@ -36,8 +34,6 @@ kros:
       direction_pin_name: 'B14'
       encoder_pin:         'C7'
       encoder_pin_name:   'PC7'
-      enc_timer:             3
-      enc_channel:           2
       reverse:            True
     motor2:
       id:                    2
@@ -50,8 +46,6 @@ kros:
       direction_pin_name:  'B3'
       encoder_pin:         'B0'
       encoder_pin_name:   'PB0'
-      enc_timer:             3
-      enc_channel:           3
       reverse:            False
     motor3:
       id:                    3
@@ -64,8 +58,6 @@ kros:
       direction_pin_name:  'B5'
       encoder_pin:         'B1'
       encoder_pin_name:   'PB1'
-      enc_timer:             3
-      enc_channel:           4
       reverse:            True
 
 #EOF

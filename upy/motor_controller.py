@@ -47,6 +47,7 @@ class MotorController:
         self._verbose    = True # _app_cfg["verbose"]
         self._log.info(Fore.MAGENTA + 'verbose: {}'.format(self._verbose))
         try:
+            self._log.debug('configuring timers…')
             # RPM timer ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
             _rpm_timer_number  = _cfg['rpm_timer_number']
             _rpm_timer_freq    = _cfg['rpm_timer_frequency']
@@ -60,8 +61,6 @@ class MotorController:
             self._logging_task = None # store the logging task to manage it
             self._logging_enabled = False
             self._loop         = None # asyncio loop instance
-            self._timer        = None # timer for logging
-            self._asyncio_event_from_isr = asyncio.Event() # Event to signal asyncio from ISR
             self._needs_pid_update = False
             self._pid_task     = None
             # motors ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
@@ -72,38 +71,35 @@ class MotorController:
                 self._log.info('configuring {}…'.format(motor_key))
                 _m_cfg    = _motor_cfg[motor_key]
                 pwm_timer = Timer(_m_cfg["pwm_timer"], freq=_pwm_frequency)
-                enc_timer = Timer(_m_cfg["enc_timer"], freq=_enc_frequency)
                 motor = Motor(
-                    id=_m_cfg["id"],
-                    name=_m_cfg["name"],
-                    pwm_timer=pwm_timer,
-                    pwm_channel=_m_cfg["pwm_channel"],
-                    pwm_pin=_m_cfg["pwm_pin"],
-                    pwm_pin_name=_m_cfg["pwm_pin_name"],
-                    direction_pin=_m_cfg["direction_pin"],
-                    direction_pin_name=_m_cfg["direction_pin_name"],
-                    encoder_pin=_m_cfg["encoder_pin"],
-                    encoder_pin_name=_m_cfg["encoder_pin_name"],
-                    enc_timer=enc_timer,
-                    enc_channel=_m_cfg["enc_channel"],
-                    reverse=_m_cfg["reverse"]
+                    id = _m_cfg["id"],
+                    name = _m_cfg["name"],
+                    pwm_timer = pwm_timer,
+                    pwm_channel = _m_cfg["pwm_channel"],
+                    pwm_pin = _m_cfg["pwm_pin"],
+                    pwm_pin_name = _m_cfg["pwm_pin_name"],
+                    direction_pin = _m_cfg["direction_pin"],
+                    direction_pin_name = _m_cfg["direction_pin_name"],
+                    encoder_pin = _m_cfg["encoder_pin"],
+                    encoder_pin_name = _m_cfg["encoder_pin_name"],
+                    reverse = _m_cfg["reverse"]
                 )
-                motor.speed = Motor.STOPPED
                 self._motors[index] = motor
                 self._motor_list.append(motor)
-            self._log.debug('configuring additional timers…')
-            # immediately stop all motors
-            self.stop()
             self._log.info('ready.')
         except Exception as e:
             self._log.error('{} raised by motor controller constructor: {}'.format(type(e), e))
             sys.print_exception(e)
 
     def _rpm_timer_callback(self, timer):
+        '''
+        This callback's primary role is to signal when PID updates are needed. The motor's
+        RPM is continuously updated by the encoder's ISR and can be directly accessed via
+        the rpm() property when needed by the PID controller.
+        '''
         for motor in self.motors:
-            motor._calculate_rpm()
-            motor._pid_needs_update = True # flag for PID update in async task
-        self._needs_pid_update = True
+            motor._pid_needs_update = True   # set flag for PID update in an asynchronous task
+        self._needs_pid_update = True        # set a global flag for the MotorController to manage PID
 
     @property
     def motor_ids(self):
@@ -182,7 +178,7 @@ class MotorController:
                         for motor in self._motor_list
                     )
                     if self._verbose:
-                        self._log.debug(Fore.MAGENTA + "current RPM: {}".format(rpm_values))
+                        self._log.info(Fore.MAGENTA + "current RPM: {}".format(rpm_values))
                 else:
                     self._log.warning("no motors configured for RPM logging.")
                 await asyncio.sleep_ms(interval_ms)
@@ -207,22 +203,6 @@ class MotorController:
                 self._pid_task = self._loop.create_task(self._pid_control_coro())
             self._log.info("motor controller enabled.")
 
-    def disable(self):
-        '''
-        Disables the motor controller.
-        '''
-        if self.enabled:
-            self._log.warning("motor controller already disabled.")
-        else:
-            for motor in self.motors:
-                motor.disable()
-            self._rpm_timer.callback(None)
-            self._encoder_channel.callback(None)
-            if self._pid_task is not None:
-                self._pid_task.cancel()
-                self._pid_task = None
-            self._enabled = False
-
     def get_motor(self, index):
         '''
         Returns the corresponding motor.
@@ -237,17 +217,17 @@ class MotorController:
     @staticmethod
     def _apply_mode(base_power, mode):
         return tuple(p * m for p, m in zip(base_power, mode.speeds))
-    
+
     def go(self, mode=Mode.STOP, speeds=None):
         '''
         Set the navigation mode and speeds for all motors.
 
         Args:
-            mode:  the enumeated Mode, which includes a tuple multiplier against the speeds. 
+            mode:  the enumeated Mode, which includes a tuple multiplier against the speeds.
             speeds:  the four speeds of the motors, in order: pfwd, sfwd, paft, saft
         '''
         transform = MotorController._apply_mode(speeds, mode)
-        self._log.info('go mode: {}; speeds: {}; type: {}; transform: {}'.format(mode, speeds, type(transform), transform))
+        self._log.debug('go: {}; speeds: {}; type: {}; transform: {}'.format(mode, speeds, type(transform), transform))
         self._status.motors(transform)
         self._set_motor_speed(transform)
 
@@ -268,7 +248,7 @@ class MotorController:
     def set_motor_direction(self, direction):
         '''
         Set the direction for all motors. This is generally not used during
-        movement, as individual motor direction is set by the polarity of 
+        movement, as individual motor direction is set by the polarity of
         the speed value sent to each motor.
 
         Args:
@@ -340,13 +320,32 @@ class MotorController:
             motor.stop()
         if self._verbose:
             self._log.info("all motors stopped.")
+        return True
 
     def disable(self):
-        self.stop()
-        self._enabled = False
+        '''
+        Stop and disable all motors, then disable the motor controller.
+        '''
+        if self.enabled:
+            self._log.warning("motor controller already disabled.")
+        else:
+            self._enabled = False
+            _ = self.stop()
+            for motor in self.motors:
+                motor.disable()
+            self._rpm_timer.callback(None)
+            self._encoder_channel.callback(None)
+            if self._pid_task is not None:
+                self._pid_task.cancel()
+                self._pid_task = None
 
     def close(self):
+        '''
+        Stop and disable motors, their respective callbacks, and close the motor controller.
+        '''
         self.disable()
+        for motor in self.motors:
+            motor.close()
         self._log.info("closed.")
 
 #EOF

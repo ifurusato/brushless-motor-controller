@@ -10,7 +10,7 @@
 # modified: 2025-07-01
 
 import yaml
-from upy.stringbuilder import StringBuilder
+from sd.stringbuilder import StringBuilder
 
 class MotorTableRenderer:
     def __init__(self, yaml_path):

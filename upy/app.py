@@ -4,6 +4,10 @@ import sys
 from logger import Logger, Level
 from colorama import Fore, Style
 
+# enable Emergency Exception Buffer
+import micropython
+micropython.alloc_emergency_exception_buf(256)
+
 __log = Logger('app', level=Level.INFO)
 
 # Forget the modules you want to reload
