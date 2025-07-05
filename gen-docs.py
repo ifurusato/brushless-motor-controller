@@ -144,6 +144,8 @@ def find_modules(base_dir: Path):
             continue
         if f.name.endswith("_test.py"):
             continue
+        if "sd" in f.parts:  # skip MicroPython code
+            continue
         if "upy" in f.parts:  # skip MicroPython code
             continue
         if f.name in ("gen-docs.py", "gen-table.py", "motor_table_renderer.py"):  # skip docs generator scripts
