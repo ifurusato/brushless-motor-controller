@@ -12,10 +12,14 @@ kros:
     log_timer_frequency:    20  # log timer frequency in 20Hz (50ms period)
     pid_timer_number:        3  # log timer number
     pid_timer_frequency:   100  # PID timer frequency
-    pid_gains:
-      Kp:                    1.00  # proportional gain
-      Ki:                    0.00  # integral gain
-      Kd:                    0.00  # derivative gain
+    max_motor_speed:       159  # maximum stated motor speed (RPM)
+  pid:
+      kp:                    1.00  # proportional gain
+      ki:                    0.00  # integral gain
+      kd:                    0.00  # derivative gain
+      setpoint:              0.0
+      min:                -100
+      max:                 100
   motors:
     motor0:
       id:                    0

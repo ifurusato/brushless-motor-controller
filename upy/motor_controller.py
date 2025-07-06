@@ -83,9 +83,11 @@ class MotorController:
                 self._log.info('configuring {}…'.format(motor_key))
                 _m_cfg    = _motor_cfg[motor_key]
                 pwm_timer = Timer(_m_cfg["pwm_timer"], freq=_pwm_frequency)
+                _id = _m_cfg["id"]
+                _name = _m_cfg["name"]
                 motor = Motor(
-                    id = _m_cfg["id"],
-                    name = _m_cfg["name"],
+                    id = _id,
+                    name = _name,
                     pwm_timer = pwm_timer,
                     pwm_channel = _m_cfg["pwm_channel"],
                     pwm_pin = _m_cfg["pwm_pin"],
@@ -100,16 +102,7 @@ class MotorController:
                 self._motor_list.append(motor)
                 # instantiate PID controller for this motor if closed-loop enabled
                 if self._use_closed_loop:
-                    Kp = self._pid_gains['Kp']
-                    Ki = self._pid_gains['Ki']
-                    Kd = self._pid_gains['Kd']
-                    self._log.info(Fore.MAGENTA + "PID: Kp={:>4.2f}; Ki={:>4.2f}; Kd={:>4.2f}".format(Kp, Ki, Kd))
-                    self._pid_controllers[index] = PID(
-                        Kp=Kp, Ki=Ki, Kd=Kd,
-                        setpoint=0.0, # Initial setpoint for PID. Will be updated by go()
-                        output_limits=(-100, 100), # PID output corresponds to speed percentage
-                        log_level=level
-                    )
+                    self._pid_controllers[index] = PID(_name, config, level=level)
                     self._motor_target_rpms[index] = 0.0 # initialize target RPM
 
             self._log.info('ready.')
