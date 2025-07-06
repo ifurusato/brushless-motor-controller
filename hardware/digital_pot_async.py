@@ -37,9 +37,11 @@ class DigitalPotentiometer:
     BRIGHTNESS = 0.5
     PERIOD     = int(255 / BRIGHTNESS)
 
-    def __init__(self, fps=30, level=Level.INFO):
+    def __init__(self, fps=30, multiplier=100.0, level=Level.INFO):
         self._log = Logger('pot', level)
         self._max = 3.3
+        self._multiplier = multiplier
+        print(multiplier)
         self._red   = 0
         self._green = 0
         self._blue  = 0
@@ -84,13 +86,14 @@ class DigitalPotentiometer:
     @property
     def normalised_value(self):
         '''
-        Return a normalised int value between -100 and 100.
+        Return a normalised int value between -100 and 100, or the 
+        multiplier if changed in the constructor.
         '''
         raw_value = (self.value * 2) - 1 # scale 0..1 to -1..+1
         if self._use_deadzone and isclose(raw_value, 0.0, abs_tol=0.02):
             return 0
         else:
-            return int(100.0 * raw_value)
+            return int(self._multiplier * raw_value)
 
     # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
     @property

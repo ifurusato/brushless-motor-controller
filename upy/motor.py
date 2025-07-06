@@ -39,7 +39,6 @@ class Motor:
             self._update_interval  = 0.1
             self._pulses_per_output_rev = 270  # pulses_per_motor_rev * gear_ratio
             self._no_tick_timeout_us = 70_000 # how much time we wait before declaring motor stopped (at 6rpm this would be 37,037)
-            self._pid_needs_update = False
             # setup PWM channel with pin
             self._pwm_pin = Pin(pwm_pin)
             self._pwm_pin_name = pwm_pin_name
@@ -61,6 +60,7 @@ class Motor:
             try:
                 self._encoder_irq = ExtInt(self._encoder_pin, ExtInt.IRQ_FALLING, Pin.PULL_UP, self._encoder_callback)
             except ValueError as e: # e.g., ExtInt vector 6 is already in use
+                self._log.error('motor IRQ already in use; ' + Style.BRIGHT + 'hard reset required.')
                 raise Exception('motor IRQ already in use; hard reset required.')
             self._encoder_irq.disable()
             # info
@@ -79,6 +79,10 @@ class Motor:
     def _pin_irq_callback(self, arg):
         self._irq_count += 1
         print(self._irq_count)
+
+    @property
+    def id(self):
+        return self._id
 
     @property
     def name(self):
@@ -146,8 +150,8 @@ class Motor:
         pulses_per_second = 1_000_000 / self._last_calculated_interval_us
         revolutions_per_second = pulses_per_second / self._pulses_per_output_rev
         calculated_rpm = revolutions_per_second * 60.0
-        if self.direction == Motor.DIRECTION_REVERSE:
-            calculated_rpm = -calculated_rpm
+#       if self.direction == Motor.DIRECTION_REVERSE:
+#           calculated_rpm = -calculated_rpm
         self._rpm = calculated_rpm
         return self._rpm
 
@@ -161,6 +165,7 @@ class Motor:
             if self.direction == Motor.DIRECTION_FORWARD:
                 self._tick_count += 1
             else:
+#               self._tick_count += 1
                 self._tick_count -= 1
             self._last_calculated_interval_us = raw_interval_us
 
