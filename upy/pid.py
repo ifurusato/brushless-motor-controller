@@ -10,6 +10,7 @@
 # modified: 2025-07-06
 
 import utime
+import itertools
 from colorama import Fore, Style
 from logger import Logger, Level
 
@@ -27,7 +28,8 @@ class PID:
         self._output_max = _cfg['max']
         self._last_error = 0.0
         self._integral_error = 0.0
-        self._last_time  = None
+        self._last_time  = utime.ticks_us()
+        self._counter    = itertools.count()
         self._log.info('ready.')
 
     @property
@@ -38,7 +40,12 @@ class PID:
     def setpoint(self, value):
         self._setpoint = float(value)
 
-    def update(self, current_value, dt_seconds):
+    def update(self, current_value): # Removed dt_seconds from arguments
+        current_time = utime.ticks_us() # New variable to store current time
+        dt_us = utime.ticks_diff(current_time, self._last_time) # Calculate dt
+        self._last_time = current_time # Update last_time for the next iteration
+        # convert microseconds to seconds, handle potential zero dt
+        dt_seconds = dt_us / 1_000_000.0 if dt_us > 0 else 0.000001
         error = self._setpoint - current_value
         # Proportional term
         p_term = self._kp * error
@@ -53,11 +60,14 @@ class PID:
         d_term = self._kd * ((error - self._last_error) / dt_seconds) if dt_seconds > 0 else 0.0
         output = p_term + i_term + d_term
         self._last_error = error
-        return max(self._output_min, min(output, self._output_max))
+        limited = max(self._output_min, min(output, self._output_max))
+        if next(self._counter) % 50 == 0:
+            self._log.info("p={:.2f}, i={:.2f}, d={:.2f}, output={:.2f} ({:.2f})".format(p_term, i_term, d_term, output, limited))
+        return limited
 
     def reset(self):
         self._last_error = 0.0
         self._integral_error = 0.0
-        self._last_time = None
+        self._last_time = utime.ticks_us() # Reset time for next calculation to ensure accurate dt
 
 #EOF

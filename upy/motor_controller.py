@@ -53,7 +53,6 @@ class MotorController:
             _pid_timer_number = _cfg['pid_timer_number']
             _pid_timer_freq   = _cfg['pid_timer_frequency']
             self._pid_timer = Timer(_pid_timer_number, freq=_pid_timer_freq)
-            self._dt_seconds = 1.0 / _pid_timer_freq # <--- This is where it should be declared
             self._log.info(Fore.MAGENTA + '🍆 closed loop enabled: PID timer {} configured with frequency of {}Hz; timer: {}'.format(_pid_timer_number, _pid_timer_freq, self._pid_timer))
         else:
             self._log.info(Fore.MAGENTA + 'open-loop control enabled (PID disabled).')
@@ -145,7 +144,7 @@ class MotorController:
                         # PID setpoint is directly the signed target RPM
                         pid_ctrl.setpoint = target_rpm_signed 
                         # PID update operates directly on signed error, produces signed output
-                        new_speed_percent_signed = pid_ctrl.update(current_motor_rpm, self._dt_seconds)
+                        new_speed_percent_signed = pid_ctrl.update(current_motor_rpm)
                         # Clamp the final speed percentage to the valid range (-100 to 100)
                         new_speed_percent_signed = max(-100, min(100, new_speed_percent_signed))
                         motor.speed = int(round(new_speed_percent_signed))
