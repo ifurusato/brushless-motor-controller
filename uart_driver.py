@@ -25,10 +25,8 @@ if __name__ == "__main__":
     _use_closed_loop = _cfg['use_closed_loop']
     _max_motor_speed = _cfg['max_motor_speed']
     if _use_closed_loop:
-        print('closed loop.')
         _multiplier = float(_max_motor_speed)
     else:
-        print('open loop.')
         _multiplier = 100.0
     _command_provider = RotaryEncoderCommandProvider()
     _speed_provider   = DigitalPotSpeedProvider(multiplier=_multiplier)

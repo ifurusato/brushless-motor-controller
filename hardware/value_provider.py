@@ -23,7 +23,6 @@ class ValueProvider:
 class DigitalPotSpeedProvider(ValueProvider):
 
     def __init__(self, multiplier=100.0):
-        print('multiplier: {}'.format(multiplier))
         self._digital_pot = DigitalPotentiometer(multiplier=multiplier)
         self._digital_pot.start()
 

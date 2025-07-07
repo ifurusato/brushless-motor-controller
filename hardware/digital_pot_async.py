@@ -41,7 +41,6 @@ class DigitalPotentiometer:
         self._log = Logger('pot', level)
         self._max = 3.3
         self._multiplier = multiplier
-        print(multiplier)
         self._red   = 0
         self._green = 0
         self._blue  = 0

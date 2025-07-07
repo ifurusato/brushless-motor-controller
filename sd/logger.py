@@ -7,7 +7,7 @@
 #
 # author:   Murray Altheim
 # created:  2020-01-14
-# modified: 2025-06-26
+# modified: 2025-07-06
 #
 # This is a simplification of the MROS Logger class, just using print statements
 # and not supporting log-to-file, log suppression, the notice() or critical()
@@ -26,10 +26,11 @@ Level = enum(DEBUG=10, INFO=20, WARN=30, ERROR=40)
 
 class Logger:
 
-    __color_debug    = Fore.BLUE   + Style.DIM
-    __color_info     = Fore.CYAN   + Style.NORMAL
-    __color_warning  = Fore.YELLOW + Style.NORMAL
-    __color_error    = Fore.RED    + Style.NORMAL
+    __color_debug    = Fore.BLUE    + Style.DIM
+    __color_info     = Fore.CYAN    + Style.NORMAL
+    __color_warning  = Fore.YELLOW  + Style.NORMAL
+    __color_error    = Fore.RED     + Style.NORMAL
+    __color_fatal    = Fore.MAGENTA + Style.NORMAL
     __color_reset    = Style.RESET_ALL
 
     def __init__(self, name, level=Level.INFO):
@@ -111,8 +112,6 @@ class Logger:
     def debug(self, message):
         '''
         Prints a debug message.
-
-        The optional 'end' argument is for special circumstances where a different end-of-line is desired.
         '''
         if self.is_at_least(Level.DEBUG):
             timestamp = self._get_time()
@@ -125,8 +124,6 @@ class Logger:
     def info(self, message):
         '''
         Prints an informational message.
-
-        The optional 'end' argument is for special circumstances where a different end-of-line is desired.
         '''
         if self.is_at_least(Level.INFO):
             timestamp = self._get_time()
@@ -139,8 +136,6 @@ class Logger:
     def warning(self, message):
         '''
         Prints a warning message.
-
-        The optional 'end' argument is for special circumstances where a different end-of-line is desired.
         '''
         if self.is_at_least(Level.WARN):
             timestamp = self._get_time()
@@ -153,8 +148,6 @@ class Logger:
     def error(self, message):
         '''
         Prints an error message.
-
-        The optional 'end' argument is for special circumstances where a different end-of-line is desired.
         '''
         if self.is_at_least(Level.ERROR):
             timestamp = self._get_time()
@@ -162,6 +155,18 @@ class Logger:
                     + Style.DIM + Fore.RESET
                     + self._name_format.format(self._name)
                     + Logger.__color_error + "{} : ".format(self.__ERROR_TOKEN)
+                    + Fore.CYAN + "{}".format(message) + Logger.__color_reset)
+
+    def fatal(self, message):
+        '''
+        Prints a fatal message, i.e., a message that the system has failed.
+        '''
+        if self.is_at_least(Level.FATAL):
+            timestamp = self._get_time()
+            print(Fore.BLUE + "{} : ".format(timestamp) 
+                    + Style.DIM + Fore.RESET
+                    + self._name_format.format(self._name)
+                    + Logger.__color_fatal + "{} : ".format(self.__FATAL_TOKEN)
                     + Fore.CYAN + "{}".format(message) + Logger.__color_reset)
 
 #EOF

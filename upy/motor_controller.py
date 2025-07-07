@@ -16,9 +16,10 @@ from pyb import Timer
 from logger import Logger, Level
 from config_loader import ConfigLoader
 from colorama import Fore, Style
-from motor import Motor
+from motor import Motor, ChannelUnavailableError
 from pid import PID
 from mode import Mode
+
 
 class MotorController:
     '''
@@ -45,6 +46,8 @@ class MotorController:
         _motor_cfg       = config["kros"]["motors"]
         _pwm_frequency   = _cfg['pwm_frequency']
         self._use_closed_loop = _cfg.get('use_closed_loop', True)
+        _max_motor_speed = _cfg.get('max_motor_speed')
+        self._motor_stop_pwm_threshold = 8
         if self._use_closed_loop:
              # NEW: Closed-loop flag and PID related attributes
             self._pid_controllers = {}     # PID instances
@@ -95,6 +98,7 @@ class MotorController:
                     direction_pin_name = _m_cfg["direction_pin_name"],
                     encoder_pin = _m_cfg["encoder_pin"],
                     encoder_pin_name = _m_cfg["encoder_pin_name"],
+                    max_speed = _max_motor_speed if self._use_closed_loop else 100.0,
                     reverse = _m_cfg["reverse"]
                 )
                 self._motors[index] = motor
@@ -105,9 +109,17 @@ class MotorController:
                     self._motor_target_rpms[index] = 0.0 # initialize target RPM
 
             self._log.info('ready.')
+        except ChannelUnavailableError:
+            self.__hard_reset()
         except Exception as e:
             self._log.error('{} raised by motor controller constructor: {}'.format(type(e), e))
             sys.print_exception(e)
+
+    def __hard_reset(self):
+        import machine, time
+        self._log.fatal('cannot start: performing hard reset in 3 seconds…')
+        time.sleep(3)
+        machine.reset()
 
     def _rpm_timer_callback(self, timer):
         '''
@@ -125,45 +137,24 @@ class MotorController:
         '''
         self._log.info("Starting asynchronous PID control task.")
         while True:
-            # Check the flag set by the PID timer interrupt handler
             if self._needs_pid_update:
-                self._needs_pid_update = False # Reset the flag immediately to avoid re-processing the same signal
-
-                # Perform PID calculations for all enabled motors
+                self._needs_pid_update = False
                 for motor in self.motors:
                     motor_id = motor.id
-                    # The motor._pid_needs_update flags are no longer necessary,
-                    # as the global self._needs_pid_update flag triggers processing for all motors with PID controllers.
-                    if motor_id in self._pid_controllers: # Ensure a PID controller exists for this motor
-
+                    if motor_id in self._pid_controllers:
                         pid_ctrl = self._pid_controllers[motor_id]
-                        # Target RPM is now directly signed, indicating desired direction
-                        target_rpm_signed = self._motor_target_rpms.get(motor_id, 0.0) 
-                        # Current motor RPM is now directly signed from the Motor class
-                        current_motor_rpm = motor.rpm 
-                        # PID setpoint is directly the signed target RPM
-                        pid_ctrl.setpoint = target_rpm_signed 
-                        # PID update operates directly on signed error, produces signed output
+                        target_rpm_signed = self._motor_target_rpms.get(motor_id, 0.0)
+                        current_motor_rpm = motor.rpm
+                        pid_ctrl.setpoint = target_rpm_signed
                         new_speed_percent_signed = pid_ctrl.update(current_motor_rpm)
-                        # Clamp the final speed percentage to the valid range (-100 to 100)
-                        new_speed_percent_signed = max(-100, min(100, new_speed_percent_signed))
+                        # apply zero-speed deadband
+                        if target_rpm_signed == 0.0:
+                            if abs(new_speed_percent_signed) < self._motor_stop_pwm_threshold:
+                                new_speed_percent_signed = 0.0
                         motor.speed = int(round(new_speed_percent_signed))
-
-#                       pid_ctrl = self._pid_controllers[motor_id]
-#                       current_rpm = motor.rpm
-#                       target_rpm = self._motor_target_rpms[motor_id]
-#                       pid_ctrl.setpoint = target_rpm
-#                       # calculate the new speed percentage using the PID algorithm
-#                       new_speed_percent = pid_ctrl.update(current_rpm, self._dt_seconds)
-#                       # apply the calculated speed to the motor
-#                       motor.speed = int(round(new_speed_percent))
-
-                # Yield control to the uasyncio event loop. This is crucial for cooperative multitasking.
-                # A very short sleep_ms (even 0) allows other tasks to run.
+                # yield control to the uasyncio event loop
                 await asyncio.sleep_ms(1) 
             else:
-                # If no PID update is needed, sleep for a short period to prevent busy-waiting and yield CPU.
-                # Adjust this delay based on system responsiveness needs.
                 await asyncio.sleep_ms(10)
 
     @property
@@ -229,22 +220,23 @@ class MotorController:
             interval_ms: The interval between calls to the logger.
         '''
         if self._verbose:
-            self._log.info(Fore.MAGENTA + "called RPM logger coroa with interval: {}ms.".format(interval_ms))
+            self._log.info(Fore.MAGENTA + "called RPM logger coro with interval: {}ms.".format(interval_ms))
         try:
             while self._logging_enabled:
                 if self._motor_list:
                     rpm_values = ", ".join(
 
                         '{}: '.format(motor.name)
-                      + Style.BRIGHT + '{:6.1f} RPM '.format(motor.rpm)
-                      + Style.NORMAL + "(target: {}); {:5d} ticks".format(self._get_motor_target_rpms(motor.id), motor.tick_count)
-
+                            + Style.BRIGHT + '{:6.1f} RPM '.format(motor.rpm)
+                            + ( Style.NORMAL + "(target: {}); {:5d} ticks".format(self._get_motor_target_rpms(motor.id), motor.tick_count)
+                            if self._use_closed_loop else 
+                                Style.NORMAL + "; {:5d} ticks".format(motor.tick_count)
+                              )
 #                       "{}: {:.2f} RPM (target: {}); {} ticks".format(
 #                               motor.name,
 #                               motor.rpm,
 #                               self._get_motor_target_rpms(motor.id),
 #                               motor.tick_count)
-
                         for motor in self._motor_list
                     )
                     if self._verbose:

@@ -40,7 +40,7 @@ class UARTMaster:
         self._log.info(Style.BRIGHT + 'UART master is {}.'.format('hindered' if self._hindered else 'unhindered'))
         self._last_tx  = None
         self._last_rx  = None
-        self._verbose  = False
+        self._verbose  = True
         self._log.info('UART master ready at baud rate: {}.'.format(baudrate))
 
     def send_payload(self, payload):
@@ -137,7 +137,7 @@ class UARTMaster:
                     _color = Fore.BLUE
 
                 if next(counter) % div == 0: # every 10th time
-                    self._log.info(_color + "{}".format(cmd) + Fore.CYAN + "; tx: {:.2f} ms elapsed.".format(elapsed_time))
+                    self._log.info(_color + "{} / {}".format(cmd, speed) + Fore.CYAN + "; tx: {:.2f} ms elapsed.".format(elapsed_time))
                 # with no sleep here, would be running as fast as the system allows
                 if self._hindered:
                     time.sleep(delay_sec)

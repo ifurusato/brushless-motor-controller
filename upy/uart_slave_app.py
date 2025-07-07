@@ -83,7 +83,9 @@ class UartSlaveApp:
     async def _setup_uart_slave(self):
         if self._is_pyboard:
             from stm32_uart_slave import Stm32UartSlave
+            self._log.info('waiting a bit…')
             await self._pyb_wait_a_bit()
+            self._log.info('done waiting.')
             self._uart_id = 2
             self._log.info('configuring UART{} slave for STM32 Pyboard…'.format(self._uart_id))
             self._slave = Stm32UartSlave(uart_id=self._uart_id, baudrate=self._baudrate, status=self._status)
