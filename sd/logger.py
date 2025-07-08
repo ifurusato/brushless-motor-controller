@@ -21,7 +21,7 @@ from colorama import Fore, Style
 def enum(**enums: int):
     return type('Enum', (), enums)
 
-Level = enum(DEBUG=10, INFO=20, WARN=30, ERROR=40)
+Level = enum(DEBUG=10, INFO=20, WARN=30, ERROR=40, FATAL=50)
 # e.g., levels = (Level.ONE, Level.TWO)
 
 class Logger:

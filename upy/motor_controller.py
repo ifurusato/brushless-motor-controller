@@ -11,15 +11,17 @@
 
 import sys
 import uasyncio as asyncio
-import time
+from asyncio import ThreadSafeFlag
+from math import isclose
+import utime
 from pyb import Timer
 from logger import Logger, Level
 from config_loader import ConfigLoader
 from colorama import Fore, Style
 from motor import Motor, ChannelUnavailableError
+from slew_limiter import SlewLimiter
 from pid import PID
 from mode import Mode
-
 
 class MotorController:
     '''
@@ -38,16 +40,27 @@ class MotorController:
             raise ValueError('no configuration provided.')
         self._enabled    = False
         self._status     = status
+        self._hard_reset_delay_sec = 3
         self._motors     = {}
         self._motor_list = []
         self._motor_numbers = [0, 1, 2, 3]
         _cfg             = config["kros"]["motor_controller"]
         _app_cfg         = config["kros"]["application"]
         _motor_cfg       = config["kros"]["motors"]
+        _slew_cfg        = config["kros"]["slew_limiter"]
         _pwm_frequency   = _cfg['pwm_frequency']
         self._use_closed_loop = _cfg.get('use_closed_loop', True)
         _max_motor_speed = _cfg.get('max_motor_speed')
+
         self._motor_stop_pwm_threshold = 8
+        self._soft_stop_rpm_threshold = _cfg.get('soft_stop_rpm_threshold', 5.0)
+
+        self._enable_slew_limiter     = _slew_cfg['enabled']                  # True
+        self._max_delta_rpm_per_sec   = _slew_cfg['max_delta_rpm_per_sec']    # closed loop: 120.0
+        self._max_delta_speed_per_sec = _slew_cfg['max_delta_speed_per_sec']  # open loop: 100.0
+        self._safe_slew_threshold     = _slew_cfg['safe_slew_threshold']      # 10.0
+        self._slew_limiters = {}
+
         if self._use_closed_loop:
              # NEW: Closed-loop flag and PID related attributes
             self._pid_controllers = {}     # PID instances
@@ -56,7 +69,12 @@ class MotorController:
             _pid_timer_number = _cfg['pid_timer_number']
             _pid_timer_freq   = _cfg['pid_timer_frequency']
             self._pid_timer = Timer(_pid_timer_number, freq=_pid_timer_freq)
-            self._log.info(Fore.MAGENTA + '🍆 closed loop enabled: PID timer {} configured with frequency of {}Hz; timer: {}'.format(_pid_timer_number, _pid_timer_freq, self._pid_timer))
+
+            self._pid_signal_flag = ThreadSafeFlag()
+            self._last_global_pid_cycle_time = utime.ticks_us() # NEW: Initialize last global update time
+ 
+            asyncio.create_task(self._run_pid_task())
+            self._log.info(Fore.MAGENTA + 'closed loop enabled: PID timer {} configured with frequency of {}Hz; timer: {}'.format(_pid_timer_number, _pid_timer_freq, self._pid_timer))
         else:
             self._log.info(Fore.MAGENTA + 'open-loop control enabled (PID disabled).')
 
@@ -75,8 +93,6 @@ class MotorController:
             self._logging_task = None # store the logging task to manage it
             self._logging_enabled = False
             self._loop         = None # asyncio loop instance
-            self._pid_task     = None
-            self._needs_pid_update = False
             # motors ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
             for index in range(4):
                 if not motors_enabled[index]:
@@ -107,19 +123,23 @@ class MotorController:
                 if self._use_closed_loop:
                     self._pid_controllers[index] = PID(_name, config, level=level)
                     self._motor_target_rpms[index] = 0.0 # initialize target RPM
+                # instantiate SlewLimiter for this motor
+                if self._enable_slew_limiter:
+                    self._slew_limiters[index] = SlewLimiter(
+                        max_delta_per_sec=self._max_delta_rpm_per_sec if self._use_closed_loop else self._max_delta_speed_per_sec,
+                        safe_threshold=self._safe_slew_threshold
+                    )
 
             self._log.info('ready.')
         except ChannelUnavailableError:
-            self.__hard_reset()
+            # hard reset ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+            self._log.fatal('cannot start: ' + Fore.RED + 'performing hard reset in {} seconds…'.format(self._hard_reset_delay_sec))
+            import machine, time
+            time.sleep(self._hard_reset_delay_sec)
+            machine.reset()
         except Exception as e:
             self._log.error('{} raised by motor controller constructor: {}'.format(type(e), e))
             sys.print_exception(e)
-
-    def __hard_reset(self):
-        import machine, time
-        self._log.fatal('cannot start: performing hard reset in 3 seconds…')
-        time.sleep(3)
-        machine.reset()
 
     def _rpm_timer_callback(self, timer):
         '''
@@ -130,32 +150,29 @@ class MotorController:
         pass
 
     async def _run_pid_task(self):
-        '''
-        Asynchronous task responsible for performing the PID calculations and
-        updating motor speeds when signalled by the _pid_timer interrupt.
-        This runs outside the ISR context, allowing for more complex operations.
-        '''
-        self._log.info("Starting asynchronous PID control task.")
+        self._log.info("starting asynchronous PID control task, driven by hardware timer.")
         while True:
-            if self._needs_pid_update:
-                self._needs_pid_update = False
-                for motor in self.motors:
-                    motor_id = motor.id
-                    if motor_id in self._pid_controllers:
-                        pid_ctrl = self._pid_controllers[motor_id]
-                        target_rpm_signed = self._motor_target_rpms.get(motor_id, 0.0)
-                        current_motor_rpm = motor.rpm
-                        pid_ctrl.setpoint = target_rpm_signed
-                        new_speed_percent_signed = pid_ctrl.update(current_motor_rpm)
-                        # apply zero-speed deadband
-                        if target_rpm_signed == 0.0:
-                            if abs(new_speed_percent_signed) < self._motor_stop_pwm_threshold:
-                                new_speed_percent_signed = 0.0
-                        motor.speed = int(round(new_speed_percent_signed))
-                # yield control to the uasyncio event loop
-                await asyncio.sleep_ms(1) 
-            else:
-                await asyncio.sleep_ms(10)
+            await self._pid_signal_flag.wait()
+
+            current_time = utime.ticks_us()
+            # calculate dt_us based on the consistent global cycle time
+            global_cycle_dt_us = utime.ticks_diff(current_time, self._last_global_pid_cycle_time)
+            self._last_global_pid_cycle_time = current_time # update for next cycle
+
+            for motor in self.motors:
+                motor_id = motor.id
+                if motor_id in self._pid_controllers:
+                    pid_ctrl = self._pid_controllers[motor_id]
+                    target_rpm_signed = self._motor_target_rpms.get(motor_id, 0.0)
+                    current_motor_rpm = motor.rpm
+                    pid_ctrl.setpoint = target_rpm_signed
+                    # call PID update
+                    new_speed_percent_signed = pid_ctrl.update(current_motor_rpm, global_cycle_dt_us)
+                    # Apply zero-speed deadband (retained logic)
+                    if target_rpm_signed == 0.0:
+                        if abs(new_speed_percent_signed) < self._motor_stop_pwm_threshold:
+                            new_speed_percent_signed = 0.0  
+                    motor.speed = int(round(new_speed_percent_signed))
 
     @property
     def motor_ids(self):
@@ -174,12 +191,6 @@ class MotorController:
     @property
     def enabled(self):
         return self._enabled
-
-    def _pid_control_callback(self, arg):
-        '''
-        Callback to run PID control for all motors that need it.
-        '''
-        self._needs_pid_update = True
 
     def enable_rpm_logger(self, interval_ms: int = 1000):
         '''
@@ -261,8 +272,8 @@ class MotorController:
             self._enabled = True
             self._rpm_timer.callback(self._rpm_timer_callback)
             if self._use_closed_loop:
-                self._pid_timer.callback(self._pid_control_callback)
-                self._pid_task = asyncio.create_task(self._run_pid_task())
+                # Configure the _pid_timer to call our ISR callback, set the flag from within the lambda callback
+                self._pid_timer.callback(lambda t: self._pid_signal_flag.set())
             self.enable_rpm_logger() # already starts timer & logging
             self._log.info("motor controller enabled.")
 
@@ -292,6 +303,12 @@ class MotorController:
         transform = MotorController._apply_mode(speeds, mode)
         self._log.debug('go: {}; speeds: {}; type: {}; transform: {}'.format(mode, speeds, type(transform), transform))
         self._status.motors(transform)
+        if self._enable_slew_limiter:
+            transform = list(transform) # convert to list for mutability
+            for i in range(len(transform)):
+                if i in self._slew_limiters:
+                    transform[i] = self._slew_limiters[i].limit(transform[i])
+            self._log.debug('slew-limited transform: {}'.format(transform))
         if self._use_closed_loop:
             for i, target_rpm in enumerate(transform):
                 if i in self._motor_target_rpms:
@@ -314,21 +331,30 @@ class MotorController:
         for motor, speed in zip(self._motor_list, list(speeds)):
             motor.speed = speed
 
-    def set_motor_direction(self, direction):
-        '''
-        Set the direction for all motors. This is generally not used during
-        movement, as individual motor direction is set by the polarity of
-        the speed value sent to each motor.
-
-        Args:
-            direction (int): Sets the direction of all motors as 0 (reverse) or 1 (forward).
-        '''
-        if not self.enabled:
-            raise RuntimeError('motor controller not enabled.')
-        for motor in self._motor_list:
-            motor.direction = direction
-
     async def accelerate(self, target_speed, step=1, delay_ms=50):
+        if self._use_closed_loop:
+            self._log.warning("`accelerate` with closed-loop is a simplified placeholder. Setting all motor target RPMs to `target_speed` (magnitude).")
+            for motor_id in self._motor_target_rpms:
+                self._motor_target_rpms[motor_id] = abs(float(target_speed))
+        else:
+            done = False
+            while not done:
+                done = True
+                for motor in self._motor_list:
+                    current_pwm = motor.speed
+                    target_pwm = target_speed
+                    
+                    if current_pwm == target_pwm:
+                        continue
+                    done = False
+                    
+                    delta = target_pwm - current_pwm
+                    direction_change_step = 1 if delta > 0 else -1
+                    new_pwm = current_pwm + direction_change_step * min(step, abs(delta))
+                    motor.speed = new_pwm
+                await asyncio.sleep_ms(delay_ms)
+
+    async def x_accelerate(self, target_speed, step=1, delay_ms=50):
         '''
         Gradually change speed of one or more motors toward a target
         speed, starting from each motor's current speed.
@@ -387,6 +413,9 @@ class MotorController:
         '''
         for motor in self.motors:
             motor.stop()
+        if self._use_closed_loop:
+            for pid_ctrl in self._pid_controllers.values():
+                pid_ctrl.reset()
         if self._verbose:
             self._log.info("all motors stopped.")
         return True
@@ -400,14 +429,15 @@ class MotorController:
         else:
             self._enabled = False
             _ = self.stop()
-            for motor in self.motors:
-                motor.disable()
-            self._rpm_timer.callback(None)
             if self._use_closed_loop:
                 self._pid_timer.callback(None)
-                if self._pid_task is not None:
-                    self._pid_task.cancel()
-                    self._pid_task = None
+            for motor in self.motors:
+                motor.disable()
+                if self._enable_slew_limiter and motor.id in self._slew_limiters:
+                    self._slew_limiters[motor.id].reset()
+            if self._use_closed_loop and motor.id in self._pid_controllers:
+                self._pid_controllers[motor.id].reset()
+            self._rpm_timer.callback(None)
             self._log.info("motor controller disabled.")
 
     def close(self):

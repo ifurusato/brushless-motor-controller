@@ -1,7 +1,7 @@
 
 .. admonition:: Important
 
-    This documentation was last updated 05 Jul 2025, so it may not be up to date with the repository.
+    This documentation was last updated 08 Jul 2025, so it may not be up to date with the repository.
 
     The project is still a work in progress, i.e., things are still changing frequently, not everything works, or works as expected.
 

@@ -74,17 +74,17 @@ class Mode:
 # non-movement modes
 Mode.COLOR       = Mode( 0, "COLOR",     "CO", None,              "show color")
 Mode.ENABLE      = Mode( 1, "ENABLE",    "EN", None,              "enable")
-# stopped        
+# stopped
 Mode.STOP        = Mode( 2, "STOP",      "ST", ( 0,  0,  0,  0),  "stop")
 # all wheels forward/backward
 Mode.GO          = Mode( 3, "GO",        "GO", ( 1,  1 , 1 , 1),  "go forward or reverse")
 # rotation (spin in place)
 Mode.ROT_CW      = Mode( 4, "ROT_CW",    "RO", (-1,  1, -1,  1),  "rotate clockwise")
 Mode.ROT_CCW     = Mode( 5, "ROT_CCW",   "RC", ( 1, -1,  1, -1),  "rotate counter-clockwise")
-# crab movement (lateral strafe)  
+# crab movement (lateral strafe)
 Mode.CRAB_PORT   = Mode( 6, "CRAB_PORT", "CP", (-1,  1,  1, -1),  "crab to port")
 Mode.CRAB_STBD   = Mode( 7, "CRAB_STBD", "CS", ( 1, -1, -1,  1),  "crab to starboard")
-# diagonal movement  
+# diagonal movement
 Mode.DIA_PFWD    = Mode( 8, "DIA_PFWD",  "DP", ( 0,  1,  1,  0),  "diagonal forward to port")
 Mode.DIA_SFWD    = Mode( 9, "DIA_SFWD",  "DS", ( 1,  0,  0,  1),  "diagonal forward to starboard")
 Mode.DIA_PREV    = Mode(10, "DIA_PREV",  "DQ", (-1,  0,  0, -1),  "diagonal reverse to port")
@@ -115,13 +115,13 @@ def main():
     for m in Mode.all():
         pad = 30 - len(m.description)
         if m.speeds is None:
-            print(Fore.CYAN  + " {:>10} ".format(m.name) 
-                + Fore.WHITE + "    {}".format(m.description) 
+            print(Fore.CYAN  + " {:>10} ".format(m.name)
+                + Fore.WHITE + "    {}".format(m.description)
                 + Fore.GREEN + "    {} NA".format(' ' * pad)
                 + Style.RESET_ALL)
         else:
-            print(Fore.CYAN  + " {:>10} ".format(m.name) 
-                + Fore.WHITE + "    {}".format(m.description) 
+            print(Fore.CYAN  + " {:>10} ".format(m.name)
+                + Fore.WHITE + "    {}".format(m.description)
                 + Fore.GREEN + "    {}{:5.1f}{:5.1f}{:5.1f}{:5.1f}".format(' ' * pad, *m.speeds)
                 + Style.RESET_ALL)
 

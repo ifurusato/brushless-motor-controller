@@ -4,7 +4,7 @@ kros:
   application:
     verbose:             False  # application-level verbosity
   motor_controller:
-    use_closed_loop:     False
+    use_closed_loop:      True
     rpm_timer_number:        2  # RPM timer number
     rpm_timer_frequency:   100  # RPM timer frequency in Hz
     pwm_frequency:       20000  # frequency for PWM to motors (20-30kHz)
@@ -13,10 +13,15 @@ kros:
     pid_timer_number:        3  # log timer number
     pid_timer_frequency:   100  # PID timer frequency
     max_motor_speed:       159  # maximum stated motor speed (RPM)
+  slew_limiter:
+    enabled:              True  # use rpm and speed slew limiters
+    max_delta_rpm_per_sec:    45.0  # slew limiter for RPM
+    max_delta_speed_per_sec:  40.0  # slew limiter for speed
+    safe_slew_threshold:    10.0    # minimum magnitude below which direction changes are allowed
   pid:
-      kp:                    0.51   # proportional gain
-      ki:                    0.050  # integral gain
-      kd:                    0.001   # derivative gain
+      kp:                    0.60   # proportional gain   0.51
+      ki:                    0.050  # integral gain       0.050
+      kd:                    0.001  # derivative gain     0.001
       setpoint:              0.0
       min:                -100
       max:                 100

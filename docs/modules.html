@@ -1131,7 +1131,7 @@ the motor feedback pin. Returns None if running in open loop mode.</p>
 
 <dl class="py class" id="module-hardware.digital_pot_async">
 <dt class="sig sig-object py" id="hardware.digital_pot_async.DigitalPotentiometer">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.digital_pot_async.</span></span><span class="sig-name descname"><span class="pre">DigitalPotentiometer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Level.INFO</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/digital_pot_async.html#DigitalPotentiometer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.digital_pot_async.DigitalPotentiometer" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.digital_pot_async.</span></span><span class="sig-name descname"><span class="pre">DigitalPotentiometer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiplier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Level.INFO</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/digital_pot_async.html#DigitalPotentiometer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.digital_pot_async.DigitalPotentiometer" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="hardware.digital_pot_async.DigitalPotentiometer.BRIGHTNESS">
@@ -1191,7 +1191,8 @@ the motor feedback pin. Returns None if running in open loop mode.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="hardware.digital_pot_async.DigitalPotentiometer.normalised_value">
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">normalised_value</span></span><a class="headerlink" href="#hardware.digital_pot_async.DigitalPotentiometer.normalised_value" title="Link to this definition"></a></dt>
-<dd><p>Return a normalised int value between -100 and 100.</p>
+<dd><p>Return a normalised int value between -100 and 100, or the
+multiplier if changed in the constructor.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1533,7 +1534,7 @@ the value of the direction pin, therefore it’s not handled here.</p>
 
 <dl class="py class" id="module-hardware.value_provider">
 <dt class="sig sig-object py" id="hardware.value_provider.DigitalPotSpeedProvider">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.value_provider.</span></span><span class="sig-name descname"><span class="pre">DigitalPotSpeedProvider</span></span><a class="reference internal" href="_modules/hardware/value_provider.html#DigitalPotSpeedProvider"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.value_provider.DigitalPotSpeedProvider" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hardware.value_provider.</span></span><span class="sig-name descname"><span class="pre">DigitalPotSpeedProvider</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">multiplier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hardware/value_provider.html#DigitalPotSpeedProvider"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hardware.value_provider.DigitalPotSpeedProvider" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#hardware.value_provider.ValueProvider" title="hardware.value_provider.ValueProvider"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueProvider</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="hardware.value_provider.DigitalPotSpeedProvider.close">

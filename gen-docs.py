@@ -29,7 +29,88 @@ import shutil
 from colorama import init, Fore, Style
 init()
 
-from motor_table_renderer import MotorTableRenderer
+import yaml
+from sd.stringbuilder import StringBuilder
+
+class MotorTableRenderer:
+    def __init__(self, yaml_path):
+        self.yaml_path = yaml_path
+#           ("pwm_timer", "PWM Timer"),
+#           ("enc_timer", "Enc Timer"),
+        self.fields = [
+            ("id", "Id"),
+            ("name", "Name"),
+            ("pwm_channel", "PWM Ch"),
+            ("pwm_pin_name", "PWM Pin"),
+            ("direction_pin_name", "Dir Pin"),
+            ("encoder_pin_name", "Enc Pin"),
+            ("enc_channel", "Enc Ch")
+        ]
+        self._motors = self._load_motors()
+        self.result = StringBuilder()
+
+    def _load_motors(self):
+        with open(self.yaml_path, "r") as f:
+            config = yaml.safe_load(f)
+        return config["kros"]["motors"]
+
+    def _compute_column_widths(self, headers, rows):
+        col_widths = []
+        for i in range(len(headers)):
+            max_width = len(headers[i])
+            for row in rows:
+                max_width = max(max_width, len(row[i]))
+            col_widths.append(max_width)
+        return col_widths
+
+    def _format_row(self, row, col_widths, sep="|"):
+        cells = []
+        for i, cell in enumerate(row):
+            cell_fmt = " {{:<{}}} ".format(col_widths[i])
+            cells.append(cell_fmt.format(cell))
+        return sep + sep.join(cells) + sep
+
+    def _separator(self, col_widths, char="-"):
+        return "+" + "+".join(char * (w + 2) for w in col_widths) + "+"
+
+    def get_pwm_timer(self):
+        return self._motors['motor0']['pwm_timer']
+
+    def get_enc_timer(self):
+        return self._motors['motor0']['enc_timer']
+
+    def render_table(self):
+        headers = [f[1] for f in self.fields]
+        field_keys = [f[0] for f in self.fields]
+        rows = []
+        for motor_name in sorted(self._motors):
+            motor = self._motors[motor_name]
+            row = [str(motor.get(field, "")) for field in field_keys]
+            rows.append(row)
+        col_widths = self._compute_column_widths(headers, rows)
+        result = StringBuilder()
+        result.append(self._separator(col_widths, "-") + "\n")
+        result.append(self._format_row(headers, col_widths) + "\n")
+        result.append(self._separator(col_widths, "=") + "\n")
+        for row in rows:
+            result.append(self._format_row(row, col_widths) + "\n")
+            result.append(self._separator(col_widths) + "\n")
+        return result.to_string()
+
+    def prepend_template(self, filepath):
+        '''
+        Reads text from the given file and prepends it to the result buffer.
+        '''
+        with open(filepath, "r") as f:
+            header_text = f.read()
+        # Prepend by creating a new StringBuilder with header + existing result
+        new_result = StringBuilder()
+        new_result.append(header_text)
+        new_result.append("\n")  # Ensure separation
+        new_result.append(self.result.to_string())
+        self.result = new_result
+
+#EOF
 
 # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 
@@ -148,7 +229,7 @@ def find_modules(base_dir: Path):
             continue
         if "upy" in f.parts:  # skip MicroPython code
             continue
-        if f.name in ("gen-docs.py", "gen-table.py", "motor_table_renderer.py"):  # skip docs generator scripts
+        if f.name in ("gen-docs.py", "gen-table.py"):  # skip docs generator scripts
             continue
         rel = f.relative_to(base_dir).with_suffix("")
         parts = rel.parts
