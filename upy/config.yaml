@@ -13,11 +13,19 @@ kros:
     pid_timer_number:        3  # log timer number
     pid_timer_frequency:   100  # PID timer frequency
     max_motor_speed:       159  # maximum stated motor speed (RPM)
+  zero_crossing_handler:
+    enabled:                 True  # use zero-crossing handler for speed polarity transitions
+    decel_rate_rpm_per_sec:   300
+    accel_rate_rpm_per_sec:   300
+    transition_interval_ms:    20
+    stop_rpm_threshold:         5.0
+    confirmation_time_ms:     100
+    max_transition_time_ms:  5000
   slew_limiter:
-    enabled:              True  # use rpm and speed slew limiters
-    max_delta_rpm_per_sec:    45.0  # slew limiter for RPM
-    max_delta_speed_per_sec:  40.0  # slew limiter for speed
-    safe_slew_threshold:    10.0    # minimum magnitude below which direction changes are allowed
+    enabled:                False    # use rpm and speed slew limiters
+    max_delta_rpm_per_sec:     45.0  # slew limiter for RPM
+    max_delta_speed_per_sec:   40.0  # slew limiter for speed
+    safe_slew_threshold:       10.0  # minimum magnitude below which direction changes are allowed
   pid:
       kp:                    0.60   # proportional gain   0.51
       ki:                    0.050  # integral gain       0.050

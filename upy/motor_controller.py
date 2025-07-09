@@ -19,6 +19,7 @@ from logger import Logger, Level
 from config_loader import ConfigLoader
 from colorama import Fore, Style
 from motor import Motor, ChannelUnavailableError
+from zero_crossing_handler import ZeroCrossingHandler
 from slew_limiter import SlewLimiter
 from pid import PID
 from mode import Mode
@@ -48,12 +49,12 @@ class MotorController:
         _app_cfg         = config["kros"]["application"]
         _motor_cfg       = config["kros"]["motors"]
         _slew_cfg        = config["kros"]["slew_limiter"]
+        _zc_cfg          = config["kros"]["zero_crossing_handler"]
         _pwm_frequency   = _cfg['pwm_frequency']
         self._use_closed_loop = _cfg.get('use_closed_loop', True)
         _max_motor_speed = _cfg.get('max_motor_speed')
 
         self._motor_stop_pwm_threshold = 8
-        self._soft_stop_rpm_threshold = _cfg.get('soft_stop_rpm_threshold', 5.0)
 
         self._enable_slew_limiter     = _slew_cfg['enabled']                  # True
         self._max_delta_rpm_per_sec   = _slew_cfg['max_delta_rpm_per_sec']    # closed loop: 120.0
@@ -61,8 +62,12 @@ class MotorController:
         self._safe_slew_threshold     = _slew_cfg['safe_slew_threshold']      # 10.0
         self._slew_limiters = {}
 
+        self._enable_zero_crossing    = _zc_cfg.get('enabled', False)
+        self._zero_crossing_handlers  = {} 
+        self._zc_awaiter_tasks        = {}
+
         if self._use_closed_loop:
-             # NEW: Closed-loop flag and PID related attributes
+            # closed-loop flag and PID related attributes
             self._pid_controllers = {}     # PID instances
             self._motor_target_rpms = {}   # target RPM for each motor
             self._pid_gains = _cfg.get('pid_gains', {'Kp': 0.5, 'Ki': 0.01, 'Kd': 0.01}) # Default PID gains if not in config
@@ -123,6 +128,15 @@ class MotorController:
                 if self._use_closed_loop:
                     self._pid_controllers[index] = PID(_name, config, level=level)
                     self._motor_target_rpms[index] = 0.0 # initialize target RPM
+                    # instantiate ZeroCrossingHandler if closed-loop and ZCH enabled
+                    if self._enable_zero_crossing:
+                        self._zero_crossing_handlers[index] = ZeroCrossingHandler(
+                            motor_id=index,
+                            config=config,
+                            motor_instance=motor,
+                            level=level # Pass logger level
+                        )
+                        self._log.info("ZeroCrossingHandler for motor {} initialized.".format(index))
                 # instantiate SlewLimiter for this motor
                 if self._enable_slew_limiter:
                     self._slew_limiters[index] = SlewLimiter(
@@ -150,6 +164,38 @@ class MotorController:
         pass
 
     async def _run_pid_task(self):
+        self._log.info("starting asynchronous PID control task, driven by hardware timer.")
+        while True:
+            await self._pid_signal_flag.wait()
+            current_time = utime.ticks_us()
+            # calculate dt_us based on the consistent global cycle time
+            global_cycle_dt_us = utime.ticks_diff(current_time, self._last_global_pid_cycle_time)
+            self._last_global_pid_cycle_time = current_time # update for next cycle
+            for motor in self.motors:
+                motor_id = motor.id
+                if motor_id in self._pid_controllers:
+                    pid_ctrl = self._pid_controllers[motor_id]
+                    zc_handler = self._zero_crossing_handlers.get(motor_id)
+
+                    target_rpm_for_pid = 0.0
+                    # PID target is controlled by ZCH if active, otherwise by MotorController's own target
+                    if zc_handler and zc_handler.is_active:
+                        target_rpm_for_pid = zc_handler.get_effective_pid_target_rpm # CORRECTED: Removed ()
+                        self._log.debug("Motor {}: ZC active, PID target from ZCH: {:.1f}".format(motor_id, target_rpm_for_pid))
+                    else:
+                        target_rpm_for_pid = self._motor_target_rpms.get(motor_id, 0.0)
+                        self._log.debug("Motor {}: ZC idle, PID target from MC: {:.1f}".format(motor_id, target_rpm_for_pid))
+
+                    pid_ctrl.setpoint = target_rpm_for_pid
+                    # call PID update
+                    new_speed_percent_signed = pid_ctrl.update(motor.rpm, global_cycle_dt_us)
+                    # Apply zero-speed deadband (retained logic)
+                    if target_rpm_for_pid == 0.0:
+                        if abs(new_speed_percent_signed) < self._motor_stop_pwm_threshold:
+                            new_speed_percent_signed = 0.0  
+                    motor.speed = int(round(new_speed_percent_signed))
+
+    async def x_run_pid_task(self):
         self._log.info("starting asynchronous PID control task, driven by hardware timer.")
         while True:
             await self._pid_signal_flag.wait()
@@ -219,6 +265,17 @@ class MotorController:
 
     def _get_motor_target_rpms(self, motor_id):
         if self._use_closed_loop:
+            # If ZCH is active, log its target, otherwise log controller's target
+            zc_handler = self._zero_crossing_handlers.get(motor_id)
+            if zc_handler and zc_handler.is_active: # Added this check to avoid trying to access if handler isn't there
+                return zc_handler.get_effective_pid_target_rpm
+            else:
+                return self._motor_target_rpms[motor_id]
+        else:
+            return -1.0
+
+    def x_get_motor_target_rpms(self, motor_id):
+        if self._use_closed_loop:
             return self._motor_target_rpms[motor_id]
         else:
             return -1.0
@@ -272,7 +329,7 @@ class MotorController:
             self._enabled = True
             self._rpm_timer.callback(self._rpm_timer_callback)
             if self._use_closed_loop:
-                # Configure the _pid_timer to call our ISR callback, set the flag from within the lambda callback
+                # configure the _pid_timer to call our ISR callback, set the flag from within the lambda callback
                 self._pid_timer.callback(lambda t: self._pid_signal_flag.set())
             self.enable_rpm_logger() # already starts timer & logging
             self._log.info("motor controller enabled.")
@@ -293,6 +350,85 @@ class MotorController:
         return tuple(p * m for p, m in zip(base_power, mode.speeds))
 
     def go(self, mode=Mode.STOP, speeds=None):
+        '''
+        Set the navigation mode and speeds for all motors.
+
+        Args:
+            mode:  the enumeated Mode, which includes a tuple multiplier against the speeds.
+            speeds:  the four speeds of the motors, in order: pfwd, sfwd, paft, saft
+        '''
+        transform = MotorController._apply_mode(speeds, mode)
+        self._log.debug('go: {}; speeds: {}; type: {}; transform: {}'.format(mode, speeds, type(transform), transform))
+        self._status.motors(transform)
+        if self._enable_slew_limiter:
+            transform = list(transform) # convert to list for mutability
+            for i in range(len(transform)):
+                if i in self._slew_limiters:
+                    transform[i] = self._slew_limiters[i].limit(transform[i])
+            self._log.debug('slew-limited transform: {}'.format(transform))
+        if self._use_closed_loop:
+            for i, commanded_target_rpm in enumerate(transform): # Changed target_rpm to commanded_target_rpm for clarity
+                # Always set the commanded target RPM. This is the primary target for PID if ZC is not active.
+                self._motor_target_rpms[i] = float(commanded_target_rpm)
+                # NEW: Zero Crossing Handler integration
+                if self._enable_zero_crossing and i in self._zero_crossing_handlers:
+                    current_motor = self._motors[i]
+                    zc_handler = self._zero_crossing_handlers[i]
+                    pid_ctrl = self._pid_controllers[i] # Need to pass pid_ctrl for resetting in ZCH
+                    # Delegate complex ZC state management to the ZC handler.
+                    # It returns True if it started or restarted its internal transition task.
+                    zc_transition_initiated_or_restarted = zc_handler.handle_new_command(
+                        float(commanded_target_rpm),
+                        current_motor.rpm,
+                        pid_ctrl
+                    )
+                    # If ZCH initiated/restarted a transition, ensure an awaiter task is running.
+                    if zc_transition_initiated_or_restarted:
+                        # Cancel existing awaiter task for this motor if present and not done
+                        if i in self._zc_awaiter_tasks and self._zc_awaiter_tasks[i] and not self._zc_awaiter_tasks[i].done():
+                            self._zc_awaiter_tasks[i].cancel()
+                        # Launch a new awaiter task, overriding any previous one
+                        self._zc_awaiter_tasks[i] = asyncio.create_task(
+                            self._await_zc_completion_notifier(motor_id=i, handler=zc_handler)
+                        )
+                    else:
+                        # If ZCH is not handling a transition (e.g., already stopped, or new command is not a stop/reverse),
+                        # ensure no old awaiter task is lingering.
+                        if i in self._zc_awaiter_tasks and self._zc_awaiter_tasks[i] and not self._zc_awaiter_tasks[i].done():
+                            self._zc_awaiter_tasks[i].cancel()
+                            self._zc_awaiter_tasks[i] = None # Clear reference
+                # else: If ZC is not enabled or handler not present, _motor_target_rpms is already set above
+            self._log.debug('setting target RPMs to {}'.format(transform)) # Still log the commanded transform
+        else:
+            self._set_motor_speed(transform)
+
+    # NEW: _await_zc_completion_notifier method
+    async def _await_zc_completion_notifier(self, motor_id, handler):
+        """
+        Monitors the internal ZC transition task and ensures it completes or is cancelled.
+        No direct target setting here; _run_pid_task handles target source switching.
+        """
+        try:
+            # Await the ZC handler's internal transition task.
+            # This task will complete when ZC is done or cancelled internally.
+            if handler._current_zc_task:
+                await handler._current_zc_task
+                self._log.info("Motor {}: ZC internal task completed/cancelled. ZCH is_active: {}".format(
+                    motor_id, handler.is_active))
+            else:
+                self._log.warning(Fore.YELLOW + "Motor {}: _await_zc_completion_notifier called but no active ZC task in handler.".format(motor_id))
+
+            # The PID loop (_run_pid_task) will automatically switch from ZCH's target
+            # to self._motor_target_rpms[motor_id] once handler.is_active becomes False.
+
+        except asyncio.CancelledError:
+            self._log.warning(Fore.YELLOW + "Motor {}: ZC completion notifier task cancelled.".format(motor_id))
+        except Exception as e:
+            self._log.error(Fore.RED + "Error in ZC completion notifier for motor {}: {}".format(motor_id, e))
+            # Error in notifier, the ZCH itself should have handled its own errors and reset.
+            # No PID or motor target changes are directly made here to avoid interference.
+
+    def x_go(self, mode=Mode.STOP, speeds=None):
         '''
         Set the navigation mode and speeds for all motors.
 
@@ -331,65 +467,6 @@ class MotorController:
         for motor, speed in zip(self._motor_list, list(speeds)):
             motor.speed = speed
 
-    async def accelerate(self, target_speed, step=1, delay_ms=50):
-        if self._use_closed_loop:
-            self._log.warning("`accelerate` with closed-loop is a simplified placeholder. Setting all motor target RPMs to `target_speed` (magnitude).")
-            for motor_id in self._motor_target_rpms:
-                self._motor_target_rpms[motor_id] = abs(float(target_speed))
-        else:
-            done = False
-            while not done:
-                done = True
-                for motor in self._motor_list:
-                    current_pwm = motor.speed
-                    target_pwm = target_speed
-                    
-                    if current_pwm == target_pwm:
-                        continue
-                    done = False
-                    
-                    delta = target_pwm - current_pwm
-                    direction_change_step = 1 if delta > 0 else -1
-                    new_pwm = current_pwm + direction_change_step * min(step, abs(delta))
-                    motor.speed = new_pwm
-                await asyncio.sleep_ms(delay_ms)
-
-    async def x_accelerate(self, target_speed, step=1, delay_ms=50):
-        '''
-        Gradually change speed of one or more motors toward a target
-        speed, starting from each motor's current speed.
-
-        Args:
-            target_speed:  The target speed (0–100).
-            step:          The speed increment per step.
-            delay_ms:      The delay in milliseconds between steps.
-        '''
-        done = False
-        while not done:
-            done = True
-            for motor in self._motor_list:
-                current = motor.speed
-                if current == target_speed:
-                    continue
-                done = False
-                delta = target_speed - current
-                direction = 1 if delta > 0 else -1
-                new_speed = current + direction * min(step, abs(delta))
-                motor.speed = new_speed
-            await asyncio.sleep_ms(delay_ms)
-
-    async def decelerate_to_stop(self, step=1, delay_ms=50):
-        '''
-        Gradually slow one or more motors to a stop (speed = 100).
-
-        Args:
-            step:          The speed increment per step.
-            delay_ms:      The delay in milliseconds between steps.
-        '''
-        if self._verbose:
-            self._log.info("decelerating motors to stop…")
-        await self.accelerate(target_speed=Motor.STOPPED, step=step, delay_ms=delay_ms)
-
     def log_pin_configuration(self):
         '''
         Print pin mappings for each motor using clean, labeled pin names.
@@ -416,6 +493,13 @@ class MotorController:
         if self._use_closed_loop:
             for pid_ctrl in self._pid_controllers.values():
                 pid_ctrl.reset()
+            if self._enable_zero_crossing:
+                for handler in self._zero_crossing_handlers.values():
+                    handler.reset()
+                for task in self._zc_awaiter_tasks.values():
+                    if task and not task.done():
+                        task.cancel()
+                self._zc_awaiter_tasks.clear()
         if self._verbose:
             self._log.info("all motors stopped.")
         return True
@@ -431,6 +515,7 @@ class MotorController:
             _ = self.stop()
             if self._use_closed_loop:
                 self._pid_timer.callback(None)
+                self._log.info("disabled PID timer callback.")
             for motor in self.motors:
                 motor.disable()
                 if self._enable_slew_limiter and motor.id in self._slew_limiters:
