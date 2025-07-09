@@ -22,7 +22,7 @@ kros:
     confirmation_time_ms:     100
     max_transition_time_ms:  5000
   slew_limiter:
-    enabled:                False    # use rpm and speed slew limiters
+    enabled:                 True    # use rpm and speed slew limiters
     max_delta_rpm_per_sec:     45.0  # slew limiter for RPM
     max_delta_speed_per_sec:   40.0  # slew limiter for speed
     safe_slew_threshold:       10.0  # minimum magnitude below which direction changes are allowed
