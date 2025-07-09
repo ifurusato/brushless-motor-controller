@@ -30,20 +30,19 @@ class PayloadRouter:
         self._errors   = 0
         self._status   = status
         self._last_cmd = None
-        self._verbose  = False
+        self._verbose  = True
         self._last_error = PayloadRouter.NO_ERROR
         self._error_time = None
         self._error_timeout = timedelta(seconds=5)  # configurable timeout
+        self._GENERATOR_TYPE = type((lambda: (yield))()) # the type indicating a coroutine
         # define command handlers
         self._handlers = {
             # non-motion handlers
             Mode.COLOR:     lambda payload: self._handle_color(payload.rgb),                           # color
-            Mode.ACK:       lambda payload: self._handle_ack(),                                        # acknowledge (for completeness)
             Mode.ENABLE:    lambda payload: self._motor_controller.enable(),                           # enable
-#           Mode.DISABLE:   lambda payload: self._motor_controller.disable(),                          # disable
-            Mode.DISABLE:   lambda payload: self._handle_disable(),                                    # mock disable
-            Mode.REQUEST:   lambda payload: self._handle_request(payload),                             # request status
-            Mode.ERROR:     lambda payload: self._handle_error(payload),                               # error state
+            Mode.PING:      lambda payload: self._motor_controller.ping(),                             # ping motor controller
+            # stopped   
+            Mode.STOP:      lambda payload: self._motor_controller.go(Mode.STOP, payload.speeds),      # stop
             # all wheels forward/backward
             Mode.GO:        lambda payload: self._motor_controller.go(Mode.GO, payload.speeds),        # go forward or reverse
             # rotation (spin in place)
@@ -57,8 +56,11 @@ class PayloadRouter:
             Mode.DIA_SFWD:  lambda payload: self._motor_controller.go(Mode.DIA_SFWD, payload.speeds),  # diagonal forward to starboard
             Mode.DIA_PREV:  lambda payload: self._motor_controller.go(Mode.DIA_PREV, payload.speeds),  # diagonal reverse to port
             Mode.DIA_SREV:  lambda payload: self._motor_controller.go(Mode.DIA_SREV, payload.speeds),  # diagonal reverse to starboard
-            # stopped   
-            Mode.STOP:      lambda payload: self._motor_controller.go(Mode.STOP, payload.speeds),      # stop
+            Mode.ACK:       lambda payload: self._handle_ack(),                                        # acknowledge (for completeness)
+            Mode.REQUEST:   lambda payload: self._handle_request(payload),                             # request status
+#           Mode.DISABLE:   lambda payload: self._motor_controller.disable(),                          # disable
+            Mode.DISABLE:   lambda payload: self._handle_disable(),                                    # mock disable
+            Mode.ERROR:     lambda payload: self._handle_error(payload),                               # error state
         }
         self._check_event_loop()
         self._log.info('ready.')
@@ -120,7 +122,9 @@ class PayloadRouter:
         mode = Mode.from_code(cmd)
         handler = self._handlers.get(mode)
         if handler:
-            handler(payload)
+            result = handler(payload)
+            if isinstance(result, self._GENERATOR_TYPE):
+                await result 
         else:
             raise ValueError('unhandled payload: {}'.format(payload))
 

@@ -39,7 +39,7 @@ class UartSlaveApp:
         self._status   = Status(self._pixel)
         self._slave    = None
         self._uart_id  = None
-        self._verbose  = False
+        self._verbose  = True
         self._baudrate = 1_000_000 # default
         _config = ConfigLoader.configure('config.yaml')
         if _config is None:
