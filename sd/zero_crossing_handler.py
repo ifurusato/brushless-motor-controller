@@ -218,9 +218,8 @@ class ZeroCrossingHandler(FiniteStateMachine):
             if self.state == ZeroCrossingStage.ACCELERATING:
                 self._log.warning(Fore.YELLOW + 'motor {}: acceleration timed out or target not precisely reached. Forcing to COMPLETE.'.format(self._motor.name))
                 self.transition(ZeroCrossingStage.COMPLETE) # this triggers _on_complete_entry
-            # final state handling after the loops
             self._log.info(Fore.YELLOW + 'motor {}: zero-crossing process completed.'.format(self._motor.name))
-            return True # indicate successful completion of the internal task
+            return True
 
         except asyncio.CancelledError:
             self._log.info(Fore.YELLOW + 'motor {}: ZC task cancelled; resetting state.'.format(self._motor.name))
@@ -234,15 +233,20 @@ class ZeroCrossingHandler(FiniteStateMachine):
     def _start_zero_crossing(self, initial_actual_rpm, new_final_target_rpm_signed):
         '''
         Initiates the zero-crossing process.
+        Returns the created task if successful, None otherwise.
         '''
         if self._is_active:
             self._log.warning(Fore.YELLOW + 'motor {}: ZC already active; ignoring new request.'.format(self._motor.name))
-            return False
-
+            return None
+        if self.state != ZeroCrossingStage.IDLE:
+            self._log.info(Fore.YELLOW + 'motor {}: Forcing FSM from {} to IDLE before new ZC transition.'.format(
+                self._motor.name, self.state))
+            self.reset()
         self._initial_motor_rpm_for_transition = initial_actual_rpm
         self._final_target_rpm_after_transition = new_final_target_rpm_signed
         self._current_zc_task = asyncio.create_task(self._run_transition_task())
-        return True
+        self._is_active = True
+        return self._current_zc_task
 
     def cancel_zero_crossing(self):
         '''
@@ -253,8 +257,7 @@ class ZeroCrossingHandler(FiniteStateMachine):
             self._log.info(Fore.YELLOW + 'motor {}: ZC task explicitly cancelled.'.format(self._motor.name))
         else:
             self._log.debug('motor {}: No active ZC task to cancel.'.format(self._motor.name))
-        self.reset() # This will transition FSM to IDLE via reset() -> _on_idle_entry
-        # ensure the motor is immediately stopped if ZC is cancelled
+        self.reset()
         self._motor.stop()
 
     def reset(self):
@@ -262,8 +265,8 @@ class ZeroCrossingHandler(FiniteStateMachine):
         Resets the internal state of the ZC handler.
         This also transitions the FSM back to IDLE.
         '''
-        self._is_active = False # Set inactive
-        self.transition(ZeroCrossingStage.IDLE) # Use FSM transition to reset state, triggers _on_idle_entry
+        self._is_active = False
+        self.transition(ZeroCrossingStage.IDLE)
         self._effective_pid_target_rpm = 0.0
         self._initial_motor_rpm_for_transition = 0.0
         self._final_target_rpm_after_transition = 0.0
@@ -272,13 +275,12 @@ class ZeroCrossingHandler(FiniteStateMachine):
                 self._current_zc_task.cancel()
             self._current_zc_task = None
         self._log.info(Fore.YELLOW + 'zero crossing handler reset.')
-        # ensure the motor is immediately stopped when reset
         self._motor.stop()
+
 
     def handle_new_command(self, commanded_target_rpm, current_actual_motor_rpm, pid_controller_instance):
         '''
         Processes a new commanded target RPM and manages the ZC state accordingly.
-        This method encapsulates all ZC-related decision-making.
 
         Args:
             commanded_target_rpm (float): The new RPM commanded by the higher-level controller.
@@ -286,12 +288,12 @@ class ZeroCrossingHandler(FiniteStateMachine):
             pid_controller_instance (PIDController): The PID controller instance for this motor.
 
         Returns:
-            bool: True if a new ZC transition task was initiated or restarted,
-                  False otherwise (meaning ZCH is now idle or already idle).
+            The active ZC task if one is managing the transition, None otherwise.
         '''
         new_command_direction = Motor.DIRECTION_FORWARD if commanded_target_rpm >= 0 else Motor.DIRECTION_REVERSE
         current_actual_motor_direction = Motor.DIRECTION_FORWARD if current_actual_motor_rpm >= 0 else Motor.DIRECTION_REVERSE
-        transition_initiated_or_restarted = False
+        
+        active_zc_task = None # Initialize to None
 
         if commanded_target_rpm == 0.0:
             # Case A: An explicit STOP command (0.0 RPM)
@@ -300,46 +302,38 @@ class ZeroCrossingHandler(FiniteStateMachine):
                 self._log.info(Fore.YELLOW + 'motor {}: ZC active but new command is STOP (0 RPM); cancelling ZC…'.format(self._motor.name))
                 self.cancel_zero_crossing() # This will transition FSM to IDLE via reset() -> _on_idle_entry
                 pid_controller_instance.reset() # Reset PID after cancellation
-            # No transition initiated here, ZCH is now idle.
+            # No task returned, ZCH is now idle.
 
         elif self.is_active:
             # Case B: New command arrives while ZC is active (but not a STOP)
             self._log.info(Fore.YELLOW + 'Case B: New command arrives while ZC is active (but not a STOP)')
-            # Check if the new command effectively cancels the need for the current reversal
             if new_command_direction == current_actual_motor_direction:
                 self._log.info(Fore.YELLOW + 'motor {}: ZC active but new target ({:.1f} RPM) is in current actual direction ({:.1f} RPM); cancelling ZC…'.format(
                     self._motor.name, commanded_target_rpm, current_actual_motor_rpm))
                 self.cancel_zero_crossing() # ZC is no longer active
                 pid_controller_instance.reset() # Reset PID after cancellation
-
-            # Check if the new command represents a *different* reversal profile
             elif self._final_target_rpm_after_transition != float(commanded_target_rpm):
                 self._log.info(Fore.YELLOW + 'motor {}: ZC active, but new command requires new reversal profile '.format(self._motor.name)
                         + Style.DIM + '(old final {:.1f} RPM -> new final {:.1f} RPM); cancelling old ZC and starting new…'.format(self._final_target_rpm_after_transition, commanded_target_rpm))
-                # immediately cancel the old ZC task (sets is_active=False, transitions FSM to IDLE)
-                self.cancel_zero_crossing()
+                self.cancel_zero_crossing() # Cancel old ZC
                 pid_controller_instance.reset() # Reset PID
-                # now, start a new ZC, which will set is_active=True and launch a new task
-                self._start_zero_crossing(current_actual_motor_rpm, float(commanded_target_rpm))
-                transition_initiated_or_restarted = True
+                active_zc_task = self._start_zero_crossing(current_actual_motor_rpm, float(commanded_target_rpm)) # Start new, get task
             else:
                 # ZC is active, and the new command is identical to the current ZC's final target.
                 # Do nothing, let the current ZC complete naturally.
                 self._log.debug('motor {}: ZC active and new command ({:.1f} RPM) is consistent with current ZC; deferring…'.format(self._motor.name, commanded_target_rpm))
-                transition_initiated_or_restarted = True # ZCH remains responsible for this transition
+                active_zc_task = self._current_zc_task # Keep existing task as the "responsible" one for this command
 
         else:
             # Case C: ZC is not active (normal PID operation or needs to start ZC)
             self._log.debug(Fore.YELLOW + Style.DIM + 'Case C: ZC is not active (normal PID operation or needs to start ZC)')
-            # Check if this new command should *initiate* a zero-crossing
             if current_actual_motor_direction != new_command_direction and \
                abs(current_actual_motor_rpm) > self._motor._soft_stop_threshold_rpm:
                 self._log.info(Fore.YELLOW + 'motor {}: direction reversal detected (actual dir {} -> new command dir {}); actual RPM {:.1f}; initiating ZC…'.format(
                     self._motor.name, 'F' if current_actual_motor_direction else 'R', 'F' if new_command_direction else 'R', current_actual_motor_rpm))
-                self._start_zero_crossing(current_actual_motor_rpm, float(commanded_target_rpm))
-                transition_initiated_or_restarted = True
+                active_zc_task = self._start_zero_crossing(current_actual_motor_rpm, float(commanded_target_rpm))
             # else: No ZC needed, ZCH remains inactive.
 
-        return transition_initiated_or_restarted
+        return active_zc_task # Return the task (or None)
 
 #EOF
