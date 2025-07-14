@@ -7,14 +7,11 @@
 #
 # author:   Murray Altheim
 # created:  2025-06-23
-# modified: 2025-07-05
+# modified: 2025-07-15
 #
-# This is the entry point to the UART slave application. This uses UART 2 on the
-# STM32 and UART 1 (the default) on the RP2040.
-#
+# This is the entry point to the UART slave application.
 
 import sys
-#import traceback
 import uasyncio as asyncio
 from colorama import Fore, Style
 
@@ -26,7 +23,6 @@ from display import Display
 from status import Status
 from payload_router import PayloadRouter
 from motor_controller import MotorController
-from stm32_uart_slave import Stm32UartSlave
 from mode import Mode
 from colors import *
 
@@ -34,21 +30,21 @@ import cwd
 import free
 
 class UartSlaveApp:
-    def __init__(self, is_pyboard=True):
-        self._is_pyboard = is_pyboard
-        self._log = Logger('uart_slave_app', Level.INFO)
-        self._display  = Display()
-        self._slave    = None
-        self._tx_count = 0
-        self._verbose  = False
-        self._baudrate = 1_000_000 # default
+    def __init__(self):
         _config = ConfigLoader.configure('config.yaml')
         if _config is None:
             raise ValueError('failed to import configuration.')
+        _cfg = _config['kros']['uart_slave_app']
+        self._uart_id    = _cfg['uart_id'] # on RP2040 this should be 1
+        self._is_pyboard = _cfg['is_pyboard'] 
+        self._verbose    = _cfg['verbose']
+        self._log = Logger('uart{}_slave'.format(self._uart_id), Level.INFO)
+        self._display  = Display()
         self._pixel    = Pixel(_config, pixel_count=8, brightness=0.1)
         self._status   = Status(self._pixel)
-        _cfg = _config['kros']
-        self._uart_id  = _cfg['uart']['uart_id']
+        self._slave    = None
+        self._tx_count = 0
+        self._baudrate = 1_000_000 # default
         self._motor_controller = MotorController(config=_config, status=self._status, motors_enabled=(True, True, False, False), level=Level.INFO)
         self._router   = PayloadRouter(self._status, self._display, self._motor_controller)
         self._display.hello()
@@ -57,9 +53,6 @@ class UartSlaveApp:
     def rgb(self, color=None):
         self._pixel.set_color(color)
 
-    def off(self):
-        self._status.off()
-
     async def _pyb_wait_a_bit(self):
         from pyb import LED
         _led = LED(1)
@@ -67,10 +60,10 @@ class UartSlaveApp:
             self.rgb()
             _led.on()
             await asyncio.sleep_ms(50)
-            self.off()
+            self._status.off()
             _led.off()
             await asyncio.sleep_ms(950)
-        self.off()
+        self._status.off()
         _led.off()
 
     async def _wait_a_bit(self):
@@ -80,32 +73,30 @@ class UartSlaveApp:
             self.rgb()
             _led.on()
             await asyncio.sleep_ms(50)
-            self.off()
+            self._status.off()
             _led.off()
             await asyncio.sleep_ms(950)
-        self.off()
+        self._status.off()
         _led.off()
 
     async def _setup_uart_slave(self):
         if self._is_pyboard:
-#           from stm32_uart_slave import Stm32UartSlave
+            from stm32_uart_slave import Stm32UartSlave
             self._log.info('waiting a bit…')
             await self._pyb_wait_a_bit()
             self._log.info('done waiting.')
-#           self._uart_id = 2
             self._log.info('configuring UART{} slave for STM32 Pyboard…'.format(self._uart_id))
             self._slave = Stm32UartSlave(uart_id=self._uart_id, baudrate=self._baudrate, status=self._status)
-
         else:
             from rp2040_uart_slave import RP2040UartSlave
             await self._wait_a_bit()
-#           self._uart_id = 1
             self._log.info('configuring UART{} slave for RP2040…'.format(self._uart_id))
             self._slave = RP2040UartSlave(uart_id=self._uart_id, baudrate=self._baudrate, status=self._status)
 
         self._slave.set_verbose(False)
         self._motor_controller.enable()
-        self._log.info('UART{} slave: '.format(self._uart_id) + Fore.WHITE + 'waiting for command from master…')
+        self._display.ready()
+        self._log.info(Fore.GREEN + 'waiting for payload…')
 
     async def run(self):
         await self._setup_uart_slave()
@@ -117,7 +108,9 @@ class UartSlaveApp:
                     self._tx_count += 1
                     if self._verbose:
                         self._log.info("payload: {}".format(_payload))
-                    if _payload.cmd == 'RS': # request status
+                    if _payload.cmd == 'PN': # just ping, no routing
+                        await self._slave.send_packet(Payload(Mode.PING.code, *Payload.encode_int(self._tx_count)))
+                    elif _payload.cmd == 'RS': # request status
                         self._log.info(Fore.MAGENTA + "request status…")
                         timestamp, code = self._router.get_error_info()
                         status_cmd = "ER" if timestamp is not None else "OK"
@@ -127,12 +120,6 @@ class UartSlaveApp:
                             status_payload = Payload(Mode.ACK.code, 0.0, 0.0, 0.0, 0.0)
                         await self._slave.send_packet(status_payload)
                         self._router.clear_error()
-                    elif _payload.cmd == 'PN': # just ping, no routing
-                        values = Payload.encode_int(self._tx_count)
-                        self._log.debug("ping count: {}; values: {}".format(self._tx_count, values))
-                        # at the other end: Payload.decode_to_int(values)
-                        ack_payload = Payload(Mode.PING.code, *values)
-                        await self._slave.send_packet(ack_payload)
                     else:
                         # route normal command payload (non-blocking)
                         asyncio.create_task(self._router.route(_payload))
@@ -150,17 +137,20 @@ class UartSlaveApp:
             self._log.info("Ctrl-C caught, exiting application…")
         except Exception as e:
             self._log.error("{} raised in run loop: {}".format(type(e), e))
-#           traceback.print_exc()
             sys.print_exception(e)
         finally:
             self.close()
 
     def close(self):
+        self._log.info('closing…')
+        if self._status:
+            self._status.off()
         if self._motor_controller:
             self._motor_controller.close()
         if self._slave:
             self._slave.disable()
-        self.off()
+        if self._display:
+            self._display.close()
         self._log.info('closed.')
 
 # for REPL usage or testing

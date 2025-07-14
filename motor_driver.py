@@ -18,7 +18,7 @@ from core.logger import Level
 
 if __name__ == "__main__":
 
-    _delay_sec=0.1
+    _delay_sec=0.5
 
     # if using closed loop, set digital pot max to motor max speed
     _loader = ConfigLoader(Level.INFO)

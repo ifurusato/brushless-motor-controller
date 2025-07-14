@@ -7,7 +7,7 @@
 #
 # author:   Murray Altheim
 # created:  2025-07-02
-# modified: 2025-07-02
+# modified: 2025-07-15
 
 from pixel import Pixel
 from colors import *
@@ -28,6 +28,9 @@ class Status:
         self._motors = [ Status.M0, Status.M1, Status.M2, Status.M3 ]
         self._pixel = pixel
         self._brightness = pixel.brightness
+
+    def off(self):
+        self._pixel.off()
 
     def rgb(self, color=None):
             self._pixel.set_color(index=0, color=COLOR_CYAN if color == None else color)
@@ -64,8 +67,5 @@ class Status:
             self._pixel.set_color(index=pixel, color=color)
         else:
             raise ValueError('expected 0-3 for index, not {}'.format(index))
-
-    def off(self):
-        self._pixel.off()
 
 #EOF

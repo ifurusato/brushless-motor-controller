@@ -66,8 +66,6 @@ class UARTMaster:
         '''
         payload = self.uart.receive_packet()
         if payload:
-#           self._log.info(Fore.MAGENTA + "RX PAYLOAD: '{}'; is ping? {}; cmd: {}; code: {}".format(
-#                   payload, (payload.cmd == Mode.PING.code), payload.cmd, Mode.PING.code))
             if payload.cmd == Mode.PING.code: # display ping result
                 return Payload.decode_to_int(*payload.values)
             elif self._verbose:
@@ -115,58 +113,56 @@ class UARTMaster:
             while True:
                 if command_source is not None:
                     cmd = command_source()
-                if speed_source is not None:
-                    speed, red, green, blue = speed_source()
-                else:
-                    speed += 1.0
                 # create Payload with cmd (2 letters) and floats for pfwd, sfwd, paft, saft
-
                 _color = Fore.BLUE
                 _mode = Mode.from_code(cmd)
 #               self._log.info(Fore.YELLOW + "mode: {}".format(_mode))
-                match _mode:
-                    case Mode.COLOR:
-                        payload = Payload(cmd, red, green, blue, 0.0)
-                    case Mode.ENABLE:
-                        payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
-                    case Mode.PING:
-                        payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
-                    case Mode.IP_ADDRESS:
-                        payload = Payload(cmd, *self._ip_address)
-                    case Mode.REQUEST:
-                        # TODO
-                        payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
-                    case Mode.ACK:
-                        # TODO
-                        payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
-                    case Mode.STOP:
-                        _color = Fore.RED
-                        payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
-                    case Mode.GO:
-                        _color = Fore.GREEN
-                        payload = Payload(cmd, speed, speed, speed, speed)
-                    case Mode.ERROR:
-                        _color = Fore.RED
-                        payload = Payload(cmd, -1.0, -1.0, -1.0, -1.0)
-                    case Mode.DISABLE:
-                        _color = Fore.BLACK
-                        payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
-#                   case Mode.ROT_CW:
-#                   case Mode.ROT_CCW:
-#                   case Mode.CRAB_PORT:
-#                   case Mode.CRAB_STBD:
-#                   case Mode.DIA_PFWD:
-#                   case Mode.DIA_SFWD:
-#                   case Mode.DIA_PREV:
-#                   case Mode.DIA_SREV:
-                    case _:
-                        payload = Payload(cmd, speed, speed, -speed, -speed)
-
-                if payload == self._last_payload: # then don't bother
-                    continue
+                if _mode == Mode.PING:
+                    payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
+                else:
+                    if speed_source is not None:
+                        speed, red, green, blue = speed_source()
+                    else:
+                        speed = 0.0
+                    match _mode:
+                        case Mode.COLOR:
+                            payload = Payload(cmd, red, green, blue, 0.0)
+                        case Mode.ENABLE:
+                            payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
+                        case Mode.IP_ADDRESS:
+                            payload = Payload(cmd, *self._ip_address)
+                        case Mode.REQUEST:
+                            # TODO
+                            payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
+                        case Mode.ACK:
+                            # TODO
+                            payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
+                        case Mode.STOP:
+                            _color = Fore.RED
+                            payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
+                        case Mode.GO:
+                            _color = Fore.GREEN
+                            payload = Payload(cmd, speed, speed, speed, speed)
+                        case Mode.ERROR:
+                            _color = Fore.RED
+                            payload = Payload(cmd, -1.0, -1.0, -1.0, -1.0)
+                        case Mode.DISABLE:
+                            _color = Fore.BLACK
+                            payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
+#                       case Mode.ROT_CW:
+#                       case Mode.ROT_CCW:
+#                       case Mode.CRAB_PORT:
+#                       case Mode.CRAB_STBD:
+#                       case Mode.DIA_PFWD:
+#                       case Mode.DIA_SFWD:
+#                       case Mode.DIA_PREV:
+#                       case Mode.DIA_SREV:
+                        case _:
+                            payload = Payload(cmd, speed, speed, -speed, -speed)
+                    if payload == self._last_payload: # then don't bother
+                        continue
                 self._last_payload = payload
                 start_time = dt.now()
-                # send the Payload object
                 self.send_payload(payload)
                 try:
                     value = self.receive_payload()

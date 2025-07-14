@@ -3,7 +3,9 @@
 kros:
   application:
     verbose:                False  # application-level verbosity
-  uart:
+  uart_slave_app:
+    verbose:                False
+    is_pyboard:              True
     uart_id:                    3  # UART identifier (1-7)
   pixel:
     pin:                      'E1' # pin for NeoPixel
@@ -20,8 +22,8 @@ kros:
   zero_crossing_handler:
     verbose:                False
     enabled:                 True  # use zero-crossing handler for speed polarity transitions
-    decel_rate_rpm_per_sec:   300
-    accel_rate_rpm_per_sec:   300
+    decel_rate_rpm_per_sec:    50
+    accel_rate_rpm_per_sec:    50
     transition_interval_ms:    20
     stop_rpm_threshold:         5.0
     confirmation_time_ms:     100

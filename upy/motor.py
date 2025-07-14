@@ -109,7 +109,7 @@ class Motor:
         current_physical_pin_state = self._direction_pin.value()
         if physical_pin_state_to_set == current_physical_pin_state:
             return
-        self._log.info('{} direction changed to '.format(self._name) 
+        self._log.info('direction changed to '
                 + Fore.YELLOW + '{}'.format('FORWARD' if value == Motor.DIRECTION_FORWARD else 'REVERSE') 
                 + Fore.CYAN + ': (pin {} -> {}); '.format(current_physical_pin_state, physical_pin_state_to_set)
                 + 'speed: {}'.format(self.speed))

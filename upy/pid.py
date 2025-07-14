@@ -78,7 +78,6 @@ class PID:
                 self._log.info(Style.DIM + "dt={}µs; p={:.2f}, i={:.2f}, d={:.2f}, setpoint={:.2f}; output={:.2f} ({:.2f})".format(
                         dt_us, p_term, i_term, d_term, self._setpoint, output, limited))
         return limited
-        
 
     def x_update(self, value, dt_us):
         dt_seconds = dt_us / 1_000_000.0 if dt_us > 0 else 0.000001

@@ -7,16 +7,19 @@
 #
 # author:   Murray Altheim
 # created:  2025-07-11
-# modified: 2025-07-12
+# modified: 2025-07-15
 
 import time
 import asyncio
 from machine import SPI, Pin
 from sysfont import sysfont
 from st7735py import TFT, TFTColor
-from colors import *
 
-class Display:
+from colors import *
+from ucomponent import Component
+from logger import Logger, Level
+
+class Display(Component):
     SCREEN_HEIGHT = 160
     SCREEN_WIDTH = 80
     MAX_LINE_LENGTH = 26 # console width
@@ -37,6 +40,8 @@ class Display:
     Supports an 80x160 TFT display.
     '''
     def __init__(self):
+        self._log = Logger('display', Level.INFO)
+        Component.__init__(self, self._log, suppressed=False, enabled=False)
         self._spi = SPI(4, baudrate=31250000)
         self._backlight = Pin('E10', Pin.OUT)
         self._backlight(1) # initially off
@@ -49,6 +54,7 @@ class Display:
         self._console_buffer = []
         self._amber = Display.to_tft_color((255, 220, 0))
         self._apple = Display.to_tft_color((216, 255, 0))
+        self._ready = Display.to_tft_color((160, 188, 0))
         self.clear()
         self.enable()
 
@@ -56,23 +62,30 @@ class Display:
         '''
         Enable the display by turning on screen updates and the backlight.
         '''
-        self._tft.on(True)
-        self._backlight(0)
+        if not self.enabled:
+            Component.enable(self)
+            self._tft.on(True)
+            self._backlight(0)
 
     def disable(self):
         '''
         Disable the display by turning off screen updates and the backlight.
         '''
-        self._tft.on(False)
-        self._backlight(1)
+        if self.enabled:
+            Component.disable(self)
+            self._tft.on(False)
+            self._backlight(1)
 
     def close(self):
-        self.clear()
-        self.disable()
-        try:
-            self._spi.deinit()
-        except AttributeError:
-            pass
+        if not self.closed:
+            self.clear()
+            self.disable()
+            try:
+                self._spi.deinit()
+            except AttributeError:
+                pass
+            finally:
+                Component.close(self)
 
     def clear(self):
         '''
@@ -81,18 +94,20 @@ class Display:
         self._console_buffer.clear()
         self._tft.fill(TFT.BLACK)
 
-    def show_line(self, text, line=1, size=1.5, x_offset=None, color=TFT.WHITE, clear=False):
+    def show_line(self, text, line=1, size=1.5, x_offset=None, color=TFT.WHITE, animate=False, clear=False):
         '''
         Display text (or list of strings) starting at a given line.
 
         Args:
-            text (str | list[str]):  Text or list of lines to display.
+            text (str | list[str]):  text or list of lines to display.
             line (int):              1-based line number to start from.
-            size (float):            Font size (must be in LAYOUTS).
-            clear (bool):            Clear screen before rendering.
-            color (int):             Text color (RGB565).
+            size (float):            font size (must be in LAYOUTS).
+            color (int):             text color (RGB565).
+            animate (bool):          if True, always print every request.
+            clear (bool):            clear screen before rendering.
         '''
-        if text != self._console_buffer and text == self._last_text:
+        if not animate and text != self._console_buffer and text == self._last_text:
+            print("don't bother.")
             return # don't bother
         self._last_text = text
         if size not in self.LAYOUTS:
@@ -112,7 +127,6 @@ class Display:
         for i, content in enumerate(lines):
             y = y_start + (line - 1 + i) * row_height
             pos = (x_offset, y)
-#           print(f"-- text: '{content}'; line: {line + i}; pos: {pos}")
             self._tft.text(pos, content, color, sysfont, size)
 
     def hello(self, persist=False):
@@ -122,6 +136,7 @@ class Display:
         '''
         An animated "Hello." as a greeting.
         '''
+        self._log.info('hello.')
         self.clear()
         apple_rgb = (216, 255, 0)
         black_rgb = (0, 0, 0)
@@ -131,17 +146,22 @@ class Display:
         fade_cycle = fade_up + fade_down
         for color_rgb in fade_cycle:
             tft_color = Display.to_tft_color(color_rgb)
-            self.show_line(" Hello.", line=1, size=3.0, color=tft_color)
-#           time.sleep(0.025)
+            self.show_line(" Hello.", line=1, size=3.0, color=tft_color, animate=True)
             await asyncio.sleep(0.025)
         if persist:
             apple_color = Display.to_tft_color(apple_rgb)
-            self.show_line(" Hello.", line=1, size=3.0, color=apple_color)
+            self.show_line(" Hello.", line=1, size=3.0, color=apple_color, animate=False)
+
+    def ready(self):
+        self._log.info('ready.')
+        # def show_line(text, line=1, size=1.5, x_offset=None, color=TFT.WHITE, animate=False, clear=False):
+        self.show_line(" Ready.", line=1, size=3.0, color=self._ready)
 
     def ip_address(self, ip_address):
         '''
         Display the IP address.
         '''
+        self._log.info('ip address: {}'.format(ip_address))
         self.show_line(["", "IP address:", ip_address], line=1, size=1.5, color=self._amber, clear=True)
 
     def console(self, text=None, clear=False):

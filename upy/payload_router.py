@@ -7,7 +7,7 @@
 #
 # author:   Murray Altheim
 # created:  2025-06-24
-# modified: 2025-06-29
+# modified: 2025-07-15
 
 from datetime import datetime as dt, timedelta
 import uasyncio as asyncio
@@ -136,10 +136,7 @@ class PayloadRouter:
 
     def _handle_color(self, rgb):
         if self._verbose:
-            if rgb == COLOR_BLACK:
-                self._log.info(Fore.BLACK + 'color: black')
-            else:
-                self._log.info(Fore.MAGENTA + 'color: {}'.format(rgb))
+            self._log.info(Fore.MAGENTA + 'color: {}'.format(rgb))
         self._status.rgb(color=rgb)
 
     def _handle_ack(self):
@@ -162,7 +159,6 @@ class PayloadRouter:
 
     def _display_ip_address(self, octets):
         ip_string = '.'.join(str(int(x)) for x in octets)
-#       self._log.info("IP ADDRESS: '{}'".format(ip_string))
         self._display.ip_address(ip_string)
 
     def _handle_error(self, payload):
@@ -177,10 +173,7 @@ class PayloadRouter:
         if cmd == 'CO':
             if self._verbose:
                 rgb = payload.rgb
-                if rgb == COLOR_BLACK:
-                    self._log.info(Fore.BLACK + 'color: black')
-                else:
-                    self._log.info(Fore.MAGENTA + 'color: {}'.format(rgb))
+                self._log.info(Fore.MAGENTA + 'color: {}'.format(rgb))
             self._status.rgb(color=payload.rgb)
         elif cmd == 'GO':
             self._motor_controller.go(payload.values)

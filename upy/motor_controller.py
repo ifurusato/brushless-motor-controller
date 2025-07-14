@@ -36,7 +36,7 @@ class MotorController:
     '''
     def __init__(self, config=None, status=None, motors_enabled=(True, True, True, True), level=Level.INFO):
         self._log = Logger('motor-ctrl', level=level)
-        self._log.info('initialising Motor Controller…')
+        self._log.info('initialising motor controller…')
         if config is None:
             raise ValueError('no configuration provided.')
         self._enabled    = False
@@ -173,28 +173,26 @@ class MotorController:
         '''
         if self.enabled:
             self._log.debug("motor controller already enabled.")
-#           self._log.warning(Style.DIM + "motor controller already enabled.")
         else:
-            self._log.info(Fore.BLUE + "enabling motor controller…")
+            self._log.info("enabling motor controller…")
             self._enabled = True
             for motor in self.motors:
                 motor.enable()
             self._rpm_timer.callback(self._rpm_timer_callback)
             if self._use_closed_loop:
-                # configure _pid_timer to call ISR callback, set flag from within lambda callback
                 self._pid_timer.callback(lambda t: self._pid_signal_flag.set())
                 if self._enable_slew_limiter:
                     for motor_id, limiter in self._slew_limiters.items():
                         motor_instance = self._motors[motor_id]
                         limiter.enable(motor_instance.rpm)
-                        self._log.info(Fore.BLUE + "motor {}: SlewLimiter enabled and reset to {:.1f} RPM.".format(motor_id, motor_instance.rpm))
+                        self._log.info("motor {}: slew limiter enabled.".format(motor_id))
                 if self._enable_zero_crossing:
                     for motor_id, handler in self._zero_crossing_handlers.items():
                         handler.reset()
-                        self._log.info(Fore.BLUE + "motor {}: ZeroCrossingHandler reset.".format(motor_id))
+                        self._log.info("motor {}: zero crossing handler enabled.".format(motor_id))
             self._pid_task = asyncio.create_task(self._run_pid_task())
-            self.enable_rpm_logger() # already starts timer & logging
-            self._log.info(Fore.BLUE + "motor controller enabled.")
+            self.enable_rpm_logger()
+            self._log.info("motor controller enabled.")
 
     def enable_rpm_logger(self, interval_ms: int = 1000):
         '''
@@ -342,8 +340,8 @@ class MotorController:
         '''
         if not self.enabled:
             self._log.debug("motor controller already disabled.")
-#           self._log.warning("motor controller already disabled.")
         else:
+            self._log.info('disabling motor controller…')
             self._enabled = False
             _ = self.stop()
             if self._use_closed_loop:
@@ -434,18 +432,12 @@ class MotorController:
             while self._logging_enabled:
                 if self._motor_list:
                     rpm_values = ", ".join(
-
                         '{}: '.format(motor.name)
                             + Style.BRIGHT + '{:6.1f} RPM '.format(motor.rpm)
                             + ( Style.NORMAL + "(target: {}); {:5d} ticks".format(self._get_motor_target_rpms(motor.id), motor.tick_count)
                             if self._use_closed_loop else
                                 Style.NORMAL + "; {:5d} ticks".format(motor.tick_count)
                               )
-#                       "{}: {:.2f} RPM (target: {}); {} ticks".format(
-#                               motor.name,
-#                               motor.rpm,
-#                               self._get_motor_target_rpms(motor.id),
-#                               motor.tick_count)
                         for motor in self._motor_list
                     )
                     if self._verbose:
