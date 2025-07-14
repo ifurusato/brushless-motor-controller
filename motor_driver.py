@@ -18,6 +18,8 @@ from core.logger import Level
 
 if __name__ == "__main__":
 
+    _delay_sec=0.1
+
     # if using closed loop, set digital pot max to motor max speed
     _loader = ConfigLoader(Level.INFO)
     _config = _loader.configure('upy/config.yaml')
@@ -34,6 +36,6 @@ if __name__ == "__main__":
     # instantiate the UARTMaster and run in a loop
     _baudrate = 1_000_000 # 115200 460800 921600
     master = UARTMaster(baudrate=_baudrate)
-    master.run(_command_provider, _speed_provider, delay_sec=0.0334)
+    master.run(_command_provider, _speed_provider, delay_sec=_delay_sec)
 
 #EOF

@@ -311,7 +311,7 @@ class MotorController:
                     self._log.info("motor {}: ZC disabled, SL active, target set to {:.1f} RPM.".format(i, commanded_target_rpm_raw))
                 else:
                     self._log.info("motor {}: Neither ZC nor SL enabled, PID target is raw command: {:.1f} RPM.".format(i, commanded_target_rpm_raw))
-        self._log.info('MotorController .go() finished processing commands.')
+        self._log.debug('go: finished processing commands.')
 
     def stop(self):
         '''
@@ -502,7 +502,7 @@ class MotorController:
                 self._log.info("motor {}: Re-enabled SlewLimiter, reset to {:.1f} RPM, target {:.1f} RPM.".format(
                         motor_id, motor_instance.rpm, self._motor_target_rpms[motor_id]))
         except asyncio.CancelledError:
-            self._log.warning(Fore.YELLOW + "motor {}: ZC completion notifier task cancelled.".format(motor_id))
+            self._log.debug(Fore.YELLOW + "motor {}: ZC completion notifier task cancelled.".format(motor_id))
         except Exception as e:
             self._log.error("error in ZC completion notifier for motor {}: {}".format(motor_id, e))
             # confirm SlewLimiter is correctly configured even after an error

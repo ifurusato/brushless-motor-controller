@@ -111,7 +111,8 @@ class Motor:
             return
         self._log.info('{} direction changed to '.format(self._name) 
                 + Fore.YELLOW + '{}'.format('FORWARD' if value == Motor.DIRECTION_FORWARD else 'REVERSE') 
-                + Fore.CYAN + ': (pin {} -> {})'.format(current_physical_pin_state, physical_pin_state_to_set))
+                + Fore.CYAN + ': (pin {} -> {}); '.format(current_physical_pin_state, physical_pin_state_to_set)
+                + 'speed: {}'.format(self.speed))
         self._direction_pin.value(physical_pin_state_to_set)
         self._current_logical_direction = value
 

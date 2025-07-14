@@ -42,6 +42,7 @@ class UARTMaster:
         self._log.info(Style.BRIGHT + 'UART master is {}.'.format('hindered' if self._hindered else 'unhindered'))
         self._last_tx  = None
         self._last_rx  = None
+        self._last_payload = None
         self._verbose  = True
         self._ip_address = get_ip_address(True)
         self._log.info('UART master ready at baud rate: {}.'.format(baudrate))
@@ -161,6 +162,9 @@ class UARTMaster:
                     case _:
                         payload = Payload(cmd, speed, speed, -speed, -speed)
 
+                if payload == self._last_payload: # then don't bother
+                    continue
+                self._last_payload = payload
                 start_time = dt.now()
                 # send the Payload object
                 self.send_payload(payload)

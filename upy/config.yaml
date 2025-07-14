@@ -18,6 +18,7 @@ kros:
     pid_timer_frequency:      100  # PID timer frequency
     max_motor_speed:          159  # maximum stated motor speed (RPM)
   zero_crossing_handler:
+    verbose:                False
     enabled:                 True  # use zero-crossing handler for speed polarity transitions
     decel_rate_rpm_per_sec:   300
     accel_rate_rpm_per_sec:   300

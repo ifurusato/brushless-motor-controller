@@ -36,6 +36,7 @@ class ZeroCrossingHandler(FiniteStateMachine):
         self._motor = motor_instance
         # configuration ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
         _cfg = config['kros']['zero_crossing_handler']
+        self._verbose                   = _cfg.get('verbose')
         self._decel_rate_rpm_per_sec    = _cfg.get('decel_rate_rpm_per_sec', 300)
         self._accel_rate_rpm_per_sec    = _cfg.get('accel_rate_rpm_per_sec', 300)
         self._transition_interval_ms    = _cfg.get('transition_interval_ms', 20)
@@ -96,7 +97,8 @@ class ZeroCrossingHandler(FiniteStateMachine):
         '''
         Callback executed when entering the IDLE state.
         '''
-        self._log.info(Fore.YELLOW + 'motor {}: FSM entered IDLE stage.'.format(self._motor.name))
+        if self._verbose:
+            self._log.info(Fore.YELLOW + 'motor {}: FSM entered IDLE stage.'.format(self._motor.name))
         self._is_active = False # Ensure active flag is False
         self._effective_pid_target_rpm = 0.0 # Ensure target is 0 when idle
 
@@ -104,13 +106,15 @@ class ZeroCrossingHandler(FiniteStateMachine):
         '''
         Callback executed when entering the DECELERATING state.
         '''
-        self._log.info(Fore.YELLOW + 'motor {}: FSM entered DECELERATING stage.'.format(self._motor.name))
+        if self._verbose:
+            self._log.info(Fore.YELLOW + 'motor {}: FSM entered DECELERATING stage.'.format(self._motor.name))
 
     def _on_confirming_stop_entry(self):
         '''
         Callback executed when entering the CONFIRMING_STOP state.
         '''
-        self._log.info(Fore.YELLOW + 'motor {}: FSM entered CONFIRMING_STOP stage.'.format(self._motor.name))
+        if self._verbose:
+            self._log.info(Fore.YELLOW + 'motor {}: FSM entered CONFIRMING_STOP stage.'.format(self._motor.name))
         self._effective_pid_target_rpm = 0.0 # Ensure target is zero for confirmation
         self._stop_confirmation_start_time = utime.ticks_ms() # Initialize timer for this stage
 
@@ -118,13 +122,15 @@ class ZeroCrossingHandler(FiniteStateMachine):
         '''
         Callback executed when entering the ACCELERATING state.
         '''
-        self._log.info(Fore.YELLOW + 'motor {}: FSM entered ACCELERATING stage.'.format(self._motor.name))
+        if self._verbose:
+            self._log.info(Fore.YELLOW + 'motor {}: FSM entered ACCELERATING stage.'.format(self._motor.name))
 
     def _on_complete_entry(self):
         '''
         Callback executed when entering the COMPLETE state.
         '''
-        self._log.info(Fore.YELLOW + 'motor {}: FSM entered COMPLETE stage.'.format(self._motor.name))
+        if self._verbose:
+            self._log.info(Fore.YELLOW + 'motor {}: FSM entered COMPLETE stage.'.format(self._motor.name))
         self._is_active = False # Mark ZC handler as inactive
         self._effective_pid_target_rpm = self._final_target_rpm_after_transition # Ensure final target is precisely set
 
@@ -141,9 +147,9 @@ class ZeroCrossingHandler(FiniteStateMachine):
             decel_step = (self._decel_rate_rpm_per_sec / 1000) * self._transition_interval_ms
             accel_step = (self._accel_rate_rpm_per_sec / 1000) * self._transition_interval_ms
             intended_logical_direction = Motor.DIRECTION_FORWARD if self._final_target_rpm_after_transition >= 0 else Motor.DIRECTION_REVERSE
-
-            self._log.info(Fore.YELLOW + 'motor {}: ZC transition task started; initial RPM: {:.1f}; final target: {:.1f}; triggering DECELERATING stage…'.format(
-                    self._motor.name, self._initial_motor_rpm_for_transition, self._final_target_rpm_after_transition))
+            if self._verbose:
+                self._log.info(Fore.YELLOW + 'motor {}: ZC transition task started; initial: {:.1f} rpm; target: {:.1f} rpm; triggering DECELERATING stage…'.format(
+                        self._motor.name, self._initial_motor_rpm_for_transition, self._final_target_rpm_after_transition))
             # the first transition to DECELERATING will trigger its '_on_decelerating_entry' callback
             self.transition(ZeroCrossingStage.DECELERATING)
 
@@ -169,7 +175,8 @@ class ZeroCrossingHandler(FiniteStateMachine):
 
             # if still in DECELERATING state after the loop, it means timeout occurred
             if self.state == ZeroCrossingStage.DECELERATING:
-                self._log.warning(Fore.YELLOW + 'motor {}: deceleration timed out; forcing target to 0 RPM and proceeding…'.format(self._motor.name))
+                if self._verbose:
+                    self._log.warning(Fore.YELLOW + 'motor {}: deceleration timed out; forcing target to 0 RPM and proceeding…'.format(self._motor.name))
                 self._effective_pid_target_rpm = 0.0 # Ensure target is zero
                 self.transition(ZeroCrossingStage.CONFIRMING_STOP) # This triggers _on_confirming_stop_entry
 
@@ -183,20 +190,23 @@ class ZeroCrossingHandler(FiniteStateMachine):
                         # Check against _stop_confirmation_start_time which is set in _on_confirming_stop_entry
                         if utime.ticks_diff(utime.ticks_ms(), self._stop_confirmation_start_time) >= self._zero_confirmation_time_ms:
                             is_physically_stopped = True
-                            self._log.info(Fore.YELLOW + 'motor {}: confirmed stopped ({:.1f} RPM <= {:.1f} RPM) for {}ms.'.format(
-                                self._motor.name, current_rpm_magnitude, self._stop_rpm_threshold, self._zero_confirmation_time_ms))
+                            if self._verbose:
+                                self._log.info(Fore.YELLOW + 'motor {}: confirmed stopped ({:.1f} RPM <= {:.1f} RPM) for {}ms.'.format(
+                                        self._motor.name, current_rpm_magnitude, self._stop_rpm_threshold, self._zero_confirmation_time_ms))
                     else:
                         self._stop_confirmation_start_time = utime.ticks_ms() # Reset timer if motor moves again
                         self._log.debug('motor {}: confirming stop… current RPM: {:.1f}'.format(self._motor.name, current_rpm_magnitude))
                     await asyncio.sleep_ms(self._transition_interval_ms)
 
                 if not is_physically_stopped:
-                    self._log.warning(Fore.YELLOW + 'motor {}: physical stop confirmation timed out (current RPM: {:.1f}); proceeding with direction change…'.format(
-                        self._motor.name, abs(self._motor.rpm)))
+                    if self._verbose:
+                        self._log.warning(Fore.YELLOW + 'motor {}: physical stop confirmation timed out (current RPM: {:.1f}); proceeding with direction change…'.format(
+                                self._motor.name, abs(self._motor.rpm)))
 
                 # set motor direction here, before accelerating in the new direction
                 self._motor.direction = intended_logical_direction
-                self._log.info(Fore.YELLOW + 'motor {}: Direction set to {}'.format(self._motor.name, 'FORWARD' if intended_logical_direction else 'REVERSE'))
+                if self._verbose:
+                    self._log.info(Fore.YELLOW + 'motor {}: Direction set to {}'.format(self._motor.name, 'FORWARD' if intended_logical_direction else 'REVERSE'))
                 self.transition(ZeroCrossingStage.ACCELERATING) # This triggers _on_accelerating_entry
 
             # Phase 3: Accelerate in New Direction
@@ -210,19 +220,24 @@ class ZeroCrossingHandler(FiniteStateMachine):
                         self._motor.name, self._effective_pid_target_rpm, self._motor.rpm))
                 if (self._final_target_rpm_after_transition >= 0 and self._effective_pid_target_rpm >= self._final_target_rpm_after_transition) or \
                    (self._final_target_rpm_after_transition < 0 and self._effective_pid_target_rpm <= self._final_target_rpm_after_transition):
-                    self._log.info(Fore.YELLOW + 'motor {}: reached final target RPM {:.1f}; transition complete.'.format(self._motor.name, self._final_target_rpm_after_transition))
+                    if self._verbose:
+                        self._log.info(Fore.YELLOW + 'motor {}: reached final target RPM {:.1f}; transition complete.'.format(
+                                self._motor.name, self._final_target_rpm_after_transition))
                     self.transition(ZeroCrossingStage.COMPLETE) # This triggers _on_complete_entry
                     break
 
             # if still in ACCELERATING state after the loop, it means timeout occurred or target not precisely reached
             if self.state == ZeroCrossingStage.ACCELERATING:
-                self._log.warning(Fore.YELLOW + 'motor {}: acceleration timed out or target not precisely reached. Forcing to COMPLETE.'.format(self._motor.name))
+                if self._verbose:
+                        self._log.warning(Fore.YELLOW + 'motor {}: acceleration timed out or target not precisely reached. Forcing to COMPLETE.'.format(self._motor.name))
                 self.transition(ZeroCrossingStage.COMPLETE) # this triggers _on_complete_entry
-            self._log.info(Fore.YELLOW + 'motor {}: zero-crossing process completed.'.format(self._motor.name))
+            if self._verbose:
+                self._log.info(Fore.YELLOW + 'motor {}: zero-crossing process completed.'.format(self._motor.name))
             return True
 
         except asyncio.CancelledError:
-            self._log.info(Fore.YELLOW + 'motor {}: ZC task cancelled; resetting state.'.format(self._motor.name))
+            if self._verbose:
+                self._log.info(Fore.YELLOW + 'motor {}: ZC task cancelled; resetting state.'.format(self._motor.name))
             self.reset()
             raise
         except Exception as e:
@@ -236,11 +251,13 @@ class ZeroCrossingHandler(FiniteStateMachine):
         Returns the created task if successful, None otherwise.
         '''
         if self._is_active:
-            self._log.warning(Fore.YELLOW + 'motor {}: ZC already active; ignoring new request.'.format(self._motor.name))
+            if self._verbose:
+                self._log.warning(Fore.YELLOW + 'motor {}: ZC already active; ignoring new request.'.format(self._motor.name))
             return None
         if self.state != ZeroCrossingStage.IDLE:
-            self._log.info(Fore.YELLOW + 'motor {}: Forcing FSM from {} to IDLE before new ZC transition.'.format(
-                self._motor.name, self.state))
+            if self._verbose:
+                self._log.info(Fore.YELLOW + 'motor {}: Forcing FSM from {} to IDLE before new ZC transition.'.format(
+                        self._motor.name, self.state))
             self.reset()
         self._initial_motor_rpm_for_transition = initial_actual_rpm
         self._final_target_rpm_after_transition = new_final_target_rpm_signed
@@ -254,7 +271,8 @@ class ZeroCrossingHandler(FiniteStateMachine):
         '''
         if self._current_zc_task and not self._current_zc_task.done():
             self._current_zc_task.cancel()
-            self._log.info(Fore.YELLOW + 'motor {}: ZC task explicitly cancelled.'.format(self._motor.name))
+            if self._verbose:
+                self._log.info(Fore.YELLOW + 'motor {}: ZC task explicitly cancelled.'.format(self._motor.name))
         else:
             self._log.debug('motor {}: No active ZC task to cancel.'.format(self._motor.name))
         self.reset()
@@ -274,7 +292,8 @@ class ZeroCrossingHandler(FiniteStateMachine):
             if not self._current_zc_task.done():
                 self._current_zc_task.cancel()
             self._current_zc_task = None
-        self._log.info(Fore.YELLOW + 'zero crossing handler reset.')
+        if self._verbose:
+            self._log.info(Fore.YELLOW + 'zero crossing handler reset.')
         self._motor.stop()
 
 
@@ -297,24 +316,30 @@ class ZeroCrossingHandler(FiniteStateMachine):
 
         if commanded_target_rpm == 0.0:
             # Case A: An explicit STOP command (0.0 RPM)
-            self._log.debug(Fore.YELLOW + 'Case A: An explicit STOP command (0.0 RPM)')
+            if self._verbose:
+                self._log.info(Fore.YELLOW + 'Case A: An explicit STOP command (0.0 RPM)')
             if self.is_active:
-                self._log.info(Fore.YELLOW + 'motor {}: ZC active but new command is STOP (0 RPM); cancelling ZC…'.format(self._motor.name))
+                if self._verbose:
+                    self._log.info(Fore.YELLOW + 'motor {}: ZC active but new command is STOP (0 RPM); cancelling ZC…'.format(self._motor.name))
                 self.cancel_zero_crossing() # This will transition FSM to IDLE via reset() -> _on_idle_entry
                 pid_controller_instance.reset() # Reset PID after cancellation
             # No task returned, ZCH is now idle.
 
         elif self.is_active:
             # Case B: New command arrives while ZC is active (but not a STOP)
-            self._log.info(Fore.YELLOW + 'Case B: New command arrives while ZC is active (but not a STOP)')
+            if self._verbose:
+                self._log.info(Fore.YELLOW + 'Case B: New command arrives while ZC is active (but not a STOP)')
             if new_command_direction == current_actual_motor_direction:
-                self._log.info(Fore.YELLOW + 'motor {}: ZC active but new target ({:.1f} RPM) is in current actual direction ({:.1f} RPM); cancelling ZC…'.format(
-                    self._motor.name, commanded_target_rpm, current_actual_motor_rpm))
+                if self._verbose:
+                    self._log.info(Fore.YELLOW + 'motor {}: ZC active but new target ({:.1f} RPM) is in current actual direction ({:.1f} RPM); cancelling ZC…'.format(
+                            self._motor.name, commanded_target_rpm, current_actual_motor_rpm))
                 self.cancel_zero_crossing() # ZC is no longer active
                 pid_controller_instance.reset() # Reset PID after cancellation
             elif self._final_target_rpm_after_transition != float(commanded_target_rpm):
-                self._log.info(Fore.YELLOW + 'motor {}: ZC active, but new command requires new reversal profile '.format(self._motor.name)
-                        + Style.DIM + '(old final {:.1f} RPM -> new final {:.1f} RPM); cancelling old ZC and starting new…'.format(self._final_target_rpm_after_transition, commanded_target_rpm))
+                if self._verbose:
+                    self._log.info(Fore.YELLOW + 'motor {}: ZC active, but new command requires new reversal profile '.format(self._motor.name)
+                            + Style.DIM + '(old final {:.1f} RPM -> new final {:.1f} RPM); cancelling old ZC and starting new…'.format(
+                                    self._final_target_rpm_after_transition, commanded_target_rpm))
                 self.cancel_zero_crossing() # Cancel old ZC
                 pid_controller_instance.reset() # Reset PID
                 active_zc_task = self._start_zero_crossing(current_actual_motor_rpm, float(commanded_target_rpm)) # Start new, get task
@@ -326,11 +351,13 @@ class ZeroCrossingHandler(FiniteStateMachine):
 
         else:
             # Case C: ZC is not active (normal PID operation or needs to start ZC)
-            self._log.debug(Fore.YELLOW + Style.DIM + 'Case C: ZC is not active (normal PID operation or needs to start ZC)')
+            if self._verbose:
+                self._log.debug(Fore.YELLOW + Style.DIM + 'Case C: ZC is not active (normal PID operation or needs to start ZC)')
             if current_actual_motor_direction != new_command_direction and \
-               abs(current_actual_motor_rpm) > self._motor._soft_stop_threshold_rpm:
-                self._log.info(Fore.YELLOW + 'motor {}: direction reversal detected (actual dir {} -> new command dir {}); actual RPM {:.1f}; initiating ZC…'.format(
-                    self._motor.name, 'F' if current_actual_motor_direction else 'R', 'F' if new_command_direction else 'R', current_actual_motor_rpm))
+                    abs(current_actual_motor_rpm) > self._motor._soft_stop_threshold_rpm:
+                if self._verbose:
+                    self._log.info(Fore.YELLOW + 'motor {}: direction reversal detected (actual dir {} -> new command dir {}); actual RPM {:.1f}; initiating ZC…'.format(
+                            self._motor.name, 'F' if current_actual_motor_direction else 'R', 'F' if new_command_direction else 'R', current_actual_motor_rpm))
                 active_zc_task = self._start_zero_crossing(current_actual_motor_rpm, float(commanded_target_rpm))
             # else: No ZC needed, ZCH remains inactive.
 

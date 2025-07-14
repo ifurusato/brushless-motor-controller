@@ -10,8 +10,11 @@
 # modified: 2025-07-14
 
 import struct
-#from crc8_table import CRC8_TABLE     # in slave version
-from upy.crc8_table import CRC8_TABLE  # in master version
+
+try:
+    from upy.crc8_table import CRC8_TABLE # master
+except ImportError:
+    from crc8_table import CRC8_TABLE # slave
 
 class Payload:
     # sync header: 'zz' for human-readability. To switch to a binary header, just uncomment the next line.
@@ -75,6 +78,17 @@ class Payload:
         cmd_str = self.cmd.decode('utf-8') if isinstance(self.cmd, bytes) else self.cmd
         return "Payload(cmd={:>2}, pfwd={:7.2f}, sfwd={:7.2f}, paft={:7.2f}, saft={:7.2f})".format(
             cmd_str, self._pfwd, self._sfwd, self._paft, self._saft
+        )
+
+    def __eq__(self, other):
+        if not isinstance(other, Payload):
+            return NotImplemented
+        return (
+            self._cmd == other._cmd
+            and self._pfwd == other._pfwd
+            and self._sfwd == other._sfwd
+            and self._paft == other._paft
+            and self._saft == other._saft
         )
 
     def to_bytes(self):
