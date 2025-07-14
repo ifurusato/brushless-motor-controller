@@ -79,7 +79,7 @@ class MotorController:
         else:
             self._log.info(Fore.MAGENTA + 'open-loop control enabled (PID disabled).')
 
-        self._verbose    = True # _app_cfg["verbose"]
+        self._verbose    = False # _app_cfg["verbose"]
         self._log.info(Fore.MAGENTA + 'verbose: {}'.format(self._verbose))
         try:
             self._log.debug('configuring timers…')
@@ -132,7 +132,6 @@ class MotorController:
                             motor_instance=motor,
                             level=level
                         )
-                        self._log.info("ZeroCrossingHandler for motor {} initialized.".format(index))
                 # instantiate SlewLimiter for this motor
                 if self._enable_slew_limiter:
                     self._slew_limiters[index] = SlewLimiter(
@@ -173,7 +172,8 @@ class MotorController:
         Enables the motor controller.
         '''
         if self.enabled:
-            self._log.warning(Style.DIM + "motor controller already enabled.")
+            self._log.debug("motor controller already enabled.")
+#           self._log.warning(Style.DIM + "motor controller already enabled.")
         else:
             self._log.info(Fore.BLUE + "enabling motor controller…")
             self._enabled = True
@@ -203,7 +203,7 @@ class MotorController:
         if self._loop is None:
             self._loop = asyncio.get_event_loop()
         if not self._logging_enabled:
-            self._log.info(Fore.MAGENTA + "starting RPM logger with interval: {}ms.".format(interval_ms))
+            self._log.debug("starting RPM logger with interval: {}ms.".format(interval_ms))
             self._logging_task = self._loop.create_task(self._rpm_logger_coro(interval_ms))
             self._logging_enabled = True
         else:
@@ -220,9 +220,6 @@ class MotorController:
             self._log.info("RPM logger stopped.")
         else:
             self._log.info("RPM logger was not running.")
-
-    def ping(self):
-        self._log.info(Fore.BLUE + 'ping…')
 
     def get_motor(self, index):
         '''
@@ -344,7 +341,8 @@ class MotorController:
         Stop and disable all motors, then disable the motor controller.
         '''
         if not self.enabled:
-            self._log.warning("motor controller already disabled.")
+            self._log.debug("motor controller already disabled.")
+#           self._log.warning("motor controller already disabled.")
         else:
             self._enabled = False
             _ = self.stop()
@@ -384,7 +382,7 @@ class MotorController:
     async def _run_pid_task(self):
         if not self.enabled: # TEMP
             raise RuntimeError('motor controller disabled.')
-        self._log.info("starting asynchronous PID control task, driven by hardware timer.")
+        self._log.debug("starting asynchronous PID control task, driven by hardware timer.")
         while True:
             await self._pid_signal_flag.wait()
             current_time = utime.ticks_us()

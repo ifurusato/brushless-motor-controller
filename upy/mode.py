@@ -7,7 +7,7 @@
 #
 # author:   Murray Altheim
 # created:  2025-07-04
-# modified: 2025-07-04
+# modified: 2025-07-14
 
 from colorama import Fore, Style
 try:
@@ -38,6 +38,10 @@ class Mode:
     @property
     def code(self):
         return self._code
+
+    @property
+    def has_speeds(self):
+        return self._speeds is not None
 
     @property
     def speeds(self):
@@ -75,25 +79,26 @@ class Mode:
 Mode.COLOR       = Mode( 0, "COLOR",     "CO", None,              "show color")
 Mode.ENABLE      = Mode( 1, "ENABLE",    "EN", None,              "enable")
 Mode.PING        = Mode( 2, "PING",      "PN", None,              "ping")
+Mode.IP_ADDRESS  = Mode( 3, "IP",        "IP", None,              "ip address")
+Mode.REQUEST     = Mode( 4, "REQUEST",   "RS", None,              "request status")
+Mode.ACK         = Mode( 5, "ACK",       "AK", None,              "acknowledge")
 # stopped
-Mode.STOP        = Mode( 3, "STOP",      "ST", ( 0,  0,  0,  0),  "stop")
+Mode.STOP        = Mode( 6, "STOP",      "ST", ( 0,  0,  0,  0),  "stop")
 # all wheels forward/backward
-Mode.GO          = Mode( 4, "GO",        "GO", ( 1,  1 , 1 , 1),  "go forward or reverse")
+Mode.GO          = Mode( 7, "GO",        "GO", ( 1,  1 , 1 , 1),  "go forward or reverse")
 # rotation (spin in place)
-Mode.ROT_CW      = Mode( 5, "ROT_CW",    "RO", (-1,  1, -1,  1),  "rotate clockwise")
-Mode.ROT_CCW     = Mode( 6, "ROT_CCW",   "RC", ( 1, -1,  1, -1),  "rotate counter-clockwise")
+Mode.ROT_CW      = Mode( 8, "ROT_CW",    "RO", (-1,  1, -1,  1),  "rotate clockwise")
+Mode.ROT_CCW     = Mode( 9, "ROT_CCW",   "RC", ( 1, -1,  1, -1),  "rotate counter-clockwise")
 # crab movement (lateral strafe)
-Mode.CRAB_PORT   = Mode( 7, "CRAB_PORT", "CP", (-1,  1,  1, -1),  "crab to port")
-Mode.CRAB_STBD   = Mode( 8, "CRAB_STBD", "CS", ( 1, -1, -1,  1),  "crab to starboard")
+Mode.CRAB_PORT   = Mode(10, "CRAB_PORT", "CP", (-1,  1,  1, -1),  "crab to port")
+Mode.CRAB_STBD   = Mode(11, "CRAB_STBD", "CS", ( 1, -1, -1,  1),  "crab to starboard")
 # diagonal movement
-Mode.DIA_PFWD    = Mode( 9, "DIA_PFWD",  "DP", ( 0,  1,  1,  0),  "diagonal forward to port")
-Mode.DIA_SFWD    = Mode(10, "DIA_SFWD",  "DS", ( 1,  0,  0,  1),  "diagonal forward to starboard")
-Mode.DIA_PREV    = Mode(11, "DIA_PREV",  "DQ", (-1,  0,  0, -1),  "diagonal reverse to port")
-Mode.DIA_SREV    = Mode(12, "DIA_SREV",  "DT", ( 0, -1, -1,  0),  "diagonal reverse to starboard")
-Mode.ACK         = Mode(13, "ACK",       "AK", None,              "acknowledge")
-Mode.REQUEST     = Mode(14, "REQUEST",   "RS", None,              "request status")
-Mode.DISABLE     = Mode(15, "DISABLE",   "DI", None,              "disable")
-Mode.ERROR       = Mode(16, "ERROR",     "ER", None,              "error")
+Mode.DIA_PFWD    = Mode(12, "DIA_PFWD",  "DP", ( 0,  1,  1,  0),  "diagonal forward to port")
+Mode.DIA_SFWD    = Mode(13, "DIA_SFWD",  "DS", ( 1,  0,  0,  1),  "diagonal forward to starboard")
+Mode.DIA_PREV    = Mode(14, "DIA_PREV",  "DQ", (-1,  0,  0, -1),  "diagonal reverse to port")
+Mode.DIA_SREV    = Mode(15, "DIA_SREV",  "DT", ( 0, -1, -1,  0),  "diagonal reverse to starboard")
+Mode.DISABLE     = Mode(16, "DISABLE",   "DI", None,              "disable")
+Mode.ERROR       = Mode(17, "ERROR",     "ER", None,              "error")
 
 # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 def main():

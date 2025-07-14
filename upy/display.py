@@ -1,0 +1,328 @@
+#!/micropython
+# -*- coding: utf-8 -*-
+#
+# Copyright 2020-2025 by Murray Altheim. All rights reserved. This file is part
+# of the Robot Operating System project, released under the MIT License. Please
+# see the LICENSE file included as part of this package.
+#
+# author:   Murray Altheim
+# created:  2025-07-11
+# modified: 2025-07-12
+
+import time
+import asyncio
+from machine import SPI, Pin
+from sysfont import sysfont
+from st7735py import TFT, TFTColor
+from colors import *
+
+class Display:
+    SCREEN_HEIGHT = 160
+    SCREEN_WIDTH = 80
+    MAX_LINE_LENGTH = 26 # console width
+    X_OFFSET = 10
+    ROTATION = 1 # 0-3, where 1 or 3 are landscape, rotates 90° cw each step
+    LAYOUTS = { # font layout map: font size -> (row height, y_start, max lines)
+        1.0: (13, 35, 5), # used for console
+        1.2: (16, 38, 4),
+        1.4: (17, 33, 4),
+        1.5: (17, 34, 4),
+        1.6: (18, 33, 4),
+        1.8: (18, 38, 4),
+        2.0: (20, 36, 3),
+        2.5: (30, 40, 1),
+        3.0: (32, 52, 1),
+    }
+    '''
+    Supports an 80x160 TFT display.
+    '''
+    def __init__(self):
+        self._spi = SPI(4, baudrate=31250000)
+        self._backlight = Pin('E10', Pin.OUT)
+        self._backlight(1) # initially off
+        self._tft = TFT(self._spi, 'E13', 'D15', 'E11') # SPI, DC, RST, CS
+        self._tft.rgb(False) # use RGB order
+        self._tft.initr()
+        self._last_text = ''
+        self._tft.invertcolor(True)
+        self._tft.rotation(Display.ROTATION)
+        self._console_buffer = []
+        self._amber = Display.to_tft_color((255, 220, 0))
+        self._apple = Display.to_tft_color((216, 255, 0))
+        self.clear()
+        self.enable()
+
+    def enable(self):
+        '''
+        Enable the display by turning on screen updates and the backlight.
+        '''
+        self._tft.on(True)
+        self._backlight(0)
+
+    def disable(self):
+        '''
+        Disable the display by turning off screen updates and the backlight.
+        '''
+        self._tft.on(False)
+        self._backlight(1)
+
+    def close(self):
+        self.clear()
+        self.disable()
+        try:
+            self._spi.deinit()
+        except AttributeError:
+            pass
+
+    def clear(self):
+        '''
+        Clear the entire display. This also clears the console buffer of any content.
+        '''
+        self._console_buffer.clear()
+        self._tft.fill(TFT.BLACK)
+
+    def show_line(self, text, line=1, size=1.5, x_offset=None, color=TFT.WHITE, clear=False):
+        '''
+        Display text (or list of strings) starting at a given line.
+
+        Args:
+            text (str | list[str]):  Text or list of lines to display.
+            line (int):              1-based line number to start from.
+            size (float):            Font size (must be in LAYOUTS).
+            clear (bool):            Clear screen before rendering.
+            color (int):             Text color (RGB565).
+        '''
+        if text != self._console_buffer and text == self._last_text:
+            return # don't bother
+        self._last_text = text
+        if size not in self.LAYOUTS:
+            raise ValueError(f"Font size {size} not configured in LAYOUTS")
+        if x_offset is None:
+            x_offset=Display.X_OFFSET
+        row_height, y_start, max_lines = self.LAYOUTS[size]
+        # normalize to list of lines
+        lines = [text] if isinstance(text, str) else text[:]
+        if not isinstance(lines, list) or any(not isinstance(l, str) for l in lines):
+            raise TypeError("Text must be a string or list of strings")
+        if (line - 1 + len(lines)) > max_lines:
+            raise ValueError("{} lines starting from line {} exceeds maximum of {} for font size {}".format(
+                    len(lines), line, max_lines, size))
+        if clear:
+            self.clear()
+        for i, content in enumerate(lines):
+            y = y_start + (line - 1 + i) * row_height
+            pos = (x_offset, y)
+#           print(f"-- text: '{content}'; line: {line + i}; pos: {pos}")
+            self._tft.text(pos, content, color, sysfont, size)
+
+    def hello(self, persist=False):
+        asyncio.create_task(self._hello_async(persist))
+
+    async def _hello_async(self, persist=False):
+        '''
+        An animated "Hello." as a greeting.
+        '''
+        self.clear()
+        apple_rgb = (216, 255, 0)
+        black_rgb = (0, 0, 0)
+        steps = 32
+        fade_up = Display.fade_colors(black_rgb, apple_rgb, steps)
+        fade_down = fade_up[-2::-1] # reverse excluding last color (the peak)
+        fade_cycle = fade_up + fade_down
+        for color_rgb in fade_cycle:
+            tft_color = Display.to_tft_color(color_rgb)
+            self.show_line(" Hello.", line=1, size=3.0, color=tft_color)
+#           time.sleep(0.025)
+            await asyncio.sleep(0.025)
+        if persist:
+            apple_color = Display.to_tft_color(apple_rgb)
+            self.show_line(" Hello.", line=1, size=3.0, color=apple_color)
+
+    def ip_address(self, ip_address):
+        '''
+        Display the IP address.
+        '''
+        self.show_line(["", "IP address:", ip_address], line=1, size=1.5, color=self._amber, clear=True)
+
+    def console(self, text=None, clear=False):
+        asyncio.create_task(self._console_async(text, clear))
+
+    async def _console_async(self, text=None, clear=False):
+        '''
+        Display scrolling console-style text with a 5-line buffer.
+
+        Args:
+            text (str | None): New line of text to add. If None, a blank line is added.
+            clear (bool): If True, clears the console buffer and screen.
+        '''
+        if clear:
+            self.clear()
+            return
+        # if no text provided, treat as a blank line
+        line = "" if text is None else text
+        # clip and append, handling over-length with '>'
+        if len(line) > Display.MAX_LINE_LENGTH:
+            line = line[:Display.MAX_LINE_LENGTH - 1] + '>'
+        self._console_buffer.append(line)
+        if len(self._console_buffer) > 5:
+            self._console_buffer.pop(0)
+        # clear before rendering
+        self._tft.fill(TFT.BLACK)
+        # re-render full console view
+        self.show_line(self._console_buffer, line=1, size=1.0, x_offset=2, color=self._amber, clear=False)
+
+    @staticmethod
+    def fade_colors(start_rgb, end_rgb, steps):
+        '''
+        Generate a list of RGB tuples fading from start_rgb to end_rgb in given steps.
+        '''
+        fade_list = []
+        for step in range(steps):
+            interp = tuple(
+                int(start + (float(step) / (steps - 1)) * (end - start))
+                for start, end in zip(start_rgb, end_rgb)
+            )
+            fade_list.append(interp)
+        return fade_list
+
+    @staticmethod
+    def to_tft_color(color):
+        '''
+        Convert a Color instance (or RGB tuple) to a TFTColor (RGB565 integer).
+
+        Args:
+            color (Color | tuple): An instance of Color or (r, g, b) tuple.
+
+        Returns:
+            int: TFTColor-compatible 16-bit color.
+        '''
+        if isinstance(color, Color):
+            return TFTColor(*color.rgb)
+        elif isinstance(color, tuple) and len(color) == 3:
+            return TFTColor(*color)
+        else:
+            raise TypeError("Expected Color or (r, g, b) tuple, got {}".format(type(color)))
+
+# ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+def main():
+
+    COLOR_TEST      = False
+    COLORS_TEST     = False
+    CONSOLE_TEST    = True
+    HELLO_TEST      = False
+    IP_ADDRESS_TEST = False
+    FORMAT_TEST     = False
+    MULTILINE_TEST  = False
+
+    ORANGE  = Display.to_tft_color((255, 220, 0))
+    MAGENTA = Display.to_tft_color(COLOR_MAGENTA)
+    CYAN    = Display.to_tft_color(COLOR_CYAN)
+    VIOLET  = Display.to_tft_color((180, 64, 240)) # was (138,  43, 226)
+    APPLE   = Display.to_tft_color((216, 255, 0))
+
+    display = None
+
+    try:
+
+        display = Display()
+        time.sleep(1)
+
+        if COLOR_TEST:
+            display.show_line("row 1 white", line=1, size=1.2, color=TFT.WHITE, clear=True)
+            display.show_line("row 2 red",   line=2, size=1.2, color=TFT.RED)
+            display.show_line("row 3 green", line=3, size=1.2, color=TFT.GREEN)
+            display.show_line("row 4 blue",  line=4, size=1.2, color=TFT.BLUE)
+            time.sleep(3)
+
+        if COLORS_TEST:
+
+            # predefined colors:
+            #   BLACK, RED, MAROON, GREEN, FOREST, BLUE,
+            #   NAVY, CYAN, YELLOW, PURPLE, WHITE, GRAY
+            # imported colors:
+            #   COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_BLUE,
+            #   COLOR_CYAN, COLOR_MAGENTA, COLOR_YELLOW,
+            #   COLOR_DARK_RED, COLOR_DARK_GREEN, COLOR_DARK_BLUE,
+            #   COLOR_DARK_CYAN, COLOR_DARK_MAGENTA, COLOR_DARK_YELLOW,
+            #   COLOR_ORANGE, COLOR_INDIGO, COLOR_VIOLET
+
+            display.show_line("row 1 orange",  line=1, size=1.2, color=ORANGE, clear=True)
+            display.show_line("row 2 magenta", line=2, size=1.2, color=MAGENTA)
+            display.show_line("row 3 cyan",    line=3, size=1.2, color=CYAN)
+            display.show_line("row 4 violet",  line=4, size=1.2, color=VIOLET)
+            time.sleep(3)
+
+        if CONSOLE_TEST:
+            display.console(clear=True)
+            lines = [
+                "Line one",
+                "Line two",
+                "Line three",
+                "Line four",
+                "Line five",
+                "Line six",
+                "Line seven",
+                "Line eight",
+                "Line nine",
+                "Line ten",
+                "Line eleven",
+                "Line twelve",
+                "",
+                "",
+                "",
+                "",
+                "",
+            ]
+            for line in lines:
+                display.console(line)
+                time.sleep(0.15)
+            time.sleep(3)
+
+        if HELLO_TEST:
+            display.hello()
+            time.sleep(3)
+
+        if IP_ADDRESS_TEST:
+            display.show_line(["", "IP address:", "192.168.1.73"], line=1, size=1.6, color=APPLE, clear=True)
+            time.sleep(e)
+
+        if FORMAT_TEST:
+            h = 1.0
+            display.show_line("row 1 ht: {}".format(h), line=1, size=h, clear=True)
+            display.show_line("row 2 is boring",  line=2, size=h)
+            display.show_line("row 3 is lost",    line=3, size=h)
+            display.show_line("row 4 is roaring", line=4, size=h)
+            display.show_line("row 5 is gone", line=5, size=h)
+            time.sleep(3)
+
+            heights = [ 1.0, 1.2, 1.4, 1.5, 1.6, 1.8, 2.0 ]
+            for h in heights:
+                display.show_line("row 1 ht: {}".format(h), line=1, size=h, clear=True)
+                display.show_line("row 2",  line=2, size=h)
+                display.show_line("row 3",    line=3, size=h)
+                if h < 1.8:
+                    display.show_line("row 4", line=4, size=h)
+                time.sleep(3)
+
+        if MULTILINE_TEST:
+            lines = [ 'line 1', 'line 2', 'line 3' ]
+            display.show_line(lines, line=1, size=1.2, color=TFT.WHITE)
+
+    except KeyboardInterrupt:
+        pass
+    except Exception as e:
+        print('{} raised: {}'.format(type(e), e))
+    finally:
+        if display:
+            display.close()
+        print('complete.')
+
+# for REPL usage or testing
+def exec():
+    main()
+
+if __name__ == "__main__":
+    main()
+
+#EOF

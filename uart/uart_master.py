@@ -19,8 +19,10 @@ init()
 
 from uart.async_uart_manager import AsyncUARTManager
 from uart.sync_uart_manager import SyncUARTManager
-from uart.payload import Payload
+from upy.mode import Mode
+from upy.payload import Payload
 from hardware.value_provider import DigitalPotSpeedProvider, RotaryEncoderCommandProvider
+from hardware.ip_util import get_ip_address
 from core.logger import Logger, Level
 
 class UARTMaster:
@@ -41,6 +43,7 @@ class UARTMaster:
         self._last_tx  = None
         self._last_rx  = None
         self._verbose  = True
+        self._ip_address = get_ip_address(True)
         self._log.info('UART master ready at baud rate: {}.'.format(baudrate))
 
     def send_payload(self, payload):
@@ -58,10 +61,15 @@ class UARTMaster:
     def receive_payload(self):
         '''
         Receive a Payload object.
+        If the Mode is PING, returns the converted ping count as an int.
         '''
         payload = self.uart.receive_packet()
         if payload:
-            if self._verbose:
+#           self._log.info(Fore.MAGENTA + "RX PAYLOAD: '{}'; is ping? {}; cmd: {}; code: {}".format(
+#                   payload, (payload.cmd == Mode.PING.code), payload.cmd, Mode.PING.code))
+            if payload.cmd == Mode.PING.code: # display ping result
+                return Payload.decode_to_int(*payload.values)
+            elif self._verbose:
                 if payload.cmd != self._last_rx:
                     self._log.info(Fore.MAGENTA + "rx: {}".format(payload))
             self._last_rx = payload.cmd
@@ -69,19 +77,19 @@ class UARTMaster:
         else:
             raise ValueError("no valid response received.")
 
-    def send_receive_payload(self, payload):
-        '''
-        Accept a Payload, send it, then wait for the response and return the Payload result.
-        This method can be used without needing to run the full loop. If an error occurs
-        this returns the ERROR_PAYLOAD.
-        '''
-        self.send_payload(payload)
-        try:
-            response_payload = self.receive_payload()
-            return response_payload
-        except ValueError as e:
-            self._log.error("error during communication: {}".format(e))
-            return self.ERROR_PAYLOAD
+#   def send_receive_payload(self, payload):
+#       '''
+#       Accept a Payload, send it, then wait for the response and return the Payload result.
+#       This method can be used without needing to run the full loop. If an error occurs
+#       this returns the ERROR_PAYLOAD.
+#       '''
+#       self.send_payload(payload)
+#       try:
+#           response_payload = self.receive_payload()
+#           return response_payload
+#       except ValueError as e:
+#           self._log.error("error during communication: {}".format(e))
+#           return self.ERROR_PAYLOAD
 
     def run(self,
                 command_source: Optional[Callable[[], int]] = None,
@@ -96,45 +104,75 @@ class UARTMaster:
                 self._log.info("speed source not provided, using counter.")
             else:
                 self._log.info("using speed source for data.")
-
-            speed   = 0.0
+            # initial values
             red = green = blue = 0.0
             counter = itertools.count()
             div     = 1
             cmd     = 'CO'
+            speed   = 0.0
 
             while True:
-
                 if command_source is not None:
                     cmd = command_source()
                 if speed_source is not None:
                     speed, red, green, blue = speed_source()
                 else:
                     speed += 1.0
-
                 # create Payload with cmd (2 letters) and floats for pfwd, sfwd, paft, saft
-                if cmd == 'CO':
-                    payload = Payload(cmd, red, green, blue, 0.0)
-                else:
-                    payload = Payload(cmd, speed, speed, -speed, -speed)
+
+                _color = Fore.BLUE
+                _mode = Mode.from_code(cmd)
+#               self._log.info(Fore.YELLOW + "mode: {}".format(_mode))
+                match _mode:
+                    case Mode.COLOR:
+                        payload = Payload(cmd, red, green, blue, 0.0)
+                    case Mode.ENABLE:
+                        payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
+                    case Mode.PING:
+                        payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
+                    case Mode.IP_ADDRESS:
+                        payload = Payload(cmd, *self._ip_address)
+                    case Mode.REQUEST:
+                        # TODO
+                        payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
+                    case Mode.ACK:
+                        # TODO
+                        payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
+                    case Mode.STOP:
+                        _color = Fore.RED
+                        payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
+                    case Mode.GO:
+                        _color = Fore.GREEN
+                        payload = Payload(cmd, speed, speed, speed, speed)
+                    case Mode.ERROR:
+                        _color = Fore.RED
+                        payload = Payload(cmd, -1.0, -1.0, -1.0, -1.0)
+                    case Mode.DISABLE:
+                        _color = Fore.BLACK
+                        payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
+#                   case Mode.ROT_CW:
+#                   case Mode.ROT_CCW:
+#                   case Mode.CRAB_PORT:
+#                   case Mode.CRAB_STBD:
+#                   case Mode.DIA_PFWD:
+#                   case Mode.DIA_SFWD:
+#                   case Mode.DIA_PREV:
+#                   case Mode.DIA_SREV:
+                    case _:
+                        payload = Payload(cmd, speed, speed, -speed, -speed)
 
                 start_time = dt.now()
                 # send the Payload object
                 self.send_payload(payload)
                 try:
-                    self.receive_payload()
+                    value = self.receive_payload()
+                    if isinstance(value, int):
+                        speed = value
                 except ValueError as e:
                     self._log.error("error receiving payload: {}:".format(e))
                     continue  # optionally, continue the loop without stopping
                 # calculate elapsed time
                 elapsed_time = (dt.now() - start_time).total_seconds() * 1000  # Convert to milliseconds
-
-                if cmd == 'GO':
-                    _color = Fore.GREEN
-                elif cmd == 'ST':
-                    _color = Fore.RED
-                else:
-                    _color = Fore.BLUE
 
                 if next(counter) % div == 0: # every 10th time
                     self._log.info(_color + "{} / {}".format(cmd, speed) + Fore.CYAN + "; tx: {:.2f} ms elapsed.".format(elapsed_time))

@@ -7,7 +7,7 @@
 #   
 # author:   Murray Altheim
 # created:  2025-05-23
-# modified: 2025-05-25
+# modified: 2025-07-14
 
 import time
 import pyb
@@ -16,7 +16,11 @@ from neopixel import NeoPixel
 from colors import *
 
 class Pixel:
-    def __init__(self, pin='PA1', pixel_count=1, color_order='GRB', brightness=0.33):
+    def __init__(self, config=None, pixel_count=1, color_order='GRB', brightness=0.33):
+        if config is None:
+            pin = 'E1'
+        else:
+            pin = config['kros']['pixel']['pin']
         self._pixel_count = pixel_count
         self._pixel_index = 0
         self._brightness = brightness

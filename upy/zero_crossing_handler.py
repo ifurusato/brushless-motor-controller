@@ -32,7 +32,7 @@ class ZeroCrossingHandler(FiniteStateMachine):
     '''
     def __init__(self, motor_id, config, motor_instance, level=Level.INFO):
         self._log = Logger('zc-handler-{}'.format(motor_id), level=level)
-        self._log.info(Fore.YELLOW + 'initializing ZC Handler for motor {}'.format(motor_id))
+        self._log.debug('initialising ZC Handler for motor {}'.format(motor_id))
         self._motor = motor_instance
         # configuration ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
         _cfg = config['kros']['zero_crossing_handler']
@@ -42,9 +42,9 @@ class ZeroCrossingHandler(FiniteStateMachine):
         self._stop_rpm_threshold        = _cfg.get('stop_rpm_threshold', 5.0)
         self._zero_confirmation_time_ms = _cfg.get('confirmation_time_ms', 100)
         self._max_transition_time_ms    = _cfg.get('max_transition_time_ms', 5000)
-        self._log.info(Fore.YELLOW + 'ZC for motor {}: decel_rate={:>5.1f} RPM/s, accel_rate={:>5.1f} RPM/s, interval={}ms'.format(
+        self._log.debug('ZCH for motor {}: decel_rate={:.1f} RPM/s, accel_rate={:.1f} RPM/s, interval={}ms'.format(
                 motor_id, self._decel_rate_rpm_per_sec, self._accel_rate_rpm_per_sec, self._transition_interval_ms))
-        self._log.info(Fore.YELLOW + 'ZC for motor {}: stop_threshold={:>5.1f} RPM, confirm_time={}ms, max_time={}ms'.format(
+        self._log.debug('                 stop_threshold={:.1f} RPM, confirm_time={}ms, max_time={}ms'.format(
                 motor_id, self._stop_rpm_threshold, self._zero_confirmation_time_ms, self._max_transition_time_ms))
         # define ZC state transitions for the FSM
         _zc_transition_map = {
@@ -74,7 +74,7 @@ class ZeroCrossingHandler(FiniteStateMachine):
         self.on(ZeroCrossingStage.ACCELERATING, self._on_accelerating_entry)
         self.on(ZeroCrossingStage.COMPLETE, self._on_complete_entry)
         self.on(ZeroCrossingStage.IDLE, self._on_idle_entry)
-        self._log.info(Fore.YELLOW + 'ready.')
+        self._log.info('ready.')
 
     @property
     def is_active(self):

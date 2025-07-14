@@ -22,9 +22,11 @@ from logger import Logger, Level
 from config_loader import ConfigLoader
 from payload import Payload
 from pixel import Pixel
+from display import Display
 from status import Status
 from payload_router import PayloadRouter
 from motor_controller import MotorController
+from stm32_uart_slave import Stm32UartSlave
 from mode import Mode
 from colors import *
 
@@ -35,17 +37,21 @@ class UartSlaveApp:
     def __init__(self, is_pyboard=True):
         self._is_pyboard = is_pyboard
         self._log = Logger('uart_slave_app', Level.INFO)
-        self._pixel    = Pixel(pixel_count=8, brightness=0.1)
-        self._status   = Status(self._pixel)
+        self._display  = Display()
         self._slave    = None
-        self._uart_id  = None
-        self._verbose  = True
+        self._tx_count = 0
+        self._verbose  = False
         self._baudrate = 1_000_000 # default
         _config = ConfigLoader.configure('config.yaml')
         if _config is None:
             raise ValueError('failed to import configuration.')
+        self._pixel    = Pixel(_config, pixel_count=8, brightness=0.1)
+        self._status   = Status(self._pixel)
+        _cfg = _config['kros']
+        self._uart_id  = _cfg['uart']['uart_id']
         self._motor_controller = MotorController(config=_config, status=self._status, motors_enabled=(True, True, False, False), level=Level.INFO)
-        self._router   = PayloadRouter(self._status, self._motor_controller)
+        self._router   = PayloadRouter(self._status, self._display, self._motor_controller)
+        self._display.hello()
         self._log.info('ready.')
 
     def rgb(self, color=None):
@@ -82,18 +88,18 @@ class UartSlaveApp:
 
     async def _setup_uart_slave(self):
         if self._is_pyboard:
-            from stm32_uart_slave import Stm32UartSlave
+#           from stm32_uart_slave import Stm32UartSlave
             self._log.info('waiting a bit…')
             await self._pyb_wait_a_bit()
             self._log.info('done waiting.')
-            self._uart_id = 2
+#           self._uart_id = 2
             self._log.info('configuring UART{} slave for STM32 Pyboard…'.format(self._uart_id))
             self._slave = Stm32UartSlave(uart_id=self._uart_id, baudrate=self._baudrate, status=self._status)
-        
+
         else:
             from rp2040_uart_slave import RP2040UartSlave
             await self._wait_a_bit()
-            self._uart_id = 1
+#           self._uart_id = 1
             self._log.info('configuring UART{} slave for RP2040…'.format(self._uart_id))
             self._slave = RP2040UartSlave(uart_id=self._uart_id, baudrate=self._baudrate, status=self._status)
 
@@ -108,6 +114,7 @@ class UartSlaveApp:
             while True:
                 _payload = await self._slave.receive_packet()
                 if isinstance(_payload, Payload):
+                    self._tx_count += 1
                     if self._verbose:
                         self._log.info("payload: {}".format(_payload))
                     if _payload.cmd == 'RS': # request status
@@ -120,6 +127,12 @@ class UartSlaveApp:
                             status_payload = Payload(Mode.ACK.code, 0.0, 0.0, 0.0, 0.0)
                         await self._slave.send_packet(status_payload)
                         self._router.clear_error()
+                    elif _payload.cmd == 'PN': # just ping, no routing
+                        values = Payload.encode_int(self._tx_count)
+                        self._log.debug("ping count: {}; values: {}".format(self._tx_count, values))
+                        # at the other end: Payload.decode_to_int(values)
+                        ack_payload = Payload(Mode.PING.code, *values)
+                        await self._slave.send_packet(ack_payload)
                     else:
                         # route normal command payload (non-blocking)
                         asyncio.create_task(self._router.route(_payload))
@@ -159,7 +172,7 @@ def exec():
     except KeyboardInterrupt:
         pass
     finally:
-        if app: 
+        if app:
             app.close()
 
 if __name__ == "__main__":
@@ -170,7 +183,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     finally:
-        if app: 
+        if app:
             app.close()
 
 #EOF

@@ -83,3 +83,4 @@ COLOR_INDIGO        = Color("COLOR_INDIGO",       (  0,  75, 130))
 COLOR_VIOLET        = Color("COLOR_VIOLET",       (138,  43, 226))
 
 #EOF
+

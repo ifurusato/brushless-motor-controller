@@ -9,7 +9,7 @@
 # created:  2025-06-12
 # modified: 2025-07-04
 
-from sd.mode import Mode
+from upy.mode import Mode
 from hardware.digital_pot_async import DigitalPotentiometer
 from hardware.rotary_encoder import RotaryEncoder
 

@@ -7,10 +7,11 @@
 #
 # author:   Murray Altheim
 # created:  2025-06-12
-# modified: 2025-06-27
+# modified: 2025-07-14
 
 import struct
-from crc8_table import CRC8_TABLE
+#from crc8_table import CRC8_TABLE     # in slave version
+from upy.crc8_table import CRC8_TABLE  # in master version
 
 class Payload:
     # sync header: 'zz' for human-readability. To switch to a binary header, just uncomment the next line.
@@ -20,6 +21,8 @@ class Payload:
     PAYLOAD_SIZE = struct.calcsize(PACK_FORMAT) # size of cmd+floats only, no CRC or header
     CRC_SIZE = 1
     PACKET_SIZE = len(SYNC_HEADER) + PAYLOAD_SIZE + CRC_SIZE  # header + payload + crc
+    VARIABLE_FORMAT = "{:2s} {:.1f} {:.1f} {:.1f} {:.1f}"
+    FIXED_FORMAT    = "{:>2} {:5.1f} {:5.1f} {:5.1f} {:5.1f}"
 
     def __init__(self, cmd, pfwd, sfwd, paft, saft):
         self._cmd  = cmd
@@ -63,9 +66,15 @@ class Payload:
         '''
         return self.values
 
-    def __repr__(self):
-        return "Payload(cmd={:>2}, pfwd={:7.2f}, sfwd={:7.2f}, paft={:7.2f}, saft={:7.2f})".format(
+    def as_log(self):
+        return Payload.VARIABLE_FORMAT.format(
             self._cmd, self._pfwd, self._sfwd, self._paft, self._saft
+        )
+
+    def __repr__(self):
+        cmd_str = self.cmd.decode('utf-8') if isinstance(self.cmd, bytes) else self.cmd
+        return "Payload(cmd={:>2}, pfwd={:7.2f}, sfwd={:7.2f}, paft={:7.2f}, saft={:7.2f})".format(
+            cmd_str, self._pfwd, self._sfwd, self._paft, self._saft
         )
 
     def to_bytes(self):
@@ -77,7 +86,8 @@ class Payload:
 
     def __bytes__(self):
         # pack the data into bytes (cmd, floats)
-        packed = struct.pack(self.PACK_FORMAT, self._cmd, self._pfwd, self._sfwd, self._paft, self._saft)
+        _cmd  = self._cmd.encode('ascii') if isinstance(self._cmd, str) else self._cmd
+        packed = struct.pack(self.PACK_FORMAT, _cmd, self._pfwd, self._sfwd, self._paft, self._saft)
         crc = self.calculate_crc8(packed)
         return Payload.SYNC_HEADER + packed + bytes([crc])
 
@@ -101,5 +111,52 @@ class Payload:
         for b in data:
             crc = CRC8_TABLE[crc ^ b]
         return crc
+
+    @staticmethod
+    def encode_int(value_32_bit_int):
+        '''
+        Encode a 32-bit int into four floats in range 0–255.0.
+        '''
+        masked_value = value_32_bit_int & 0xFFFFFFFF
+        float0 = float((masked_value >> 24) & 0xFF)
+        float1 = float((masked_value >> 16) & 0xFF)
+        float2 = float((masked_value >> 8) & 0xFF)
+        float3 = float(masked_value & 0xFF)
+        return float0, float1, float2, float3
+
+    @staticmethod
+    def decode_to_int(f0, f1, f2, f3):
+        '''
+        Decode a 32-bit int from four floats.
+        '''
+        byte0 = int(f0)
+        byte1 = int(f1)
+        byte2 = int(f2)
+        byte3 = int(f3)
+        reconstructed_int = (byte0 << 24) | (byte1 << 16) | (byte2 << 8) | byte3
+        return reconstructed_int
+
+    @staticmethod
+    def _encode_int(value):
+        '''
+        Encode a 32-bit int into four floats in range 0–255.0.
+        '''
+        if not (0 <= value <= 0xFFFFFFFF):
+            raise ValueError("value out of 32-bit unsigned range")
+        b0 = (value >> 24) & 0xFF
+        b1 = (value >> 16) & 0xFF
+        b2 = (value >> 8) & 0xFF
+        b3 = value & 0xFF
+        return [float(b) for b in (b0, b1, b2, b3)]
+
+    @staticmethod
+    def _decode_to_int(values):
+        '''
+        Decode a 32-bit int from four floats.
+        '''
+        if len(values) != 4:
+            raise ValueError("expected four floats.")
+        b0, b1, b2, b3 = [int(round(f)) & 0xFF for f in values]
+        return (b0 << 24) | (b1 << 16) | (b2 << 8) | b3
 
 #EOF

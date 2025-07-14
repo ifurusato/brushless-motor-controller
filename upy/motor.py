@@ -70,10 +70,9 @@ class Motor:
             self._log.info('motor {} PWM timer: '.format(self._name) + Fore.GREEN + '{}'.format(pwm_timer))
             self._log.info('motor {} channel: '.format(self._name) + Fore.GREEN + '{}'.format(self._pwm_channel))
             self._log.info('motor {} pins: PWM: '.format(self._name) + Fore.GREEN + '{}'.format(pwm_pin)
-                                         + Fore.CYAN + '; direction:     ' + Fore.GREEN + '{}'.format(direction_pin)
-                                         + Fore.CYAN + '; encoder:       ' + Fore.GREEN + '{}'.format(encoder_pin))
-            self._log.info('motor {} encoder IRQ set on pin: '.format(self._name) + Fore.GREEN + '{}'.format(self._encoder_pin))
-            self._log.info('maximum motor speed:  ' + Fore.GREEN + '{}'.format(max_speed))
+                                         + Fore.CYAN + '; direction: ' + Fore.GREEN + '{}'.format(direction_pin)
+                                         + Fore.CYAN + '; encoder: ' + Fore.GREEN + '{}'.format(encoder_pin))
+            self._log.info('maximum motor speed: ' + Fore.GREEN + '{} rpm'.format(max_speed))
 
             self._log.info('motor {} ready.'.format(self._name))
         except Exception as e:

@@ -14,7 +14,7 @@ import time
 from colorama import init, Fore, Style
 init()
 
-from uart.payload import Payload
+from upy.payload import Payload
 from core.logger import Logger, Level
 
 class SyncUARTManager:

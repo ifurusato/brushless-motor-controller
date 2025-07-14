@@ -16,7 +16,7 @@ from concurrent.futures import ThreadPoolExecutor
 from colorama import init, Fore, Style
 init()
 
-from hardware.payload import Payload
+from upy.payload import Payload
 from core.logger import Logger, Level
 import time
 

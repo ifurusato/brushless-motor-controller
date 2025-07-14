@@ -20,6 +20,7 @@ class PID:
         self._log = Logger('pid-{}'.format(id), level=level)
         self._log.info('initialising PID controller…')
         _cfg = config['kros']['pid']
+        self._verbose    = _cfg['verbose']
         self._kp         = _cfg['kp']
         self._ki         = _cfg['ki']
         self._kd         = _cfg['kd']
@@ -72,9 +73,10 @@ class PID:
         output = p_term + i_term + d_term # Re-calculate total output
         self._last_error = error  
         limited = max(self._output_min, min(output, self._output_max))
-        if next(self._counter) % self._log_frequency == 0:
-            self._log.info(Style.DIM + "dt={}µs; p={:.2f}, i={:.2f}, d={:.2f}, setpoint={:.2f}; output={:.2f} ({:.2f})".format(
-                    dt_us, p_term, i_term, d_term, self._setpoint, output, limited))
+        if self._verbose:
+            if next(self._counter) % self._log_frequency == 0:
+                self._log.info(Style.DIM + "dt={}µs; p={:.2f}, i={:.2f}, d={:.2f}, setpoint={:.2f}; output={:.2f} ({:.2f})".format(
+                        dt_us, p_term, i_term, d_term, self._setpoint, output, limited))
         return limited
         
 
