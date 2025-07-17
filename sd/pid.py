@@ -75,8 +75,10 @@ class PID:
         limited = max(self._output_min, min(output, self._output_max))
         if self._verbose:
             if next(self._counter) % self._log_frequency == 0:
-                self._log.info(Style.DIM + "dt={}µs; p={:.2f}, i={:.2f}, d={:.2f}, setpoint={:.2f}; output={:.2f} ({:.2f})".format(
-                        dt_us, p_term, i_term, d_term, self._setpoint, output, limited))
+                self._log.info(Style.DIM + "pid=({:.2f}, {:.2f}, {:.2f}), sp={:.2f}; out={:.2f} ({:.2f})".format(
+                        p_term, i_term, d_term, self._setpoint, output, limited))
+#               self._log.info(Style.DIM + "dt={}µs; p={:.2f}, i={:.2f}, d={:.2f}, setpoint={:.2f}; output={:.2f} ({:.2f})".format(
+#                       dt_us, p_term, i_term, d_term, self._setpoint, output, limited))
         return limited
 
     def x_update(self, value, dt_us):

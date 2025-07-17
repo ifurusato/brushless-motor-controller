@@ -19,7 +19,6 @@ from logger import Logger, Level
 from config_loader import ConfigLoader
 from payload import Payload
 from pixel import Pixel
-from display import Display
 from status import Status
 from payload_router import PayloadRouter
 from motor_controller import MotorController
@@ -39,13 +38,19 @@ class UartSlaveApp:
         self._is_pyboard = _cfg['is_pyboard'] 
         self._verbose    = _cfg['verbose']
         self._log = Logger('uart{}_slave'.format(self._uart_id), Level.INFO)
-        self._display  = Display()
+        _display_enabled = _config['kros']['display']['enable']
+        if _display_enabled:
+            from display import Display
+            self._display  = Display()
+        else:
+            from mock_display import Display
+            self._display  = Display()
         self._pixel    = Pixel(_config, pixel_count=8, brightness=0.1)
         self._status   = Status(self._pixel)
         self._slave    = None
         self._tx_count = 0
         self._baudrate = 1_000_000 # default
-        self._motor_controller = MotorController(config=_config, status=self._status, motors_enabled=(True, True, False, False), level=Level.INFO)
+        self._motor_controller = MotorController(config=_config, status=self._status, level=Level.INFO)
         self._router   = PayloadRouter(self._status, self._display, self._motor_controller)
         self._display.hello()
         self._log.info('ready.')

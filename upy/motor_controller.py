@@ -47,7 +47,9 @@ class MotorController:
         self._motor_numbers = [0, 1, 2, 3]
         _cfg             = config["kros"]["motor_controller"]
         _app_cfg         = config["kros"]["application"]
-        _motor_cfg       = config["kros"]["motors"]
+        _impl            = _app_cfg['impl']
+        self._log.info('using {} implementation…'.format(_impl))
+        _motor_cfg       = config["kros"]["motors_{}".format(_impl)] # use implementation
         _slew_cfg        = config["kros"]["slew_limiter"]
         _zc_cfg          = config["kros"]["zero_crossing_handler"]
         _pwm_frequency   = _cfg['pwm_frequency']
@@ -65,6 +67,7 @@ class MotorController:
         self._zero_crossing_handlers  = {}
         self._zc_awaiter_tasks        = {}
 
+        self._pid_task_enabled        = False
         if self._use_closed_loop:
             # closed-loop flag and PID related attributes
             self._pid_controllers = {}     # PID instances
@@ -94,6 +97,13 @@ class MotorController:
             self._logging_task = None # store the logging task to manage it
             self._logging_enabled = False
             self._loop         = None # asyncio loop instance
+            # configure enable/disable motors
+            enable_m0 = _cfg['enable_m0']
+            enable_m1 = _cfg['enable_m1']
+            enable_m2 = _cfg['enable_m2']
+            enable_m3 = _cfg['enable_m3']
+            motors_enabled = (enable_m0, enable_m1, enable_m2, enable_m3)
+            self._log.info(Fore.MAGENTA + 'enable motors m0={}; m1={}; m2={}; m3={}'.format(enable_m0, enable_m1, enable_m2, enable_m3))
             # motors ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
             for index in range(4):
                 if not motors_enabled[index]:
@@ -180,6 +190,7 @@ class MotorController:
                 motor.enable()
             self._rpm_timer.callback(self._rpm_timer_callback)
             if self._use_closed_loop:
+                self._pid_task_enabled = True
                 self._pid_timer.callback(lambda t: self._pid_signal_flag.set())
                 if self._enable_slew_limiter:
                     for motor_id, limiter in self._slew_limiters.items():
@@ -348,7 +359,8 @@ class MotorController:
                 self._pid_timer.callback(None)
                 self._log.info("disabled PID timer callback.")
             if self._pid_task and not self._pid_task.done():
-                self._pid_task.cancel()
+                self._pid_task_enabled = False # exit pid task
+                self._pid_signal_flag.set()  # wake so it can exit
                 self._log.info("PID control task cancellation requested.")
             for motor in self.motors:
                 motor.disable()
@@ -381,8 +393,10 @@ class MotorController:
         if not self.enabled: # TEMP
             raise RuntimeError('motor controller disabled.')
         self._log.debug("starting asynchronous PID control task, driven by hardware timer.")
-        while True:
+        while self._pid_task_enabled:
             await self._pid_signal_flag.wait()
+            if not self._pid_task_enabled:
+                break
             current_time = utime.ticks_us()
             # calculate dt_us based on the consistent global cycle time
             global_cycle_dt_us = utime.ticks_diff(current_time, self._last_global_pid_cycle_time)

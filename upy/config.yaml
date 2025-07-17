@@ -1,15 +1,27 @@
-# YAML configuration for motors 0-3
+# STM32H723 YAML configuration for motors 0-3
+#
+# stm32_uart_slave  uart2
+# rp2040_uart_slave uart1
 
 kros:
   application:
     verbose:                False  # application-level verbosity
+    impl:              'stm32h562'
+#   impl:              'stm32h723'
   uart_slave_app:
     verbose:                False
     is_pyboard:              True
-    uart_id:                    3  # UART identifier (1-7)
+    uart_id:                    2  # UART identifier (1-7): 3 on STM32H723, 2 on STM32H562 (TX=PA2; RX=PA3)
   pixel:
-    pin:                      'E1' # pin for NeoPixel
+    pin:                      'A0' # pin for NeoPixel
+#   pin:                      'E1' # pin for NeoPixel on STM32H723
+  display:
+    enable:                 False
   motor_controller:
+    enable_m0:               True  # enable motor M0
+    enable_m1:               True  # enable motor M1
+    enable_m2:               True  # enable motor M2
+    enable_m3:               True  # enable motor M3
     use_closed_loop:         True
     rpm_timer_number:           2  # RPM timer number
     rpm_timer_frequency:      100  # RPM timer frequency in Hz
@@ -21,7 +33,7 @@ kros:
     max_motor_speed:          159  # maximum stated motor speed (RPM)
   zero_crossing_handler:
     verbose:                False
-    enabled:                 True  # use zero-crossing handler for speed polarity transitions
+    enabled:                False  # use zero-crossing handler for speed polarity transitions
     decel_rate_rpm_per_sec:    50
     accel_rate_rpm_per_sec:    50
     transition_interval_ms:    20
@@ -41,7 +53,56 @@ kros:
       setpoint:                 0.0
       min:                   -100
       max:                    100
-  motors:
+  motors_stm32h562:
+    motor0:
+      id:                    0
+      name:                "M0"
+      pwm_timer:             4
+      pwm_channel:           1
+      pwm_pin:             'B6'    # pink wire
+      pwm_pin_name:       'PB6'
+      direction_pin:      'B12'    # white wire
+      direction_pin_name: 'B12'
+      encoder_pin:         'C6'    # grey wire
+      encoder_pin_name:   'PC6'
+      reverse:           False
+    motor1:
+      id:                    1
+      name:                "M1"
+      pwm_timer:             4
+      pwm_channel:           2
+      pwm_pin:             'B7'
+      pwm_pin_name:       'PB7'
+      direction_pin:      'B14'
+      direction_pin_name: 'B14'
+      encoder_pin:         'C7'
+      encoder_pin_name:   'PC7'
+      reverse:            True
+    motor2:
+      id:                    2
+      name:                'M2'
+      pwm_timer:             4
+      pwm_channel:           3
+      pwm_pin:             'B8'
+      pwm_pin_name:       'PB8'
+      direction_pin:       'B3'
+      direction_pin_name:  'B3'
+      encoder_pin:         'C4'   # B0: Timer 3 CH3
+      encoder_pin_name:   'PC4'
+      reverse:            False
+    motor3:
+      id:                    3
+      name:                'M3'
+      pwm_timer:             4
+      pwm_channel:           4
+      pwm_pin:             'C2' # B9 doesn't seem to work
+      pwm_pin_name:       'PC2'
+      direction_pin:       'B5'
+      direction_pin_name:  'B5'
+      encoder_pin:         'C5'  # B1: Timer 3 CH4
+      encoder_pin_name:   'PC5'
+      reverse:            True
+  motors_stm32h723:
     motor0:
       id:                    0
       name:                "M0"

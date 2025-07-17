@@ -13,10 +13,12 @@ import time
 import pyb
 from neopixel import NeoPixel
 
+from logger import Logger, Level
 from colors import *
 
 class Pixel:
     def __init__(self, config=None, pixel_count=1, color_order='GRB', brightness=0.33):
+        self._log = Logger('pixel', Level.INFO)
         if config is None:
             pin = 'E1'
         else:
@@ -25,6 +27,7 @@ class Pixel:
         self._pixel_index = 0
         self._brightness = brightness
         self._neopixel = NeoPixel(pyb.Pin(pin, pyb.Pin.OUT), pixel_count, color_order=color_order, brightness=brightness)
+        self._log.info('neopixel ready on pin {}.'.format(pin))
 
     @property
     def pixel_count(self):
