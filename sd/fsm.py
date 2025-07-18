@@ -8,14 +8,10 @@
 # author:   Murray Altheim
 # created:  2020-01-19
 # modified: 2021-07-09 (converted to micropython, made generic)
+#
+# IllegalStateError at bottom
 
 from logger import Level
-
-class IllegalStateError(RuntimeError):
-    '''
-    Exception raised when an invalid state transition is attempted.
-    '''
-    pass
 
 class FiniteStateMachine:
     '''
@@ -129,5 +125,12 @@ class FiniteStateMachine:
             The current state instance of the FSM.
         '''
         return self._state
+
+class IllegalStateError(RuntimeError):
+    '''
+    Exception raised when an invalid state transition is attempted.
+    '''
+    def __init__(self, message):
+        super().__init__(message)
 
 #EOF

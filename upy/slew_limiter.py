@@ -19,14 +19,13 @@ class SlewLimiter:
     of the motor's target speed, preventing sudden, abrupt changes that could
     be harmful to the motor and ensuring the changes to the motor's speed are
     gradual, more elegant, rather than instantaneous.
+
+    Args:
+        name:                name for this slew limiter
+        max_delta_per_sec:   Maximum allowed change per second (e.g. RPM/sec or %/sec)
+        safe_threshold:      Minimum magnitude below which direction changes are allowed
     '''
     def __init__(self, name=None, max_delta_per_sec=None, safe_threshold=10):
-        '''
-        Args:
-            name:                name for this slew limiter
-            max_delta_per_sec:   Maximum allowed change per second (e.g. RPM/sec or %/sec)
-            safe_threshold:      Minimum magnitude below which direction changes are allowed
-        '''
         self._log = Logger('slew-{}'.format(name), Level.INFO)
         self._max_delta_per_sec = float(max_delta_per_sec)
         self._safe_threshold    = float(safe_threshold)

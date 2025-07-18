@@ -9,7 +9,7 @@
 # created:  2021-06-29
 # modified: 2025-06-27
 #
-# ConfigurationError, IllegalStateError and MissingComponentError at bottom
+# ConfigurationError at bottom
 
 from threading import Lock
 from collections import OrderedDict
@@ -198,24 +198,9 @@ class ComponentRegistry(object):
         '''
         return self._dict
 
-
 class ConfigurationError(RuntimeError):
     '''
     This exception is thrown when any error due to configuration occurs.
-    '''
-    def __init__(self, message):
-        super().__init__(message)
-
-class IllegalStateError(RuntimeError):
-    '''
-    Signals that a method has been invoked at an illegal or inappropriate time.
-    '''
-    def __init__(self, message):
-        super().__init__(message)
-
-class MissingComponentError(Exception):
-    '''
-    Thrown when a required component is not available.
     '''
     def __init__(self, message):
         super().__init__(message)

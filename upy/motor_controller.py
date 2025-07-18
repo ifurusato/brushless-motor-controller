@@ -25,7 +25,9 @@ from mode import Mode
 
 class MotorController:
     '''
-    A controller for four brushless motors.
+    A controller for four brushless motors. This operates in both open- and
+    closed loop mode, and optionally supports slew limiting and zero-crossing
+    behaviours.
 
     Args:
         config:          The application-level configuration.

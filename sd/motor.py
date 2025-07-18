@@ -24,14 +24,30 @@ class Motor:
     DIRECTION_FORWARD = 1
     DIRECTION_REVERSE = 0
 
+    '''
+    This class supports control over a single JGA25 DC brushless motor, with its
+    own internal PWM controller, a direction input pin, and a single encoder pin.
+
+    The motor speed is controlled by an inverted PWM signal, i.e., with a 100%
+    PWM duty cycle the motor is stopped, a 0% duty cycle is full speed. In order
+    to not be confused by this logic, the hardware Timer's PWM channel is defined
+    using `Timer.PWM_INVERTED`.
+
+    Direction of the motor is set by a direction pin, with forward as 1/high,
+    reverse as 0/low.
+
+    The motor has a single encoder pin so it cannot determine direction via phase
+    as is typically done with quadratic encoders. It's therefore possible to "fool"
+    the motor by changing the direction pin quickly while the motor is at speed in
+    one direction.
+
+    Args:
+        config:      configuration specific to this motor
+        pwm_timer:   the hardware Timer used for all motors
+        max_speed:   the maximum target speed permitted
+        level:       the logging level
+    '''
     def __init__(self, config=None, pwm_timer=None, max_speed=None, level=Level.INFO):
-        '''
-        Args:
-            config:      configuration specific to this motor
-            pwm_timer:   the hardware Timer used for all motors
-            max_speed:   the maximum target speed permitted
-            level:       the logging level
-        '''
         try:
             self._log = None
             if config is None:

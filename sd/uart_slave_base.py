@@ -15,8 +15,9 @@ from pyb import LED, Pin, UART
 from pyb import LED
 from colorama import Fore, Style
 
-from ucomponent import Component, IllegalStateError
+from ucomponent import Component
 from logger import Logger, Level
+from sd.fsm import IllegalStateError
 from payload import Payload
 
 class UartSlaveBase(Component):

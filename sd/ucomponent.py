@@ -8,8 +8,6 @@
 # author:   Murray Altheim
 # created:  2021-06-29
 # modified: 2025-06-27 (ucomponent)
-#
-# IllegalStateError at bottom.
 
 from logger import Logger
 from colorama import Fore, Style
@@ -88,11 +86,5 @@ class Component(object):
         else:
             self._log.debug('already closed.')
         return True
-
-class IllegalStateError(RuntimeError):
-    '''
-    Signals that a method has been invoked at an illegal or inappropriate time.
-    '''
-    pass
 
 #EOF

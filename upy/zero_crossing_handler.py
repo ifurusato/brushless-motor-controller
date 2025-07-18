@@ -19,21 +19,28 @@ from zc_stage import ZeroCrossingStage
 from fsm import FiniteStateMachine
 
 # ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
-class IllegalStateError(RuntimeError):
-    '''
-    Exception raised when an invalid state transition is attempted.
-    '''
-    pass
-
-# ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
 class ZeroCrossingHandler(FiniteStateMachine):
     '''
-    Manages the zero-crossing transition for a single motor.
+    The Zero Crossing Handler is a state machine for a single motor, triggered
+    whenever there is a difference in direction between the current and the 
+    target direction. As an interruptable ballistic behaviour, the target speed
+    will need to decelerate to zero and then accelerate to the target speed in 
+    the other direction, smoothly managing this zero-crossing transition.
+
+    This class must work in both open- and closed-loop mode, and work in
+    cooperation with the SlewLimiter if it is active. Also, it must dynamically
+    react to the motor's constantly-changing target speed.
+
+    Args:
+        motor_id:  the identifier for the motor (used for logging)
+        config:    the application configuration
+        motor:     the instance of the Motor class
+        level:     the logging level
     '''
-    def __init__(self, motor_id, config, motor_instance, level=Level.INFO):
+    def __init__(self, motor_id, config, motor, level=Level.INFO):
         self._log = Logger('zc-handler-{}'.format(motor_id), level=level)
         self._log.debug('initialising ZC Handler for motor {}'.format(motor_id))
-        self._motor = motor_instance
+        self._motor = motor
         # configuration ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
         _cfg = config['kros']['zero_crossing_handler']
         self._verbose                   = _cfg.get('verbose')
