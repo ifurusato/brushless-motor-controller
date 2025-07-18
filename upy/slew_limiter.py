@@ -28,10 +28,10 @@ class SlewLimiter:
             safe_threshold:      Minimum magnitude below which direction changes are allowed
         '''
         self._log = Logger('slew-{}'.format(name), Level.INFO)
-        self.max_delta_per_sec = float(max_delta_per_sec)
-        self.safe_threshold = float(safe_threshold)
-        self._last_value = None
-        self._last_time_ms = None # Renamed for MicroPython ticks_ms
+        self._max_delta_per_sec = float(max_delta_per_sec)
+        self._safe_threshold    = float(safe_threshold)
+        self._last_value        = None
+        self._last_time_ms      = None
         self.reset()
         self._log.info(Fore.MAGENTA + 'ready.')
 
@@ -40,30 +40,32 @@ class SlewLimiter:
         Returns the limited value based on the time passed since the last call.
         '''
         now_ms = utime.ticks_ms()
-        value = float(value)
+        _value = float(value)
         if self._last_value is None:
-            self._last_value = value
+            self._last_value = _value
             self._last_time_ms = now_ms
-            return value
+            return _value
         elapsed_ms = utime.ticks_diff(now_ms, self._last_time_ms)
         if elapsed_ms <= 0:
             return self._last_value
         elapsed_seconds = elapsed_ms / 1000.0
-        if (value * self._last_value < 0) and (abs(self._last_value) > self.safe_threshold):
+        if (_value * self._last_value < 0) and (abs(self._last_value) > self._safe_threshold):
             return self._last_value  # Block reversal if not below safe threshold
-        max_delta = self.max_delta_per_sec * elapsed_seconds
-        delta = value - self._last_value
+        max_delta = self._max_delta_per_sec * elapsed_seconds
+        delta = _value - self._last_value
         if abs(delta) > max_delta:
             delta = max_delta if delta > 0 else -max_delta
         new_value = self._last_value + delta
         self._last_value = new_value
         self._last_time_ms = now_ms
+        self._log.info(Fore.YELLOW + 'v={}; r={}'.format(_value, new_value))
         return new_value
 
     def reset(self, value=None):
         '''
         Resets the limiter to a specific value (or clears it).
         '''
+        self._log.info(Fore.YELLOW + 'reset.')
         self._last_value = float(value) if value is not None else None
         self._last_time_ms = utime.ticks_ms()
 

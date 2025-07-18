@@ -178,7 +178,7 @@ class UARTMaster:
                 elapsed_time = (dt.now() - start_time).total_seconds() * 1000  # Convert to milliseconds
 
                 if next(counter) % div == 0: # every 10th time
-                    self._log.info(_color + "{} / {}".format(cmd, speed) + Fore.CYAN + "; tx: {:.2f} ms elapsed.".format(elapsed_time))
+                    self._log.info(_color + "{} / {:>3}".format(cmd, speed) + Fore.CYAN + "; tx: {:.2f} ms elapsed.".format(elapsed_time))
                 # with no sleep here, would be running as fast as the system allows
                 if self._hindered:
                     time.sleep(delay_sec)

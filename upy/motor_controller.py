@@ -115,8 +115,8 @@ class MotorController:
                 # instantiate PID controller for this motor if closed-loop enabled
                 if self._use_closed_loop:
                     self._pid_controllers[index] = PID(_name, config, level=level)
-                    self._motor_target_rpms[index] = 0.0 # initialize target RPM
-                # instantiate SlewLimiter for this motor
+                    self._motor_target_rpms[index] = 0.0
+                # instantiate SlewLimiter for each motor
                 if self._enable_slew_limiter:
                     self._slew_limiters[index] = SlewLimiter(name=_name, max_delta_per_sec=_max_delta_per_sec, safe_threshold=_safe_threshold)
             self._log.info('ready.')
