@@ -40,9 +40,7 @@ if __name__ == "__main__":
     _speed_provider   = DigitalPotSpeedProvider(multiplier=_multiplier)
 
     # instantiate the UARTMaster and run in a loop
-    _baudrate = 1_000_000 # 115200 460800 921600
-    _log.info('baud rate: {:,}'.format(_baudrate))
-    master = UARTMaster(baudrate=_baudrate)
+    master = UARTMaster(_config)
     _log.info(Fore.GREEN + 'starting…')
     master.run(_command_provider, _speed_provider, delay_sec=_delay_sec)
     _log.info(Fore.GREEN + 'complete.')

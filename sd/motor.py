@@ -24,40 +24,51 @@ class Motor:
     DIRECTION_FORWARD = 1
     DIRECTION_REVERSE = 0
 
-    def __init__(self, id, name, pwm_timer, pwm_channel,
-                 pwm_pin, pwm_pin_name=None,
-                 direction_pin=None, direction_pin_name=None,
-                 encoder_pin=None, encoder_pin_name=None,
-                 max_speed=None, reverse=False, log_level=Level.INFO):
+    def __init__(self, config=None, pwm_timer=None, max_speed=None, level=Level.INFO):
+        '''
+        Args:
+            config:      configuration specific to this motor
+            pwm_timer:   the hardware Timer used for all motors
+            max_speed:   the maximum target speed permitted
+            level:       the logging level
+        '''
         try:
-            self._enabled = False
-            self._id      = id
-            self._name    = name
-            self._log = Logger('motor-{}'.format(self._name), level=log_level)
+            self._log = None
+            if config is None:
+                raise TypeError('no configuration provided.')
+            if pwm_timer is None:
+                raise TypeError('no PWM timer provided.')
+            self._id   = config["id"]
+            self._name = config["name"]
+            self._log  = Logger('motor-{}'.format(self._name), level=level)
             self._log.info('initialising motor {}'.format(self._name))
-            self._tick_count       = 0
-            self._pulse_intervals  = []
-            self._rpm              = 0
-            self._max_speed        = max_speed
-            self._reverse          = reverse
-            self._update_interval  = 0.1
-            self._pulses_per_output_rev = 1350 # pulses_per_motor_rev * gear_ratio
-            self._no_tick_timeout_us = 70_000 # how much time we wait before declaring motor stopped (at 6 RPM this would be 37,037)
-            self._soft_stop_threshold_rpm = 6.0 # RPM below which motor is considered 'stopped enough' for direction change
-            self._current_logical_direction = Motor.DIRECTION_FORWARD
+            self._enabled         = False
+            self._direction       = Motor.DIRECTION_FORWARD
+            self._reverse         = config["reverse"]
+            self._tick_count      = 0
+            self._rpm             = 0
+            self._max_speed       = max_speed
+            self._update_interval = 0.1
+            self._ticks_per_output_rev      = 1350    # observed (ticks per motor rev * gear ratio)
+            self._no_tick_timeout_us        = 70_000  # how much time we wait before declaring motor stopped (at 6 RPM this would be 37,037)
+            self._soft_stop_threshold_rpm   = 6.0     # RPM below which motor is considered 'stopped enough' for direction change
             # setup PWM channel with pin
-            self._pwm_pin = Pin(pwm_pin)
-            self._pwm_pin_name = pwm_pin_name
+            pwm_pin = config["pwm_pin"]
+            self._pwm_pin         = Pin(pwm_pin)
+            self._pwm_pin_name    = config["pwm_pin_name"]
+            pwm_channel = config["pwm_channel"]
             self._pwm_channel = pwm_timer.channel(pwm_channel, Timer.PWM_INVERTED, pin=self._pwm_pin)
             self._speed = self.STOPPED # speed as 0-100%
             self._pwm_channel.pulse_width_percent(0) # Ensure motor starts off
             # setup direction GPIO pin
+            direction_pin = config["direction_pin"]
             self._direction_pin = Pin(direction_pin, Pin.OUT)
             self._direction_pin.value(1)
-            self._direction_pin_name = direction_pin_name
+            self._direction_pin_name = config["direction_pin_name"]
             # setup encoder pin
+            encoder_pin = config["encoder_pin"]
             self._encoder_pin = Pin(encoder_pin, Pin.IN, Pin.PULL_UP)
-            self._encoder_pin_name = encoder_pin_name
+            self._encoder_pin_name = config["encoder_pin_name"]
             # variables for utime-based interval and debouncing (NEW)
             self._last_encoder_pulse_us = utime.ticks_us() # Initialize with current time for first pulse
             self._debounce_period_us = 500  # 0.5 milliseconds debounce period. Adjust if needed.
@@ -79,7 +90,10 @@ class Motor:
 
             self._log.info('motor {} ready.'.format(self._name))
         except Exception as e:
-            self._log.error('{} raised by motor: {}'.format(type(e), e))
+            if self._log:
+                self._log.error('{} raised by motor: {}'.format(type(e), e))
+            else:
+                print('{} raised by motor: {}'.format(type(e), e))
             raise
 
     def _pin_irq_callback(self, arg):
@@ -113,11 +127,11 @@ class Motor:
         if physical_pin_state_to_set == current_physical_pin_state:
             return
         self._log.info('direction changed to '
-                + Fore.YELLOW + '{}'.format('FORWARD' if value == Motor.DIRECTION_FORWARD else 'REVERSE') 
+                + Fore.YELLOW + '{}'.format('FORWARD' if value == Motor.DIRECTION_FORWARD else 'REVERSE')
                 + Fore.CYAN + ': (pin {} -> {}); '.format(current_physical_pin_state, physical_pin_state_to_set)
                 + 'speed: {}'.format(self.speed))
         self._direction_pin.value(physical_pin_state_to_set)
-        self._current_logical_direction = value
+        self._direction = value
 
     @property
     def speed(self):
@@ -141,8 +155,8 @@ class Motor:
             intended_direction = Motor.DIRECTION_FORWARD
         if not 0 <= value <= self._max_speed:
             raise ValueError('speed must be between 0 and 100, not {}'.format(value))
-        if (self._current_logical_direction != intended_direction and abs(self.rpm) < self._soft_stop_threshold_rpm) \
-                or (self._current_logical_direction == intended_direction):
+        if (self._direction != intended_direction and abs(self.rpm) < self._soft_stop_threshold_rpm) \
+                or (self._direction == intended_direction):
             self.direction = intended_direction
         else:
             self._log.debug('direction change ignored.')
@@ -164,7 +178,7 @@ class Motor:
             self._rpm = 0.0
             return self._rpm
         pulses_per_second = 1_000_000 / self._last_calculated_interval_us
-        revolutions_per_second = pulses_per_second / self._pulses_per_output_rev
+        revolutions_per_second = pulses_per_second / self._ticks_per_output_rev
         calculated_rpm_magnitude = revolutions_per_second * 60.0
         if (self._direction_pin.value() == Motor.DIRECTION_REVERSE) ^ self._reverse:
             calculated_rpm_magnitude = -calculated_rpm_magnitude
@@ -178,7 +192,7 @@ class Motor:
         raw_interval_us = utime.ticks_diff(current_time_us, last_pulse_time)
         if raw_interval_us >= debounce_period:
             self._last_encoder_pulse_us = current_time_us
-            if self._current_logical_direction == Motor.DIRECTION_FORWARD:
+            if self._direction == Motor.DIRECTION_FORWARD:
                 self._tick_count += 1
             else:
                 self._tick_count -= 1

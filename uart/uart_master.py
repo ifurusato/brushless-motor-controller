@@ -30,10 +30,13 @@ class UARTMaster:
     '''
     Uses UART 4 on port /dev/ttyAMA0 as the default.
     '''
-    def __init__(self, port='/dev/ttyAMA0', baudrate=115200):
+    def __init__(self, config, port='/dev/ttyAMA0'):
         self._log = Logger('uart-master', Level.INFO)
-        _use_async_uart_manager = False # config?
-        if _use_async_uart_manager:
+        _cfg = config['kros']['uart_master']
+        port          = _cfg.get('port')
+        baudrate      = _cfg.get('baud_rate') #, 1_000_000) # 115200 460800 921600
+        use_async_mgr = _cfg.get('use_async_mgr')
+        if use_async_mgr:
             self.uart = AsyncUARTManager(port=port, baudrate=baudrate)
         else:
             self.uart = SyncUARTManager(port=port, baudrate=baudrate)
@@ -45,7 +48,7 @@ class UARTMaster:
         self._last_payload = None
         self._verbose  = True
         self._ip_address = get_ip_address(True)
-        self._log.info('UART master ready at baud rate: {}.'.format(baudrate))
+        self._log.info('UART master ready at baud rate: {:,}.'.format(baudrate))
 
     def send_payload(self, payload):
         '''

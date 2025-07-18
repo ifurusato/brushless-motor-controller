@@ -8,6 +8,10 @@ kros:
     verbose:                False  # application-level verbosity
     impl:              'stm32h562'
 #   impl:              'stm32h723'
+  uart_master:
+    port:           '/dev/ttyAMA0'
+    baud_rate:          1_000_000  # 115200 460800 921600
+    use_async_mgr:          False  # sync or async UART manager
   uart_slave_app:
     verbose:                False
     is_pyboard:              True
@@ -22,6 +26,7 @@ kros:
     enable_m1:              False  # enable motor M1
     enable_m2:               True  # enable motor M2
     enable_m3:              False  # enable motor M3
+    pwm_timer:                  4  # PWM timer number
     rpm_timer_number:           2  # RPM timer number
     rpm_timer_frequency:      100  # RPM timer frequency in Hz
     pwm_frequency:          20000  # frequency for PWM to motors (20-30kHz)
@@ -40,7 +45,7 @@ kros:
     confirmation_time_ms:     100
     max_transition_time_ms:  5000
   slew_limiter:
-    enabled:                False    # use rpm and speed slew limiters
+    enabled:                 True    # use rpm and speed slew limiters
     max_delta_rpm_per_sec:     45.0  # slew limiter for RPM
     max_delta_speed_per_sec:   40.0  # slew limiter for speed
     safe_threshold:            10.0
@@ -56,7 +61,6 @@ kros:
     motor0:
       id:                    0
       name:                "M0"
-      pwm_timer:             4
       pwm_channel:           1
       pwm_pin:             'B6'    # pink wire
       pwm_pin_name:       'PB6'
@@ -68,7 +72,6 @@ kros:
     motor1:
       id:                    1
       name:                "M1"
-      pwm_timer:             4
       pwm_channel:           2
       pwm_pin:             'B7'
       pwm_pin_name:       'PB7'
@@ -80,7 +83,6 @@ kros:
     motor2:
       id:                    2
       name:                'M2'
-      pwm_timer:             4
       pwm_channel:           3
       pwm_pin:             'B8'
       pwm_pin_name:       'PB8'
@@ -92,7 +94,6 @@ kros:
     motor3:
       id:                    3
       name:                'M3'
-      pwm_timer:             4
       pwm_channel:           4
       pwm_pin:             'C2'    # B9 doesn't seem to work
       pwm_pin_name:       'PC2'
@@ -105,7 +106,6 @@ kros:
     motor0:
       id:                    0
       name:                "M0"
-      pwm_timer:             2
       pwm_channel:           1
       pwm_pin:             'A0'
       pwm_pin_name:       'PA0'
@@ -117,7 +117,6 @@ kros:
     motor1:
       id:                    1
       name:                "M1"
-      pwm_timer:             2
       pwm_channel:           2
       pwm_pin:             'A1'
       pwm_pin_name:       'PA1'
@@ -129,7 +128,6 @@ kros:
     motor2:
       id:                    2
       name:                'M2'
-      pwm_timer:             2
       pwm_channel:           3
       pwm_pin:             'A2'
       pwm_pin_name:       'PA2'
@@ -141,7 +139,6 @@ kros:
     motor3:
       id:                    3
       name:                'M3'
-      pwm_timer:             2
       pwm_channel:           4
       pwm_pin:             'A3'
       pwm_pin_name:       'PA3'

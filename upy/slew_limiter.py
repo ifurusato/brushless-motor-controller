@@ -7,9 +7,11 @@
 #
 # author:   altheim
 # created:  2025-06-05
-# modified: 2025-07-08
+# modified: 2025-07-18
 
 import utime
+from colorama import Fore, Style
+from logger import Logger, Level
 
 class SlewLimiter:
     '''
@@ -18,16 +20,20 @@ class SlewLimiter:
     be harmful to the motor and ensuring the changes to the motor's speed are
     gradual, more elegant, rather than instantaneous.
     '''
-    def __init__(self, max_delta_per_sec, safe_threshold=10):
+    def __init__(self, name=None, max_delta_per_sec=None, safe_threshold=10):
         '''
-        :param max_delta_per_sec:   Maximum allowed change per second (e.g. RPM/sec or %/sec)
-        :param safe_threshold:      Minimum magnitude below which direction changes are allowed
+        Args:
+            name:                name for this slew limiter
+            max_delta_per_sec:   Maximum allowed change per second (e.g. RPM/sec or %/sec)
+            safe_threshold:      Minimum magnitude below which direction changes are allowed
         '''
+        self._log = Logger('slew-{}'.format(name), Level.INFO)
         self.max_delta_per_sec = float(max_delta_per_sec)
         self.safe_threshold = float(safe_threshold)
         self._last_value = None
         self._last_time_ms = None # Renamed for MicroPython ticks_ms
         self.reset()
+        self._log.info(Fore.MAGENTA + 'ready.')
 
     def limit(self, value):
         '''

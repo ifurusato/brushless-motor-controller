@@ -45,7 +45,7 @@ class MotorController:
         self._motor_numbers = [0, 1, 2, 3]
         _cfg             = config["kros"]["motor_controller"]
         _app_cfg         = config["kros"]["application"]
-        _motor_cfg       = config["kros"]["motors"]
+        _motors_cfg      = config["kros"]["motors"]
         _slew_cfg        = config["kros"]["slew_limiter"]
         _pwm_frequency   = _cfg['pwm_frequency']
         self._use_closed_loop = _cfg.get('use_closed_loop', True)
@@ -57,7 +57,6 @@ class MotorController:
         self._enable_slew_limiter     = _slew_cfg['enabled']                  # True
         self._max_delta_rpm_per_sec   = _slew_cfg['max_delta_rpm_per_sec']    # closed loop: 120.0
         self._max_delta_speed_per_sec = _slew_cfg['max_delta_speed_per_sec']  # open loop: 100.0
-        self._safe_threshold          = _slew_cfg['safe_threshold']           # 10.0
         self._slew_limiters = {}
 
         if self._use_closed_loop:
@@ -71,7 +70,7 @@ class MotorController:
 
             self._pid_signal_flag = ThreadSafeFlag()
             self._last_global_pid_cycle_time = utime.ticks_us() # NEW: Initialize last global update time
- 
+
             asyncio.create_task(self._run_pid_task())
             self._log.info(Fore.MAGENTA + 'closed loop enabled: PID timer {} configured with frequency of {}Hz; timer: {}'.format(_pid_timer_number, _pid_timer_freq, self._pid_timer))
         else:
@@ -100,45 +99,29 @@ class MotorController:
             motors_enabled = (enable_m0, enable_m1, enable_m2, enable_m3)
             self._log.info(Fore.MAGENTA + 'enable motors m0={}; m1={}; m2={}; m3={}'.format(enable_m0, enable_m1, enable_m2, enable_m3))
             # motors ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+            _pwm_timer = Timer(_cfg["pwm_timer"], freq=_pwm_frequency)
+            _safe_threshold = _slew_cfg['safe_threshold'] # 10.0
+            _max_delta_per_sec = self._max_delta_rpm_per_sec if self._use_closed_loop else self._max_delta_speed_per_sec
             for index in range(4):
                 if not motors_enabled[index]:
                     continue
-                motor_key = "motor{}".format(index)
-                self._log.info('configuring {}…'.format(motor_key))
-                _m_cfg    = _motor_cfg[motor_key]
-                pwm_timer = Timer(_m_cfg["pwm_timer"], freq=_pwm_frequency)
-                _id = _m_cfg["id"]
-                _name = _m_cfg["name"]
-                motor = Motor(
-                    id = _id,
-                    name = _name,
-                    pwm_timer = pwm_timer,
-                    pwm_channel = _m_cfg["pwm_channel"],
-                    pwm_pin = _m_cfg["pwm_pin"],
-                    pwm_pin_name = _m_cfg["pwm_pin_name"],
-                    direction_pin = _m_cfg["direction_pin"],
-                    direction_pin_name = _m_cfg["direction_pin_name"],
-                    encoder_pin = _m_cfg["encoder_pin"],
-                    encoder_pin_name = _m_cfg["encoder_pin_name"],
-                    max_speed = _max_motor_speed if self._use_closed_loop else 100.0,
-                    reverse = _m_cfg["reverse"]
-                )
-                self._motors[index] = motor
-                self._motor_list.append(motor)
+                _motor_key = "motor{}".format(index)
+                _motor_cfg = _motors_cfg[_motor_key]
+                _name = _motor_cfg["name"]
+                self._log.info('configuring {}…'.format(_motor_key))
+                _motor = Motor(_motor_cfg, pwm_timer=_pwm_timer, max_speed= _max_motor_speed if self._use_closed_loop else 100.0)
+                self._motors[index] = _motor
+                self._motor_list.append(_motor)
                 # instantiate PID controller for this motor if closed-loop enabled
                 if self._use_closed_loop:
                     self._pid_controllers[index] = PID(_name, config, level=level)
                     self._motor_target_rpms[index] = 0.0 # initialize target RPM
                 # instantiate SlewLimiter for this motor
                 if self._enable_slew_limiter:
-                    self._slew_limiters[index] = SlewLimiter(
-                        max_delta_per_sec=self._max_delta_rpm_per_sec if self._use_closed_loop else self._max_delta_speed_per_sec,
-                        safe_threshold=self._safe_threshold
-                    )
-
+                    self._slew_limiters[index] = SlewLimiter(name=_name, max_delta_per_sec=_max_delta_per_sec, safe_threshold=_safe_threshold)
             self._log.info('ready.')
         except ChannelUnavailableError:
-            # hard reset ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+            # hard reset if coms are down
             self._log.fatal('cannot start: ' + Fore.RED + 'performing hard reset in {} seconds…'.format(self._hard_reset_delay_sec))
             import machine, time
             time.sleep(self._hard_reset_delay_sec)
@@ -177,7 +160,7 @@ class MotorController:
                     # Apply zero-speed deadband (retained logic)
                     if target_rpm_signed == 0.0:
                         if abs(new_speed_percent_signed) < self._motor_stop_pwm_threshold:
-                            new_speed_percent_signed = 0.0  
+                            new_speed_percent_signed = 0.0
                     motor.speed = int(round(new_speed_percent_signed))
 
     @property
@@ -245,7 +228,7 @@ class MotorController:
 #                       '{}: '.format(motor.name)
 #                           + Style.BRIGHT + '{:6.1f} RPM '.format(motor.rpm)
 #                           + ( Style.NORMAL + "({}); {:5d} tk".format(self._get_motor_target_rpms(motor.id), motor.tick_count)
-#                           if self._use_closed_loop else 
+#                           if self._use_closed_loop else
 #                               Style.NORMAL + "; {:5d} tk".format(motor.tick_count)
 #                             )
 #                       for motor in self._motor_list
@@ -346,11 +329,11 @@ class MotorController:
                 for motor in self._motor_list:
                     current_pwm = motor.speed
                     target_pwm = target_speed
-                    
+
                     if current_pwm == target_pwm:
                         continue
                     done = False
-                    
+
                     delta = target_pwm - current_pwm
                     direction_change_step = 1 if delta > 0 else -1
                     new_pwm = current_pwm + direction_change_step * min(step, abs(delta))
