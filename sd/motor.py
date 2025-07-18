@@ -8,6 +8,9 @@
 # author:   Murray Altheim
 # created:  2025-06-04
 # modified: 2025-07-08
+#
+# A 12V DC brushless motor. shaft speed: 55rpm; motor speed: 4500rpm; gear ratio: 78:1; rated load: 40rpm 0.08A 0.6kg.cm torque; stall: 3 kg.cm, 0.5A.
+# source: https://precisionminidrives.com/product/7kg-cm-micro-brushless-worm-gearmotors-12v-24v-model-nfp-jga25-2418-ce
 
 import utime
 from pyb import Pin, ExtInt, Timer
@@ -38,7 +41,7 @@ class Motor:
             self._max_speed        = max_speed
             self._reverse          = reverse
             self._update_interval  = 0.1
-            self._pulses_per_output_rev = 270  # pulses_per_motor_rev * gear_ratio
+            self._pulses_per_output_rev = 1350 # pulses_per_motor_rev * gear_ratio
             self._no_tick_timeout_us = 70_000 # how much time we wait before declaring motor stopped (at 6 RPM this would be 37,037)
             self._soft_stop_threshold_rpm = 6.0 # RPM below which motor is considered 'stopped enough' for direction change
             self._current_logical_direction = Motor.DIRECTION_FORWARD

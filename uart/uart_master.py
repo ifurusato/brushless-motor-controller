@@ -19,7 +19,7 @@ init()
 
 from uart.async_uart_manager import AsyncUARTManager
 from uart.sync_uart_manager import SyncUARTManager
-from upy.mode import Mode
+from sd.mode import Mode
 from upy.payload import Payload
 from hardware.value_provider import DigitalPotSpeedProvider, RotaryEncoderCommandProvider
 from hardware.ip_util import get_ip_address
