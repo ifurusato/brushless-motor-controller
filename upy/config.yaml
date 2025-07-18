@@ -21,7 +21,7 @@ kros:
   display:
     enable:                 False
   motor_controller:
-    use_closed_loop:        False
+    use_closed_loop:         True
     enable_m0:              False  # enable motor M0
     enable_m1:              False  # enable motor M1
     enable_m2:               True  # enable motor M2
@@ -36,7 +36,7 @@ kros:
     pid_timer_frequency:      100  # PID timer frequency
     max_motor_speed:           55  # maximum stated motor speed (RPM)
   slew_limiter:
-    enabled:                 True    # use rpm and speed slew limiters
+    enabled:                False    # use rpm and speed slew limiters
     max_delta_rpm_per_sec:     30.0  # slew limiter for RPM
     max_delta_speed_per_sec:   30.0  # slew limiter for speed
     safe_threshold:            10.0
