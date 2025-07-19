@@ -104,7 +104,6 @@ class Motor:
                                          + Fore.CYAN + '; direction: ' + Fore.GREEN + '{}'.format(direction_pin)
                                          + Fore.CYAN + '; encoder: ' + Fore.GREEN + '{}'.format(encoder_pin))
             self._log.info('maximum motor speed: ' + Fore.GREEN + '{} rpm'.format(max_speed))
-
             self._log.info('motor {} ready.'.format(self._name))
         except Exception as e:
             if self._log:
@@ -149,6 +148,10 @@ class Motor:
                 + 'speed: {}'.format(self.speed))
         self._direction_pin.value(physical_pin_state_to_set)
         self._direction = value
+
+    @property
+    def max_speed(self):
+        return self._max_speed
 
     @property
     def speed(self):

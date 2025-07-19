@@ -52,8 +52,8 @@ kros:
   pid:
       verbose:              False
       kp:                       2.50   # proportional gain   0.51  (was: 0.60)
-      ki:                       0.000  # integral gain       0.050 (was: 0.050)
-      kd:                       0.000  # derivative gain     0.001 (was: 0.001)
+      ki:                       0.050  # integral gain       0.050 (was: 0.050)
+      kd:                       0.001  # derivative gain     0.001 (was: 0.001)
       setpoint:                 0.0
       min:                   -100
       max:                    100

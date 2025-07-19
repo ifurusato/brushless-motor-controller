@@ -25,6 +25,7 @@ import itertools
 from slew_limiter import SlewLimiter
 from pid import PID
 from mode import Mode
+from util import Util
 
 class MotorController:
     '''
@@ -160,16 +161,21 @@ class MotorController:
                     target_rpm_signed = self._motor_target_rpms.get(motor.id, 0.0)
                     current_motor_rpm = motor.rpm
                     pid_ctrl.setpoint = target_rpm_signed
-                    # call PID update
-                    new_speed_percent_signed = pid_ctrl.update(current_motor_rpm, global_cycle_dt_us)
-                    # Apply zero-speed deadband (retained logic)
+                    # call PID update, returns output in RPM (range: -motor.max_speed to +motor.max_speed)
+                    pid_output_rpm = pid_ctrl.update(current_motor_rpm, global_cycle_dt_us)
+                    # scale PID output (RPM) to percent (-100 to 100)
+                    speed_percent = (pid_output_rpm / motor.max_speed) * 100
+                    # clip to range [-100, 100]
+                    speed_percent = Util.clip(speed_percent, -100, 100)
+#                   speed_percent = max(-100, min(100, speed_percent))
+                    # apply zero-speed deadband
                     if target_rpm_signed == 0.0:
-                        if abs(new_speed_percent_signed) < self._motor_stop_pwm_threshold:
-                            new_speed_percent_signed = 0.0
-                    _speed = int(round(new_speed_percent_signed))
+                        if abs(speed_percent) < self._motor_stop_pwm_threshold:
+                            speed_percent = 0.0
+                    _speed = int(round(speed_percent))
                     motor.speed = _speed
-#                   if next(self._counter) % 100 == 0:
-#                       self._log.info(Fore.WHITE + 'motor speed set to: {}'.format(_speed))
+                    # if next(self._counter) % 100 == 0:
+                    #     self._log.info(Fore.WHITE + 'motor speed set to: {}'.format(_speed))
 
     @property
     def motor_ids(self):
