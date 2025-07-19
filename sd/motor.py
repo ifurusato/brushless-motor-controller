@@ -17,6 +17,7 @@ from pyb import Pin, ExtInt, Timer
 from colorama import Fore, Style
 
 from logger import Logger, Level
+from util import Util
 
 class Motor:
     STOPPED           = 0
@@ -169,6 +170,7 @@ class Motor:
             value = abs(value)
         else:
             intended_direction = Motor.DIRECTION_FORWARD
+        value = Util.clip(value, 0, self._max_speed)
         if not 0 <= value <= self._max_speed:
             raise ValueError('speed must be between 0 and 100, not {}'.format(value))
         if (self._direction != intended_direction and abs(self.rpm) < self._soft_stop_threshold_rpm) \
@@ -177,7 +179,7 @@ class Motor:
         else:
             self._log.debug('direction change ignored.')
             pass
-        self._speed = value
+        self._speed  = value
         duty_percent = value
         # duty_percent = 100 - value # inverted PWM when not configured as Timer.PWM_INVERTED
         self._pwm_channel.pulse_width_percent(duty_percent)

@@ -15,10 +15,13 @@ from asyncio import ThreadSafeFlag
 from math import isclose
 import utime
 from pyb import Timer
+
+from colorama import Fore, Style
+
 from logger import Logger, Level
 from config_loader import ConfigLoader
-from colorama import Fore, Style
 from motor import Motor, ChannelUnavailableError
+import itertools
 from slew_limiter import SlewLimiter
 from pid import PID
 from mode import Mode
@@ -52,6 +55,7 @@ class MotorController:
         _pwm_frequency   = _cfg['pwm_frequency']
         self._use_closed_loop = _cfg.get('use_closed_loop', True)
         _max_motor_speed = _cfg.get('max_motor_speed')
+        self._counter    = itertools.count() # used for PID loop logging TEMP
 
         self._motor_stop_pwm_threshold = 8
         self._soft_stop_rpm_threshold = _cfg.get('soft_stop_rpm_threshold', 5.0)
@@ -74,9 +78,9 @@ class MotorController:
             self._last_global_pid_cycle_time = utime.ticks_us() # NEW: Initialize last global update time
 
             asyncio.create_task(self._run_pid_task())
-            self._log.info(Fore.MAGENTA + 'closed loop enabled: PID timer {} configured with frequency of {}Hz; timer: {}'.format(_pid_timer_number, _pid_timer_freq, self._pid_timer))
+            self._log.info(Fore.GREEN + 'closed loop enabled: PID timer {} configured with frequency of {}Hz; timer: {}'.format(_pid_timer_number, _pid_timer_freq, self._pid_timer))
         else:
-            self._log.info(Fore.MAGENTA + 'open-loop control enabled (PID disabled).')
+            self._log.info(Fore.GREEN + 'open-loop control enabled (PID disabled).')
 
         self._verbose    = True # _app_cfg["verbose"]
         self._log.info(Fore.MAGENTA + 'verbose: {}'.format(self._verbose))
@@ -151,10 +155,9 @@ class MotorController:
             self._last_global_pid_cycle_time = current_time # update for next cycle
 
             for motor in self.motors:
-                motor_id = motor.id
-                if motor_id in self._pid_controllers:
-                    pid_ctrl = self._pid_controllers[motor_id]
-                    target_rpm_signed = self._motor_target_rpms.get(motor_id, 0.0)
+                if motor.id in self._pid_controllers:
+                    pid_ctrl = self._pid_controllers[motor.id]
+                    target_rpm_signed = self._motor_target_rpms.get(motor.id, 0.0)
                     current_motor_rpm = motor.rpm
                     pid_ctrl.setpoint = target_rpm_signed
                     # call PID update
@@ -163,7 +166,10 @@ class MotorController:
                     if target_rpm_signed == 0.0:
                         if abs(new_speed_percent_signed) < self._motor_stop_pwm_threshold:
                             new_speed_percent_signed = 0.0
-                    motor.speed = int(round(new_speed_percent_signed))
+                    _speed = int(round(new_speed_percent_signed))
+                    motor.speed = _speed
+#                   if next(self._counter) % 100 == 0:
+#                       self._log.info(Fore.WHITE + 'motor speed set to: {}'.format(_speed))
 
     @property
     def motor_ids(self):
@@ -226,22 +232,24 @@ class MotorController:
         try:
             while self._logging_enabled:
                 if self._motor_list:
-#                   rpm_values = ", ".join(
-#                       '{}: '.format(motor.name)
-#                           + Style.BRIGHT + '{:6.1f} RPM '.format(motor.rpm)
-#                           + ( Style.NORMAL + "({}); {:5d} tk".format(self._get_motor_target_rpms(motor.id), motor.tick_count)
-#                           if self._use_closed_loop else
-#                               Style.NORMAL + "; {:5d} tk".format(motor.tick_count)
-#                             )
-#                       for motor in self._motor_list
-#                   )
+                    rpm_values = ", ".join(
+                        '{}: '.format(motor.name)
+                            + ( Fore.BLUE + 'pid: {:.1f}, {:.1f}, {:.1f}; sp={}; o={};'.format(*self._pid_controllers[motor.id].info)
+                            + Fore.CYAN + Style.BRIGHT + '{:6.1f} RPM '.format(motor.rpm)
+                            + Style.NORMAL + "({})".format(self._get_motor_target_rpms(motor.id))
+                            if self._use_closed_loop else
+                                Style.NORMAL + "; {:5d} tk".format(motor.tick_count)
+                            )
+                        for motor in self._motor_list
+                        )
 #                       "{}: {:.2f} RPM (target: {}); {} ticks".format(motor.name, motor.rpm, self._get_motor_target_rpms(motor.id), motor.tick_count)
                     if self._verbose:
                         _motor0 = self._motor_list[0]
-                        self._log.info('MO: ' + Fore.MAGENTA + "{} RPM ({})".format(_motor0.rpm, self._get_motor_target_rpms(_motor0.id)))
-#                       self._log.info('set: ' + Fore.MAGENTA + "{}".format(rpm_values))
-                else:
-                    self._log.warning("no motors configured for RPM logging.")
+#                       self._log.info('MO: ' + Fore.MAGENTA + "{} RPM ({})".format(_motor0.rpm, self._get_motor_target_rpms(_motor0.id)))
+                        self._log.info('set: ' + Fore.MAGENTA + "{}".format(rpm_values))
+#               else:
+#                   self._log.warning("no motors configured for RPM logging.")
+                    pass
                 await asyncio.sleep_ms(interval_ms)
         except asyncio.CancelledError:
             self._log.info("RPM logger task cancelled.")

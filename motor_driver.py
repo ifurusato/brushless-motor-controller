@@ -32,10 +32,10 @@ if __name__ == "__main__":
     _log.info('maximum motor speed set to: {} RPM.'.format(_max_motor_speed))
     if _use_closed_loop:
         _multiplier = float(_max_motor_speed)
-        _log.info('using closed loop multiplier of {}'.format(_multiplier))
+        _log.info(Fore.GREEN + 'using closed loop multiplier of {}'.format(_multiplier))
     else:
         _multiplier = 100.0
-        _log.info('using open loop multiplier of 100.0')
+        _log.info(Fore.GREEN + 'using open loop multiplier of 100.0')
     _command_provider = RotaryEncoderCommandProvider()
     _speed_provider   = DigitalPotSpeedProvider(multiplier=_multiplier)
 

@@ -31,7 +31,7 @@ kros:
     rpm_timer_frequency:      100  # RPM timer frequency in Hz
     pwm_frequency:          20000  # frequency for PWM to motors (20-30kHz)
     log_timer_number:           6  # log timer number
-    log_timer_frequency:       20  # log timer frequency in 20Hz (50ms period)
+    log_timer_frequency:        1  # log timer frequency in 20Hz (50ms period)
     pid_timer_number:           3  # log timer number
     pid_timer_frequency:      100  # PID timer frequency
     max_motor_speed:           55  # maximum stated motor speed (RPM)
@@ -51,9 +51,9 @@ kros:
     max_transition_time_ms:  5000
   pid:
       verbose:              False
-      kp:                       0.60   # proportional gain   0.51
-      ki:                       0.050  # integral gain       0.050
-      kd:                       0.001  # derivative gain     0.001
+      kp:                       2.80   # proportional gain   0.51  (was: 0.60)
+      ki:                       0.000  # integral gain       0.050 (was: 0.050)
+      kd:                       0.000  # derivative gain     0.001 (was: 0.001)
       setpoint:                 0.0
       min:                   -100
       max:                    100
