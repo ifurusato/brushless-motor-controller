@@ -78,9 +78,9 @@ class MotorController:
             self._last_global_pid_cycle_time = utime.ticks_us() # NEW: Initialize last global update time
 
             asyncio.create_task(self._run_pid_task())
-            self._log.info(Fore.GREEN + 'closed loop enabled: PID timer {} configured with frequency of {}Hz; timer: {}'.format(_pid_timer_number, _pid_timer_freq, self._pid_timer))
+            self._log.info(Fore.GREEN + 'closed loop enabled; PID timer {} configured with frequency of {}Hz.'.format(_pid_timer_number, _pid_timer_freq))
         else:
-            self._log.info(Fore.GREEN + 'open-loop control enabled (PID disabled).')
+            self._log.info(Fore.GREEN + 'open-loop enabled; PID disabled.')
 
         self._verbose    = True # _app_cfg["verbose"]
         self._log.info(Fore.MAGENTA + 'verbose: {}'.format(self._verbose))
@@ -235,10 +235,10 @@ class MotorController:
                     rpm_values = ", ".join(
                         '{}: '.format(motor.name)
                             + ( Fore.BLUE + 'pid: {:.1f}, {:.1f}, {:.1f}; sp={}; o={};'.format(*self._pid_controllers[motor.id].info)
-                            + Fore.CYAN + Style.BRIGHT + '{:6.1f} RPM '.format(motor.rpm)
+                            + Fore.CYAN + Style.BRIGHT + 'sp={:.1f}; {:6.1f} RPM '.format(motor.speed, motor.rpm)
                             + Style.NORMAL + "({})".format(self._get_motor_target_rpms(motor.id))
                             if self._use_closed_loop else
-                                Style.NORMAL + "; {:5d} tk".format(motor.tick_count)
+                                Style.NORMAL + "; {:6.1f} RPM; {:5d} tk".format(motor.rpm, motor.tick_count)
                             )
                         for motor in self._motor_list
                         )

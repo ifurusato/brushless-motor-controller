@@ -183,7 +183,7 @@ class Motor:
         duty_percent = value
         # duty_percent = 100 - value # inverted PWM when not configured as Timer.PWM_INVERTED
         self._pwm_channel.pulse_width_percent(duty_percent)
-        self._log.debug('motor {} speed set to {}% (PWM duty {}%)'.format(self._name, value, duty_percent))
+#       self._log.info('motor {} speed set to {}% (PWM duty {}%)'.format(self._name, value, duty_percent))
 
     @property
     def rpm(self):

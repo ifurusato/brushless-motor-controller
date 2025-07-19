@@ -26,8 +26,9 @@ class PID:
         self._ki         = _cfg['ki']
         self._kd         = _cfg['kd']
         self._setpoint   = _cfg['setpoint']
-        self._output_min = _cfg['min'] 
-        self._output_max = _cfg['max']
+        max_motor_speed = config['kros']['motor_controller']['max_motor_speed']
+        self._output_min = -max_motor_speed
+        self._output_max = max_motor_speed
         self._log_frequency = 100 
         self._log.info(Fore.MAGENTA + "kp={:>5.3f}; ki={:>5.3f}; kd={:>5.3f}; setpoint: {}; limits: {}🠊 {}".format(
                 self._kp, self._ki, self._kd, self._setpoint, self._output_min, self._output_max))
