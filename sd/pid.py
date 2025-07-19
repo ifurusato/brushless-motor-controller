@@ -26,7 +26,7 @@ class PID:
         self._ki         = _cfg['ki']
         self._kd         = _cfg['kd']
         self._setpoint   = _cfg['setpoint']
-        max_motor_speed = config['kros']['motor_controller']['max_motor_speed']
+        max_motor_speed  = config['kros']['motor_controller']['max_motor_speed']
         self._output_min = -max_motor_speed
         self._output_max = max_motor_speed
         self._log_frequency = 100 
@@ -83,15 +83,13 @@ class PID:
         self._i_term = self._ki * self._int_error
         self._output = self._p_term + self._i_term + self._d_term
         self._last_error = error
-        limited = max(self._output_min, min(self._output, self._output_max))
+        self._output = Util.clip(self._output, self._output_min, self._output_max)
         if self._verbose:
 #           if abs(self._setpoint) > 0 and next(self._counter) % self._log_frequency == 0:
             if next(self._counter) % self._log_frequency == 0:
-                self._log.info("p={:.2f}, i={:.2f}, d={:.2f}, setpoint={:.2f}; output={:.2f} ({:.2f})".format(
-                        self._p_term, self._i_term, self._d_term, self._setpoint, self._output, limited))
-#               self._log.info("dt={}µs; p={:.2f}, i={:.2f}, d={:.2f}, setpoint={:.2f}; output={:.2f} ({:.2f})".format(
-#                       dt_us, self._p_term, self._i_term, self._d_term, self._setpoint, self._output, limited))
-        return limited
+                self._log.info("p={:.2f}, i={:.2f}, d={:.2f}, setpoint={:.2f}; output={:.2f}".format(
+                        self._p_term, self._i_term, self._d_term, self._setpoint, self._output))
+        return self._output
 
     def x_update(self, value, dt_us):
         dt_seconds = dt_us / 1_000_000.0 if dt_us > 0 else 0.000001

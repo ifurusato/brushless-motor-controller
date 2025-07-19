@@ -240,7 +240,7 @@ class MotorController:
                 if self._motor_list:
                     rpm_values = ", ".join(
                         '{}: '.format(motor.name)
-                            + ( Fore.BLUE + 'pid: {:.1f}, {:.1f}, {:.1f}; sp={}; o={};'.format(*self._pid_controllers[motor.id].info)
+                            + ( Fore.BLUE + 'pid: {:.1f}, {:.1f}, {:.1f}; sp={}; o={}; '.format(*self._pid_controllers[motor.id].info)
                             + Fore.CYAN + Style.BRIGHT + 'sp={:.1f}; {:6.1f} RPM '.format(motor.speed, motor.rpm)
                             + Style.NORMAL + "({})".format(self._get_motor_target_rpms(motor.id))
                             if self._use_closed_loop else
