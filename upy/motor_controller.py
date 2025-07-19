@@ -337,9 +337,15 @@ class MotorController:
                     transform[i] = self._slew_limiters[i].limit(transform[i])
             self._log.debug('slew-limited transform: {}'.format(transform))
         if self._use_closed_loop:
-            for i, target_rpm in enumerate(transform):
-                if i in self._motor_target_rpms:
+            for i in self._pid_controllers:
+                target_rpm = transform[i]
+                pid = self._pid_controllers[i]
+                if pid.deadband_enabled and abs(target_rpm) < pid.deadband:
+                    self._motor_target_rpms[i] = 0.0
+                    self._motors[i].speed = 0
+                else:
                     self._motor_target_rpms[i] = float(target_rpm)
+                    self._motors[i].speed = target_rpm
             self._log.debug('setting target RPMs to {}'.format(transform))
         else:
             self._set_motor_speed(transform)

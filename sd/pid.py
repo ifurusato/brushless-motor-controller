@@ -31,7 +31,7 @@ class PID:
         max_motor_speed  = config['kros']['motor_controller']['max_motor_speed']
         self._output_min = -max_motor_speed
         self._output_max = max_motor_speed
-        self._log_frequency = 100 
+        self._log_frequency = 100
         self._log.info(Fore.MAGENTA + "kp={:>5.3f}; ki={:>5.3f}; kd={:>5.3f}; setpoint: {}; limits: {}🠊 {}".format(
                 self._kp, self._ki, self._kd, self._setpoint, self._output_min, self._output_max))
         self._last_error = 0.0
@@ -60,25 +60,35 @@ class PID:
     def setpoint(self, value):
         self._setpoint = float(value)
 
+    @property
+    def deadband_enabled(self):
+        return self._enable_deadband
+
+    @property
+    def deadband(self):
+        return self._deadband
+
     def update(self, value, dt_us):
         dt_seconds = dt_us / 1_000_000.0 if dt_us > 0 else 0.000001
         error = self._setpoint - value
+        # Deadband: zero output and integral if error is within deadband
+        if self._enable_deadband and abs(error) < self._deadband:
+            error = 0
+            self._int_error = 0.0 # reset integral term inside PID logic
         # Proportional term
         self._p_term = self._kp * error
         # Derivative term
         self._d_term = self._kd * ((error - self._last_error) / dt_seconds) if dt_seconds > 0 else 0.0
         self._last_error = error
         # --- Conditional Integration ---
-        # Estimate what the output would be if we update the integral
         output_estimate = self._p_term + self._ki * self._int_error + self._d_term
         output_will_saturate = not (self._output_min < output_estimate < self._output_max)
-        # Only update integral if output will not saturate
         if not output_will_saturate:
             if self._setpoint == 0.0:
                 # Special logic for zero setpoint (deadband handling)
                 if isclose(value, 0.0, abs_tol=self._epsilon_rpm_for_stop):
                     self._int_error = 0.0
-                elif value > 0: # Motor moving forward (positive RPM)
+                elif value > 0:  # Motor moving forward (positive RPM)
                     self._int_error = min(0.0, self._int_error + error * dt_seconds)
                 else:
                     self._int_error = max(0.0, self._int_error + error * dt_seconds)
@@ -88,7 +98,6 @@ class PID:
         self._i_term = self._ki * self._int_error
         self._output = self._p_term + self._i_term + self._d_term
         self._output = Util.clip(self._output, self._output_min, self._output_max)
-
         return self._output
 
     def x_update(self, value, dt_us):
@@ -103,7 +112,7 @@ class PID:
                 self._int_error = min(0.0, self._int_error + error * dt_seconds)
             else:
                 self._int_error = max(0.0, self._int_error + error * dt_seconds)
-        else:    
+        else:
             self._int_error += error * dt_seconds
         self._i_term = self._ki * self._int_error
         self._output = self._p_term + self._i_term + self._d_term
@@ -118,7 +127,7 @@ class PID:
         # Re-calculate self._i_term after potential integral modification by anti-windup
         self._i_term = self._ki * self._int_error
         self._output = self._p_term + self._i_term + self._d_term # Re-calculate total output
-        self._last_error = error  
+        self._last_error = error
         limited = max(self._output_min, min(self._output, self._output_max))
         if self._verbose:
             if next(self._counter) % self._log_frequency == 0:

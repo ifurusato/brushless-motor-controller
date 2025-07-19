@@ -13,6 +13,7 @@
 # source: https://precisionminidrives.com/product/7kg-cm-micro-brushless-worm-gearmotors-12v-24v-model-nfp-jga25-2418-ce
 
 import utime
+from math import isclose
 from pyb import Pin, ExtInt, Timer
 from colorama import Fore, Style
 
@@ -168,7 +169,9 @@ class Motor:
         if not self.enabled:
             raise Exception('cannot set speed: motor {} not enabled.'.format(self._name))
         # determine direction from sign
-        if value < 0:
+        if isclose(value, 0.0, abs_tol=1.5):
+            intended_direction = self.direction
+        elif value < 0:
             intended_direction = Motor.DIRECTION_REVERSE
             value = abs(value)
         else:
