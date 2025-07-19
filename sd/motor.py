@@ -65,6 +65,7 @@ class Motor:
             self._tick_count      = 0
             self._rpm             = 0
             self._max_speed       = max_speed
+            self._duty_cycle      = 0
             self._update_interval = 0.1
             self._ticks_per_output_rev      = 1350    # observed (ticks per motor rev * gear ratio)
             self._no_tick_timeout_us        = 70_000  # how much time we wait before declaring motor stopped (at 6 RPM this would be 37,037)
@@ -183,10 +184,14 @@ class Motor:
             self._log.debug('direction change ignored.')
             pass
         self._speed  = value
-        duty_percent = value
-        # duty_percent = 100 - value # inverted PWM when not configured as Timer.PWM_INVERTED
-        self._pwm_channel.pulse_width_percent(duty_percent)
-#       self._log.info('motor {} speed set to {}% (PWM duty {}%)'.format(self._name, value, duty_percent))
+        self._duty_cycle = value
+        # self._duty_cycle = 100 - value # inverted PWM when not configured as Timer.PWM_INVERTED
+        self._pwm_channel.pulse_width_percent(self._duty_cycle)
+#       self._log.info('motor {} speed set to {}% (PWM duty {}%)'.format(self._name, value, self._duty_cycle))
+
+    @property
+    def duty_cycle(self):
+        return self._duty_cycle
 
     @property
     def rpm(self):
