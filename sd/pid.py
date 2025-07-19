@@ -26,6 +26,8 @@ class PID:
         self._ki         = _cfg['ki']
         self._kd         = _cfg['kd']
         self._setpoint   = _cfg['setpoint']
+        self._enable_deadband = _cfg['enable_deadband']
+        self._deadband   = _cfg['deadband']
         max_motor_speed  = config['kros']['motor_controller']['max_motor_speed']
         self._output_min = -max_motor_speed
         self._output_max = max_motor_speed
@@ -38,7 +40,7 @@ class PID:
         self._i_term     = 0.0
         self._d_term     = 0.0
         self._output     = 0.0
-        self._awup       = False # anti-windup
+        self._awup       = True # anti-windup
         self._counter    = itertools.count()
         self._epsilon_rpm_for_stop = 2.0  # stop threshold (e.g., from 1.0 to 5.0 RPM)
         self._log.info('ready.')
@@ -65,30 +67,28 @@ class PID:
         self._p_term = self._kp * error
         # Derivative term
         self._d_term = self._kd * ((error - self._last_error) / dt_seconds) if dt_seconds > 0 else 0.0
-        if self._setpoint == 0.0:
-            if isclose(value, 0.0, abs_tol=self._epsilon_rpm_for_stop):
-                self._int_error = 0.0
-            elif value > 0: # Motor moving forward (positive RPM)
-                self._int_error = min(0.0, self._int_error + error * dt_seconds)
+        self._last_error = error
+        # --- Conditional Integration ---
+        # Estimate what the output would be if we update the integral
+        output_estimate = self._p_term + self._ki * self._int_error + self._d_term
+        output_will_saturate = not (self._output_min < output_estimate < self._output_max)
+        # Only update integral if output will not saturate
+        if not output_will_saturate:
+            if self._setpoint == 0.0:
+                # Special logic for zero setpoint (deadband handling)
+                if isclose(value, 0.0, abs_tol=self._epsilon_rpm_for_stop):
+                    self._int_error = 0.0
+                elif value > 0: # Motor moving forward (positive RPM)
+                    self._int_error = min(0.0, self._int_error + error * dt_seconds)
+                else:
+                    self._int_error = max(0.0, self._int_error + error * dt_seconds)
             else:
-                self._int_error = max(0.0, self._int_error + error * dt_seconds)
-        else:
-            self._int_error += error * dt_seconds
-        if self._awup: # anti-windup
-            if self._ki != 0:
-                int_max = (self._output_max - self._p_term - self._d_term) / self._ki
-                int_min = (self._output_min - self._p_term - self._d_term) / self._ki
-                self._int_error = Util.clip(self._int_error, int_min, int_max)
-        # Integral term
+                self._int_error += error * dt_seconds
+        # i_term and output (with normal clipping)
         self._i_term = self._ki * self._int_error
         self._output = self._p_term + self._i_term + self._d_term
-        self._last_error = error
         self._output = Util.clip(self._output, self._output_min, self._output_max)
-        if self._verbose:
-#           if abs(self._setpoint) > 0 and next(self._counter) % self._log_frequency == 0:
-            if next(self._counter) % self._log_frequency == 0:
-                self._log.info("p={:.2f}, i={:.2f}, d={:.2f}, setpoint={:.2f}; output={:.2f}".format(
-                        self._p_term, self._i_term, self._d_term, self._setpoint, self._output))
+
         return self._output
 
     def x_update(self, value, dt_us):

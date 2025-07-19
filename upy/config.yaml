@@ -51,10 +51,12 @@ kros:
     max_transition_time_ms:  5000
   pid:
       verbose:              False
-      kp:                       2.50   # proportional gain   0.51  (was: 0.60)
+      kp:                       1.270  # proportional gain   0.51  (was: 0.60)
       ki:                       0.050  # integral gain       0.050 (was: 0.050)
       kd:                       0.001  # derivative gain     0.001 (was: 0.001)
       setpoint:                 0.0
+      enable_deadband:       True      # when True use deadband
+      deadband:               5.0      # the deadband value
       min:                   -100
       max:                    100
   motors:                          # stm32h562

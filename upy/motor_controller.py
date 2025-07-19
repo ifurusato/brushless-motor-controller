@@ -21,7 +21,6 @@ from colorama import Fore, Style
 from logger import Logger, Level
 from config_loader import ConfigLoader
 from motor import Motor, ChannelUnavailableError
-import itertools
 from slew_limiter import SlewLimiter
 from pid import PID
 from mode import Mode
@@ -56,11 +55,8 @@ class MotorController:
         _pwm_frequency   = _cfg['pwm_frequency']
         self._use_closed_loop = _cfg.get('use_closed_loop', True)
         _max_motor_speed = _cfg.get('max_motor_speed')
-        self._counter    = itertools.count() # used for PID loop logging TEMP
-
         self._motor_stop_pwm_threshold = 8
         self._soft_stop_rpm_threshold = _cfg.get('soft_stop_rpm_threshold', 5.0)
-
         self._enable_slew_limiter     = _slew_cfg['enabled']                  # True
         self._max_delta_rpm_per_sec   = _slew_cfg['max_delta_rpm_per_sec']    # closed loop: 120.0
         self._max_delta_speed_per_sec = _slew_cfg['max_delta_speed_per_sec']  # open loop: 100.0
@@ -149,6 +145,38 @@ class MotorController:
         self._log.info("starting asynchronous PID control task, driven by hardware timer.")
         while True:
             await self._pid_signal_flag.wait()
+            
+            current_time = utime.ticks_us()
+            # calculate dt_us based on the consistent global cycle time
+            global_cycle_dt_us = utime.ticks_diff(current_time, self._last_global_pid_cycle_time)
+            self._last_global_pid_cycle_time = current_time # update for next cycle
+            
+            for motor in self.motors:
+                if motor.id in self._pid_controllers:
+                    pid_ctrl = self._pid_controllers[motor.id]
+                    target_rpm_signed = self._motor_target_rpms.get(motor.id, 0.0)
+                    current_motor_rpm = motor.rpm
+                    pid_ctrl.setpoint = target_rpm_signed
+                    # call PID update, returns output in RPM (range: -motor.max_speed to +motor.max_speed)
+                    pid_output_rpm = pid_ctrl.update(current_motor_rpm, global_cycle_dt_us)
+                    # scale PID output (RPM) to percent (-100 to 100)
+                    if motor.max_speed:
+                        speed_percent = (pid_output_rpm / motor.max_speed) * 100
+                    else:
+                        speed_percent = 0.0
+                    # clip to range [-100, 100]
+                    speed_percent = Util.clip(speed_percent, -100, 100)
+                    # apply zero-speed deadband
+                    if target_rpm_signed == 0.0:
+                        if abs(speed_percent) < self._motor_stop_pwm_threshold:
+                            speed_percent = 0.0 
+                    _speed = int(round(speed_percent))
+                    motor.speed = _speed
+
+    async def x_run_pid_task(self):
+        self._log.info("starting asynchronous PID control task, driven by hardware timer.")
+        while True:
+            await self._pid_signal_flag.wait()
 
             current_time = utime.ticks_us()
             # calculate dt_us based on the consistent global cycle time
@@ -167,15 +195,12 @@ class MotorController:
                     speed_percent = (pid_output_rpm / motor.max_speed) * 100
                     # clip to range [-100, 100]
                     speed_percent = Util.clip(speed_percent, -100, 100)
-#                   speed_percent = max(-100, min(100, speed_percent))
                     # apply zero-speed deadband
                     if target_rpm_signed == 0.0:
                         if abs(speed_percent) < self._motor_stop_pwm_threshold:
                             speed_percent = 0.0
                     _speed = int(round(speed_percent))
                     motor.speed = _speed
-                    # if next(self._counter) % 100 == 0:
-                    #     self._log.info(Fore.WHITE + 'motor speed set to: {}'.format(_speed))
 
     @property
     def motor_ids(self):
@@ -239,10 +264,10 @@ class MotorController:
             while self._logging_enabled:
                 if self._motor_list:
                     rpm_values = ", ".join(
-                        '{}: '.format(motor.name)
-                            + ( Fore.BLUE + 'pid: {:.1f}, {:.1f}, {:.1f}; sp={}; o={}; '.format(*self._pid_controllers[motor.id].info)
-                            + Fore.CYAN + Style.BRIGHT + 'sp={:.1f}; {:6.1f} RPM; {}%'.format(motor.speed, motor.rpm, int(motor.duty_cycle))
-                            + Style.NORMAL + "({})".format(self._get_motor_target_rpms(motor.id))
+                        "{}: ".format(motor.name)
+                            + ( Fore.BLUE + "pid: {:.1f}, {:.1f}, {:.1f}; sp={:.1f}; o={:.1f};".format(*self._pid_controllers[motor.id].info)
+                            + Fore.CYAN + Style.BRIGHT + " {:.1f}% / {:6.1f} RPM;".format(motor.speed, motor.rpm)
+#                           + Fore.WHITE + Style.NORMAL + " duty={}%".format(int(motor.duty_cycle))
                             if self._use_closed_loop else
                                 Style.NORMAL + "; {:6.1f} RPM; {:5d} tk".format(motor.rpm, motor.tick_count)
                             )

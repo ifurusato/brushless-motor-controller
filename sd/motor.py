@@ -161,6 +161,34 @@ class Motor:
     @speed.setter
     def speed(self, value):
         '''
+        Set the motor speed as a percentage between -100 and 100.
+        Handles direction pin automatically if value is negative.
+        Always uses absolute value for PWM.
+        '''
+        if not self.enabled:
+            raise Exception('cannot set speed: motor {} not enabled.'.format(self._name))
+        # determine direction from sign
+        if value < 0:
+            intended_direction = Motor.DIRECTION_REVERSE
+            value = abs(value)
+        else:
+            intended_direction = Motor.DIRECTION_FORWARD
+        # clip value to 0..100 percent
+        value = Util.clip(value, 0, 100)
+        # only allow direction change if RPM is near stopped, or if it's same direction
+        if (self._direction != intended_direction and abs(self.rpm) < self._soft_stop_threshold_rpm) \
+                or (self._direction == intended_direction):
+            self.direction = intended_direction
+        else:
+            self._log.debug('direction change ignored.')
+            pass
+        self._speed = value if intended_direction == Motor.DIRECTION_FORWARD else -value
+        self._duty_cycle = value
+        self._pwm_channel.pulse_width_percent(self._duty_cycle)
+
+    @speed.setter
+    def x_speed(self, value):
+        '''
         Set the motor speed as a percentage between 0 and 100, or when in closed
         loop mode the maximum motor speed in RPM. We also set the direction pin
         depending on the value.
@@ -185,9 +213,7 @@ class Motor:
             pass
         self._speed  = value
         self._duty_cycle = value
-        # self._duty_cycle = 100 - value # inverted PWM when not configured as Timer.PWM_INVERTED
         self._pwm_channel.pulse_width_percent(self._duty_cycle)
-#       self._log.info('motor {} speed set to {}% (PWM duty {}%)'.format(self._name, value, self._duty_cycle))
 
     @property
     def duty_cycle(self):

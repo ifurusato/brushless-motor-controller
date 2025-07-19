@@ -46,7 +46,7 @@ class UARTMaster:
         self._last_tx  = None
         self._last_rx  = None
         self._last_payload = None
-        self._verbose  = True
+        self._verbose  = False
         self._ip_address = get_ip_address(True)
         self._log.info('UART master ready at baud rate: {:,}.'.format(baudrate))
 

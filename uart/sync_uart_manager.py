@@ -20,14 +20,15 @@ from core.logger import Logger, Level
 class SyncUARTManager:
     def __init__(self, port='/dev/serial0', baudrate=115200, tx_timeout_ms=10, rx_timeout_ms=25):
         self._log = Logger('sync-uart-mgr', Level.INFO)
-        self._port_name  = port
-        self._baudrate   = baudrate
+        self._port_name    = port
+        self._baudrate     = baudrate
         self._tx_timeout_s = tx_timeout_ms / 1000
         self._rx_timeout_s = rx_timeout_ms / 1000
         self._log.info('tx timeout: {}ms; rx timeout: {}ms'.format(tx_timeout_ms, rx_timeout_ms))
-        self._serial     = None
-        self._errors     = 0
-        self._rx_buffer  = None # buffer for sync-header-based framing
+        self._serial       = None
+        self._errors       = 0
+        self._error_limit  = 10
+        self._rx_buffer    = None # buffer for sync-header-based framing
         self._log.info('ready.')
 
     def open(self):
@@ -57,6 +58,9 @@ class SyncUARTManager:
         '''
         start_time = time.time()
         while True:
+            if self._errors > self._error_limit:
+                self._log.error('exceeded error limit!')
+                break
             if self._serial.in_waiting:
                 data = self._serial.read(self._serial.in_waiting)
                 self._rx_buffer += data
