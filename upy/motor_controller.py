@@ -167,9 +167,8 @@ class MotorController:
                     # clip to range [-100, 100]
                     speed_percent = Util.clip(speed_percent, -100, 100)
                     # apply zero-speed deadband
-                    if target_rpm_signed == 0.0:
-                        if abs(speed_percent) < self._motor_stop_pwm_threshold:
-                            speed_percent = 0.0 
+                    if abs(speed_percent) < pid_ctrl._deadband:
+                        speed_percent = 0.0 
                     _speed = int(round(speed_percent))
                     motor.speed = _speed
 
