@@ -51,7 +51,7 @@ kros:
     max_transition_time_ms:  5000
   pid:
       verbose:              False
-      kp:                       1.270  # proportional gain   0.51  (was: 0.60)
+      kp:                       1.000  # proportional gain   0.51  (was: 0.60)
       ki:                       0.050  # integral gain       0.050 (was: 0.050)
       kd:                       0.001  # derivative gain     0.001 (was: 0.001)
       setpoint:                 0.0
