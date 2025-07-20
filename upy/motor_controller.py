@@ -22,6 +22,7 @@ from logger import Logger, Level
 from config_loader import ConfigLoader
 from motor import Motor, ChannelUnavailableError
 from slew_limiter import SlewLimiter
+from zero_crossing_handler import ZeroCrossingHandler
 from pid import PID
 from mode import Mode
 from util import Util
@@ -59,16 +60,16 @@ class MotorController:
         self._max_delta_rpm_per_sec   = _slew_cfg['max_delta_rpm_per_sec']    # closed loop: 120.0
         self._max_delta_speed_per_sec = _slew_cfg['max_delta_speed_per_sec']  # open loop: 100.0
         # variables ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
-        self._motors     = {}
-        self._motor_list = []
-        self._motor_numbers = [0, 1, 2, 3]
-        self._slew_limiters = {}
-        self._zc_handlers = {}
+        self._motors          = {}
+        self._motor_list      = []
+        self._motor_numbers   = [0, 1, 2, 3]
+        self._slew_limiters   = {}
+        self._pid_controllers = {} # PID instances
+        self._zc_handlers     = {}
         self._hard_reset_delay_sec = 3
         self._enabled    = False
         if self._use_closed_loop:
             self._feedforward_gain = config['kros']['motor_controller']['feedforward_gain']
-            self._pid_controllers = {}     # PID instances
             self._motor_target_rpms = {}   # target RPM for each motor
             self._pid_gains = _cfg.get('pid_gains', {'Kp': 0.5, 'Ki': 0.01, 'Kd': 0.01}) # Default PID gains if not in config
             _pid_timer_number = _cfg['pid_timer_number']
@@ -125,9 +126,13 @@ class MotorController:
                 # instantiate SlewLimiter for each motor
                 if self._enable_slew_limiter:
                     self._slew_limiters[index] = SlewLimiter(name=_name, max_delta_per_sec=_max_delta_per_sec, safe_threshold=_safe_threshold)
-                # instantiate ZeroCrossingHandler
+                # instantiate ZeroCrossingHandler for each motor
                 if self._enable_zc_handler:
-                    self._zc_handlers[index] = ZeroCrossingHandler(index, config, _motor, level=level)
+                    self._zc_handlers[index] = ZeroCrossingHandler(
+                        self._motors[index],
+                        self._pid_controllers[index],
+                        self._slew_limiters.get(index)
+                    )
             self._log.info('ready.')
         except ChannelUnavailableError:
             # hard reset if coms are down

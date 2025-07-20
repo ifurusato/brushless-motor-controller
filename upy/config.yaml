@@ -42,8 +42,8 @@ kros:
     max_delta_speed_per_sec:   30.0    # slew limiter for speed
     safe_threshold:            10.0
   zero_crossing_handler:
+    enabled:                 True      # use zero-crossing handler for speed polarity transitions
     verbose:                False
-    enabled:                False      # use zero-crossing handler for speed polarity transitions
 #   decel_rate_rpm_per_sec:    50
 #   accel_rate_rpm_per_sec:    50
 #   transition_interval_ms:    20
