@@ -58,9 +58,9 @@ class UARTMaster:
 #       self._log.info(f"MASTER TX BYTES: {packet_bytes.hex(' ')}") # TEMP
         self.uart.send_packet(payload)
         if self._verbose:
-            if payload.cmd != self._last_tx:
+            if payload.code != self._last_tx:
                 self._log.info(Fore.MAGENTA + "tx: {}".format(payload))
-        self._last_tx = payload.cmd
+        self._last_tx = payload.code
 
     def receive_payload(self):
         '''
@@ -69,12 +69,12 @@ class UARTMaster:
         '''
         payload = self.uart.receive_packet()
         if payload:
-            if payload.cmd == Mode.PING.code: # display ping result
+            if payload.code == Mode.PING.code: # display ping result
                 return Payload.decode_to_int(*payload.values)
             elif self._verbose:
-                if payload.cmd != self._last_rx:
+                if payload.code != self._last_rx:
                     self._log.info(Fore.MAGENTA + "rx: {}".format(payload))
-            self._last_rx = payload.cmd
+            self._last_rx = payload.code
             return payload
         else:
             raise ValueError("no valid response received.")
@@ -110,18 +110,18 @@ class UARTMaster:
             red = green = blue = 0.0
             counter = itertools.count()
             div     = 1
-            cmd     = 'CO'
+            code    = 'CO'
             speed   = 0.0
 
             while True:
                 if command_source is not None:
-                    cmd = command_source()
-                # create Payload with cmd (2 letters) and floats for pfwd, sfwd, paft, saft
+                    code = command_source()
+                # create Payload with code (2 letters) and floats for pfwd, sfwd, paft, saft
                 _color = Fore.BLUE
-                _mode = Mode.from_code(cmd)
+                _mode = Mode.from_code(code)
 #               self._log.info(Fore.YELLOW + "mode: {}".format(_mode))
                 if _mode == Mode.PING:
-                    payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
+                    payload = Payload(code, 0.0, 0.0, 0.0, 0.0)
                 else:
                     if speed_source is not None:
                         speed, red, green, blue = speed_source()
@@ -129,29 +129,29 @@ class UARTMaster:
                         speed = 0.0
                     match _mode:
                         case Mode.COLOR:
-                            payload = Payload(cmd, red, green, blue, 0.0)
+                            payload = Payload(code, red, green, blue, 0.0)
                         case Mode.ENABLE:
-                            payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
+                            payload = Payload(code, 0.0, 0.0, 0.0, 0.0)
                         case Mode.IP_ADDRESS:
-                            payload = Payload(cmd, *self._ip_address)
+                            payload = Payload(code, *self._ip_address)
                         case Mode.REQUEST:
                             # TODO
-                            payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
+                            payload = Payload(code, 0.0, 0.0, 0.0, 0.0)
                         case Mode.ACK:
                             # TODO
-                            payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
+                            payload = Payload(code, 0.0, 0.0, 0.0, 0.0)
                         case Mode.STOP:
                             _color = Fore.RED
-                            payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
+                            payload = Payload(code, 0.0, 0.0, 0.0, 0.0)
                         case Mode.GO:
                             _color = Fore.GREEN
-                            payload = Payload(cmd, speed, speed, speed, speed)
+                            payload = Payload(code, speed, speed, speed, speed)
                         case Mode.ERROR:
                             _color = Fore.RED
-                            payload = Payload(cmd, -1.0, -1.0, -1.0, -1.0)
+                            payload = Payload(code, -1.0, -1.0, -1.0, -1.0)
                         case Mode.DISABLE:
                             _color = Fore.BLACK
-                            payload = Payload(cmd, 0.0, 0.0, 0.0, 0.0)
+                            payload = Payload(code, 0.0, 0.0, 0.0, 0.0)
 #                       case Mode.ROT_CW:
 #                       case Mode.ROT_CCW:
 #                       case Mode.CRAB_PORT:
@@ -161,7 +161,7 @@ class UARTMaster:
 #                       case Mode.DIA_PREV:
 #                       case Mode.DIA_SREV:
                         case _:
-                            payload = Payload(cmd, speed, speed, -speed, -speed)
+                            payload = Payload(code, speed, speed, -speed, -speed)
                     if payload == self._last_payload: # then don't bother
                         continue
                 self._last_payload = payload
@@ -178,7 +178,7 @@ class UARTMaster:
                 elapsed_time = (dt.now() - start_time).total_seconds() * 1000  # Convert to milliseconds
 
                 if next(counter) % div == 0: # every 10th time
-                    self._log.info(_color + "{} / {:>3}".format(cmd, speed) + Fore.CYAN + "; tx: {:.2f} ms elapsed.".format(elapsed_time))
+                    self._log.info(_color + "{} / {:>3}".format(code, speed) + Fore.CYAN + "; tx: {:.2f} ms elapsed.".format(elapsed_time))
                 # with no sleep here, would be running as fast as the system allows
                 if self._hindered:
                     time.sleep(delay_sec)

@@ -27,43 +27,42 @@ class PayloadRouter:
     def __init__(self, status, display, motor_controller):
         self._log = Logger('router', Level.INFO)
         self._motor_controller = motor_controller
-        self._errors   = 0
-        self._status   = status
-        self._display  = display
-        self._last_cmd = None
-        self._console  = True # use Display as console
-        self._verbose  = False
-        self._last_error = PayloadRouter.NO_ERROR
-        self._error_time = None
-        self._error_timeout = timedelta(seconds=5)  # configurable timeout
+        self._status         = status
+        self._display        = display
+        self._errors         = 0
+        self._last_payload   = PayloadRouter.ACK # placeholder
+        self._console        = True # use Display as console
+        self._verbose        = False
+        self._last_error     = PayloadRouter.NO_ERROR
+        self._error_time     = None
+        self._error_timeout  = timedelta(seconds=5)  # configurable timeout
         self._GENERATOR_TYPE = type((lambda: (yield))()) # the type indicating a coroutine
         # define command handlers
         self._handlers = {
             # non-motion handlers
-            Mode.COLOR:       lambda payload: self._handle_color(payload.rgb),                            # color
-            Mode.ENABLE:      lambda payload: self._motor_controller.enable(),                            # enable
-            Mode.PING:        lambda payload: self._handle_ping(),                                        # ping (shouldn't be here)
-            Mode.IP_ADDRESS:  lambda payload: self._display_ip_address(payload.speeds),                   # display ip address
+            Mode.COLOR:       lambda payload: self._handle_color(payload.rgb),           # color
+            Mode.ENABLE:      lambda payload: self._motor_controller.enable(),           # enable
+            Mode.PING:        lambda payload: self._handle_ping(),                       # ping (shouldn't be here)
+            Mode.IP_ADDRESS:  lambda payload: self._display_ip_address(payload.speeds),  # display ip address
             # stopped   
-            Mode.STOP:        lambda payload: self._motor_controller.go(Mode.STOP, payload.speeds),       # stop
+            Mode.STOP:        lambda payload: self._motor_controller.go(payload),        # stop
             # all wheels forward/backward
-            Mode.GO:          lambda payload: self._motor_controller.go(Mode.GO, payload.speeds),         # go forward or reverse
+            Mode.GO:          lambda payload: self._motor_controller.go(payload),        # go forward or reverse
             # rotation (spin in place)
-            Mode.ROT_CW:      lambda payload: self._motor_controller.go(Mode.ROT_CW, payload.speeds),     # rotate clockwise
-            Mode.ROT_CCW:     lambda payload: self._motor_controller.go(Mode.ROT_CCW, payload.speeds),    # rotate counter-clockwise
+            Mode.ROT_CW:      lambda payload: self._motor_controller.go(payload),        # rotate clockwise
+            Mode.ROT_CCW:     lambda payload: self._motor_controller.go(payload),        # rotate counter-clockwise
             # crab movement (lateral strafe)  
-            Mode.CRAB_PORT:   lambda payload: self._motor_controller.go(Mode.CRAB_PORT, payload.speeds),  # crab to port
-            Mode.CRAB_STBD:   lambda payload: self._motor_controller.go(Mode.CRAB_STBD, payload.speeds),  # crab to starboard
+            Mode.CRAB_PORT:   lambda payload: self._motor_controller.go(payload),        # crab to port
+            Mode.CRAB_STBD:   lambda payload: self._motor_controller.go(payload),        # crab to starboard
             # crab movement (lateral strafe)  
-            Mode.DIA_PFWD:    lambda payload: self._motor_controller.go(Mode.DIA_PFWD, payload.speeds),   # diagonal forward to port
-            Mode.DIA_SFWD:    lambda payload: self._motor_controller.go(Mode.DIA_SFWD, payload.speeds),   # diagonal forward to starboard
-            Mode.DIA_PREV:    lambda payload: self._motor_controller.go(Mode.DIA_PREV, payload.speeds),   # diagonal reverse to port
-            Mode.DIA_SREV:    lambda payload: self._motor_controller.go(Mode.DIA_SREV, payload.speeds),   # diagonal reverse to starboard
-            Mode.ACK:         lambda payload: self._handle_ack(),                                         # acknowledge (for completeness)
-            Mode.REQUEST:     lambda payload: self._handle_request(payload),                              # request status
-#           Mode.DISABLE:     lambda payload: self._motor_controller.disable(),                           # disable
-            Mode.DISABLE:     lambda payload: self._handle_disable(),                                     # mock disable
-            Mode.ERROR:       lambda payload: self._handle_error(payload),                                # error state
+            Mode.DIA_PFWD:    lambda payload: self._motor_controller.go(payload),        # diagonal forward to port
+            Mode.DIA_SFWD:    lambda payload: self._motor_controller.go(payload),        # diagonal forward to starboard
+            Mode.DIA_PREV:    lambda payload: self._motor_controller.go(payload),        # diagonal reverse to port
+            Mode.DIA_SREV:    lambda payload: self._motor_controller.go(payload),        # diagonal reverse to starboard
+            Mode.ACK:         lambda payload: self._handle_ack(),                        # acknowledge (for completeness)
+            Mode.REQUEST:     lambda payload: self._handle_request(payload),             # request status
+            Mode.DISABLE:     lambda payload: self._handle_disable(),                    # mock disable
+            Mode.ERROR:       lambda payload: self._handle_error(payload),               # error state
         }
         self._check_event_loop()
         self._log.info('ready.')
@@ -107,24 +106,25 @@ class PayloadRouter:
 
     async def route(self, payload):
         '''
-        Routes the Payload to an appropriate recipient, then returns
-        True if successfully routed.
+        Routes the Payload to an appropriate recipient. If the Payload is
+        identical to the previous one it is ignored.
         '''
         if payload is None:
             raise ValueError('null Payload.')
         elif not isinstance(payload, Payload):
             raise TypeError('expected a Payload, not a {}'.format(type(payload)))
-        self._last_cmd = payload.cmd
-        asyncio.create_task(self._handle_payload(payload))
+        if payload != self._last_payload:
+            asyncio.create_task(self._handle_payload(payload))
+            self._last_payload = payload
 
     async def _handle_payload(self, payload):
-        cmd = payload.cmd
+        code = payload.code
         if self._verbose:
-            if cmd != self._last_cmd:
-                self._log.info(Fore.MAGENTA + "route cmd: '{}' from payload: {}".format(cmd, payload))
-        mode = Mode.from_code(cmd)
+            if code != self._last_payload.code:
+                self._log.info(Fore.MAGENTA + "route code: '{}' from payload: {}".format(code, payload))
+        mode = Mode.from_code(code)
         if self._console:
-            if cmd != 'IP': # fixed display, so don't overwrite with console
+            if code != 'IP': # fixed display, so don't overwrite with console
                 self._display.console(payload.as_log())
         handler = self._handlers.get(mode)
         if handler:
@@ -164,38 +164,6 @@ class PayloadRouter:
     def _handle_error(self, payload):
         self._errors += 1
         self._log.error('ERROR. count: {}'.format(self._errors))
-
-    async def x_handle_payload(self, payload):
-        cmd = payload.cmd
-        if self._verbose:
-            if cmd != self._last_cmd:
-                self._log.info(Fore.MAGENTA + "route: '{}' from payload: {}".format(payload.cmd, payload))
-        if cmd == 'CO':
-            if self._verbose:
-                rgb = payload.rgb
-                self._log.info(Fore.MAGENTA + 'color: {}'.format(rgb))
-            self._status.rgb(color=payload.rgb)
-        elif cmd == 'GO':
-            self._motor_controller.go(payload.values)
-            self._status.motors(payload.values)
-        elif cmd == 'ST':
-            self._motor_controller.stop()
-        elif cmd == 'RO':
-            self._motor_controller.rotate(payload.values)
-#           self._status.motors(payload.values)
-        elif cmd == 'CR':
-            self._motor_controller.crab(payload.values)
-#           self._status.motors(payload.values)
-        elif cmd == 'EN':
-            self._motor_controller.enable()
-        elif cmd == 'DS':
-            self._motor_controller.disable()
-            self.off()
-        elif cmd == 'ER':
-            self._errors += 1
-            self._log.error('ERROR. count: {}'.format(self._errors))
-        else:
-            self._log.error("unknown command: {}".format(payload.cmd))
 
     def close(self):
         self.off()

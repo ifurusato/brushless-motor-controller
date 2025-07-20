@@ -42,28 +42,29 @@ class MotorController:
         self._log.info('initialising Motor Controller…')
         if config is None:
             raise ValueError('no configuration provided.')
-        self._enabled    = False
+        self._config     = config
         self._status     = status
-        self._hard_reset_delay_sec = 3
-        self._motors     = {}
-        self._motor_list = []
-        self._motor_numbers = [0, 1, 2, 3]
-        _cfg             = config["kros"]["motor_controller"]
+        # configuration ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
         _app_cfg         = config["kros"]["application"]
         _motors_cfg      = config["kros"]["motors"]
         _slew_cfg        = config["kros"]["slew_limiter"]
+        _cfg             = config["kros"]["motor_controller"]
+        self._verbose    = True # _app_cfg["verbose"]
         _pwm_frequency   = _cfg['pwm_frequency']
-        self._use_closed_loop = _cfg.get('use_closed_loop', True)
-        _max_motor_speed = _cfg.get('max_motor_speed')
-        self._motor_stop_pwm_threshold = 8
-        self._soft_stop_rpm_threshold = _cfg.get('soft_stop_rpm_threshold', 5.0)
+        self._max_motor_speed         = _cfg.get('max_motor_speed')
+        self._use_closed_loop         = _cfg.get('use_closed_loop', True)
         self._enable_slew_limiter     = _slew_cfg['enabled']                  # True
         self._max_delta_rpm_per_sec   = _slew_cfg['max_delta_rpm_per_sec']    # closed loop: 120.0
         self._max_delta_speed_per_sec = _slew_cfg['max_delta_speed_per_sec']  # open loop: 100.0
+        # variables ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+        self._motors     = {}
+        self._motor_list = []
+        self._motor_numbers = [0, 1, 2, 3]
         self._slew_limiters = {}
-
+        self._hard_reset_delay_sec = 3
+        self._enabled    = False
         if self._use_closed_loop:
-             # NEW: Closed-loop flag and PID related attributes
+            self._feedforward_gain = config['kros']['motor_controller']['feedforward_gain']
             self._pid_controllers = {}     # PID instances
             self._motor_target_rpms = {}   # target RPM for each motor
             self._pid_gains = _cfg.get('pid_gains', {'Kp': 0.5, 'Ki': 0.01, 'Kd': 0.01}) # Default PID gains if not in config
@@ -79,7 +80,6 @@ class MotorController:
         else:
             self._log.info(Fore.GREEN + 'open-loop enabled; PID disabled.')
 
-        self._verbose    = True # _app_cfg["verbose"]
         self._log.info(Fore.MAGENTA + 'verbose: {}'.format(self._verbose))
         try:
             self._log.debug('configuring timers…')
@@ -112,7 +112,7 @@ class MotorController:
                 _motor_cfg = _motors_cfg[_motor_key]
                 _name = _motor_cfg["name"]
                 self._log.info('configuring {}…'.format(_motor_key))
-                _motor = Motor(_motor_cfg, pwm_timer=_pwm_timer, max_speed= _max_motor_speed if self._use_closed_loop else 100.0)
+                _motor = Motor(_motor_cfg, pwm_timer=_pwm_timer, max_speed=self._max_motor_speed if self._use_closed_loop else 100.0)
                 self._motors[index] = _motor
                 self._motor_list.append(_motor)
                 # instantiate PID controller for this motor if closed-loop enabled
@@ -159,45 +159,16 @@ class MotorController:
                     pid_ctrl.setpoint = target_rpm_signed
                     # call PID update, returns output in RPM (range: -motor.max_speed to +motor.max_speed)
                     pid_output_rpm = pid_ctrl.update(current_motor_rpm, global_cycle_dt_us)
+                    # feedforward
+                    feedforward = self._feedforward_gain * target_rpm_signed
+                    combined_output_rpm = pid_output_rpm + feedforward
                     # scale PID output (RPM) to percent (-100 to 100)
-                    if motor.max_speed:
-                        speed_percent = (pid_output_rpm / motor.max_speed) * 100
-                    else:
-                        speed_percent = 0.0
+                    speed_percent = (combined_output_rpm / motor.max_speed) * 100
                     # clip to range [-100, 100]
                     speed_percent = Util.clip(speed_percent, -100, 100)
                     # apply zero-speed deadband
                     if abs(speed_percent) < pid_ctrl._deadband:
                         speed_percent = 0.0 
-                    _speed = int(round(speed_percent))
-                    motor.speed = _speed
-
-    async def x_run_pid_task(self):
-        self._log.info("starting asynchronous PID control task, driven by hardware timer.")
-        while True:
-            await self._pid_signal_flag.wait()
-
-            current_time = utime.ticks_us()
-            # calculate dt_us based on the consistent global cycle time
-            global_cycle_dt_us = utime.ticks_diff(current_time, self._last_global_pid_cycle_time)
-            self._last_global_pid_cycle_time = current_time # update for next cycle
-
-            for motor in self.motors:
-                if motor.id in self._pid_controllers:
-                    pid_ctrl = self._pid_controllers[motor.id]
-                    target_rpm_signed = self._motor_target_rpms.get(motor.id, 0.0)
-                    current_motor_rpm = motor.rpm
-                    pid_ctrl.setpoint = target_rpm_signed
-                    # call PID update, returns output in RPM (range: -motor.max_speed to +motor.max_speed)
-                    pid_output_rpm = pid_ctrl.update(current_motor_rpm, global_cycle_dt_us)
-                    # scale PID output (RPM) to percent (-100 to 100)
-                    speed_percent = (pid_output_rpm / motor.max_speed) * 100
-                    # clip to range [-100, 100]
-                    speed_percent = Util.clip(speed_percent, -100, 100)
-                    # apply zero-speed deadband
-                    if target_rpm_signed == 0.0:
-                        if abs(speed_percent) < self._motor_stop_pwm_threshold:
-                            speed_percent = 0.0
                     _speed = int(round(speed_percent))
                     motor.speed = _speed
 
@@ -253,33 +224,39 @@ class MotorController:
     async def _rpm_logger_coro(self, interval_ms: int):
         '''
         Periodically logs the current RPM and tick count for all motors.
+        If there is no change in the log message it is printed in DIM.
 
         Args:
             interval_ms: The interval between calls to the logger.
         '''
         if self._verbose:
             self._log.info(Fore.MAGENTA + "called RPM logger coro with interval: {}ms.".format(interval_ms))
+            _pid_cfg = self._config['kros']['pid']
+            _kp = _pid_cfg['kp']
+            _ki = _pid_cfg['ki']
+            _kd = _pid_cfg['kd']
+            self._log.info("pid config: " + Fore.MAGENTA + "kp={:>5.3f}; ki={:>5.3f}; kd={:>5.3f}; ff={:>3.2f}; limits: {}🠊 {}".format(
+                    _kp, _ki, _kd, self._feedforward_gain, -self._max_motor_speed, self._max_motor_speed))
         try:
+            last_rpm_values = None
             while self._logging_enabled:
                 if self._motor_list:
                     rpm_values = ", ".join(
-                        "{}: ".format(motor.name)
-                            + ( Fore.BLUE + "pid: {:.1f}, {:.1f}, {:.1f}; sp={:.1f}; o={:.1f};".format(*self._pid_controllers[motor.id].info)
-                            + Fore.CYAN + Style.BRIGHT + " {:.1f}% / {:6.1f} RPM;".format(motor.speed, motor.rpm)
-#                           + Fore.WHITE + Style.NORMAL + " duty={}%".format(int(motor.duty_cycle))
+                        (
+                            "{:2s} | ".format(motor.name) 
+                                + "pid:{:7.3f} {:7.3f} {:7.3f} | SP:{:6.1f} OUT:{:6.1f} | ".format(*self._pid_controllers[motor.id].info)
+                                + "PWM: {:5.1f}% {:6.1f} RPM".format(motor.speed, motor.rpm)
                             if self._use_closed_loop else
-                                Style.NORMAL + "; {:6.1f} RPM; {:5d} tk".format(motor.rpm, motor.tick_count)
-                            )
-                        for motor in self._motor_list
+                                "{:2s} | RPM:{:8.2f} | Ticks:{:5d}".format(motor.name, motor.rpm, motor.tick_count)
                         )
-#                       "{}: {:.2f} RPM (target: {}); {} ticks".format(motor.name, motor.rpm, self._get_motor_target_rpms(motor.id), motor.tick_count)
+                        for motor in self._motor_list
+                    )
                     if self._verbose:
-                        _motor0 = self._motor_list[0]
-#                       self._log.info('MO: ' + Fore.MAGENTA + "{} RPM ({})".format(_motor0.rpm, self._get_motor_target_rpms(_motor0.id)))
-                        self._log.info('set: ' + Fore.MAGENTA + "{}".format(rpm_values))
-#               else:
-#                   self._log.warning("no motors configured for RPM logging.")
-                    pass
+                        if  last_rpm_values != rpm_values:
+                            self._log.info('set: ' + Fore.MAGENTA + "{}".format(rpm_values))
+                        else:
+                            self._log.info('set: ' + Fore.MAGENTA + Style.DIM + "{}".format(rpm_values))
+                    last_rpm_values = rpm_values
                 await asyncio.sleep_ms(interval_ms)
         except asyncio.CancelledError:
             self._log.info("RPM logger task cancelled.")
@@ -318,16 +295,20 @@ class MotorController:
     def _apply_mode(base_power, mode):
         return tuple(p * m for p, m in zip(base_power, mode.speeds))
 
-    def go(self, mode=Mode.STOP, speeds=None):
+    def go(self, payload):
         '''
         Set the navigation mode and speeds for all motors.
 
         Args:
-            mode:  the enumeated Mode, which includes a tuple multiplier against the speeds.
-            speeds:  the four speeds of the motors, in order: pfwd, sfwd, paft, saft
+            payload:  the transmitted payload, with mode and four motor speeds, in order: pfwd, sfwd, paft, saft
         '''
+        mode = Mode.from_code(payload.code)
+#       if mode is Mode.STOP:
+#           self.stop()
+#           return
+        speeds = payload.speeds
         transform = MotorController._apply_mode(speeds, mode)
-        self._log.debug('go: {}; speeds: {}; type: {}; transform: {}'.format(mode, speeds, type(transform), transform))
+#       self._log.debug('go: {}; speeds: {}; type: {}; transform: {}'.format(mode, speeds, type(transform), transform))
         self._status.motors(transform)
         if self._enable_slew_limiter:
             transform = list(transform) # convert to list for mutability

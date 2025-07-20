@@ -113,12 +113,12 @@ class UartSlaveApp:
                     self._tx_count += 1
                     if self._verbose:
                         self._log.info("payload: {}".format(_payload))
-                    if _payload.cmd == 'PN': # just ping, no routing
+                    if _payload.code == 'PN': # just ping, no routing
                         await self._slave.send_packet(Payload(Mode.PING.code, *Payload.encode_int(self._tx_count)))
-                    elif _payload.cmd == 'RS': # request status
+                    elif _payload.code == 'RS': # request status
                         self._log.info(Fore.MAGENTA + "request status…")
                         timestamp, code = self._router.get_error_info()
-                        status_cmd = "ER" if timestamp is not None else "OK"
+#                       status_code = "ER" if timestamp is not None else "OK"
                         if timestamp is not None:
                             status_payload = Payload(Mode.ERROR.code, timestamp, code, 0.0, 0.0)
                         else:

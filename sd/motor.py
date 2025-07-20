@@ -9,7 +9,11 @@
 # created:  2025-06-04
 # modified: 2025-07-08
 #
-# A 12V DC brushless motor. shaft speed: 55rpm; motor speed: 4500rpm; gear ratio: 78:1; rated load: 40rpm 0.08A 0.6kg.cm torque; stall: 3 kg.cm, 0.5A.
+# A 12V JGA25-2418-1245 (25mm dia., 18mm length) DC brushless motor:
+#
+#  * motor speed: 4500rpm; * gear ratio: 78:1; shaft speed: 55rpm
+#  * rated load: 40rpm 0.08A 0.6kg.cm torque; stall: 3 kg.cm, 0.5A
+#
 # source: https://precisionminidrives.com/product/7kg-cm-micro-brushless-worm-gearmotors-12v-24v-model-nfp-jga25-2418-ce
 
 import utime

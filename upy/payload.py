@@ -7,7 +7,7 @@
 #
 # author:   Murray Altheim
 # created:  2025-06-12
-# modified: 2025-07-14
+# modified: 2025-07-20
 
 import struct
 
@@ -20,23 +20,23 @@ class Payload:
     # sync header: 'zz' for human-readability. To switch to a binary header, just uncomment the next line.
     SYNC_HEADER = b'\x7A\x7A'
 #   SYNC_HEADER = b'\xAA\x55'
-    PACK_FORMAT = '<2sffff'  # 2-char cmd, 4 floats
-    PAYLOAD_SIZE = struct.calcsize(PACK_FORMAT) # size of cmd+floats only, no CRC or header
+    PACK_FORMAT = '<2sffff'  # 2-char code, 4 floats
+    PAYLOAD_SIZE = struct.calcsize(PACK_FORMAT) # size of code+floats only, no CRC or header
     CRC_SIZE = 1
     PACKET_SIZE = len(SYNC_HEADER) + PAYLOAD_SIZE + CRC_SIZE  # header + payload + crc
     VARIABLE_FORMAT = "{:2s} {:.1f} {:.1f} {:.1f} {:.1f}"
     FIXED_FORMAT    = "{:>2} {:5.1f} {:5.1f} {:5.1f} {:5.1f}"
 
-    def __init__(self, cmd, pfwd, sfwd, paft, saft):
-        self._cmd  = cmd
+    def __init__(self, code, pfwd, sfwd, paft, saft):
+        self._code = code
         self._pfwd = pfwd
         self._sfwd = sfwd
         self._paft = paft
         self._saft = saft
 
     @property
-    def cmd(self):
-        return self._cmd
+    def code(self):
+        return self._code
 
     @property
     def pfwd(self):
@@ -71,20 +71,20 @@ class Payload:
 
     def as_log(self):
         return Payload.VARIABLE_FORMAT.format(
-            self._cmd, self._pfwd, self._sfwd, self._paft, self._saft
+            self._code, self._pfwd, self._sfwd, self._paft, self._saft
         )
 
     def __repr__(self):
-        cmd_str = self.cmd.decode('utf-8') if isinstance(self.cmd, bytes) else self.cmd
-        return "Payload(cmd={:>2}, pfwd={:7.2f}, sfwd={:7.2f}, paft={:7.2f}, saft={:7.2f})".format(
-            cmd_str, self._pfwd, self._sfwd, self._paft, self._saft
+        code_str = self._code.decode('utf-8') if isinstance(self._code, bytes) else self._code
+        return "Payload(code={:>2}, pfwd={:7.2f}, sfwd={:7.2f}, paft={:7.2f}, saft={:7.2f})".format(
+            code_str, self._pfwd, self._sfwd, self._paft, self._saft
         )
 
     def __eq__(self, other):
         if not isinstance(other, Payload):
             return NotImplemented
         return (
-            self._cmd == other._cmd
+            self._code == other._code
             and self._pfwd == other._pfwd
             and self._sfwd == other._sfwd
             and self._paft == other._paft
@@ -99,9 +99,9 @@ class Payload:
         return self.__bytes__()
 
     def __bytes__(self):
-        # pack the data into bytes (cmd, floats)
-        _cmd  = self._cmd.encode('ascii') if isinstance(self._cmd, str) else self._cmd
-        packed = struct.pack(self.PACK_FORMAT, _cmd, self._pfwd, self._sfwd, self._paft, self._saft)
+        # pack the data into bytes (code, floats)
+        _code  = self._code.encode('ascii') if isinstance(self._code, str) else self._code
+        packed = struct.pack(self.PACK_FORMAT, _code, self._pfwd, self._sfwd, self._paft, self._saft)
         crc = self.calculate_crc8(packed)
         return Payload.SYNC_HEADER + packed + bytes([crc])
 
@@ -116,8 +116,8 @@ class Payload:
         calc_crc = cls.calculate_crc8(data)
         if crc != calc_crc:
             raise ValueError("CRC mismatch.")
-        cmd, pfwd, sfwd, paft, saft = struct.unpack(cls.PACK_FORMAT, data)
-        return cls(cmd.decode('ascii'), pfwd, sfwd, paft, saft)
+        code, pfwd, sfwd, paft, saft = struct.unpack(cls.PACK_FORMAT, data)
+        return cls(code.decode('ascii'), pfwd, sfwd, paft, saft)
 
     @staticmethod
     def calculate_crc8(data: bytes) -> int:

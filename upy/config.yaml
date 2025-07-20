@@ -5,44 +5,45 @@
 
 kros:
   application:
-    verbose:                False  # application-level verbosity
+    verbose:                False      # application-level verbosity
     impl:              'stm32h562'
 #   impl:              'stm32h723'
   uart_master:
     port:           '/dev/ttyAMA0'
-    baud_rate:          1_000_000  # 115200 460800 921600
-    use_async_mgr:          False  # sync or async UART manager
+    baud_rate:          1_000_000      # 115200 460800 921600
+    use_async_mgr:          False      # sync or async UART manager
   uart_slave_app:
     verbose:                False
     is_pyboard:              True
-    uart_id:                    2  # UART identifier (1-7): 3 on STM32H723, 2 on STM32H562 (TX=PA2; RX=PA3)
+    uart_id:                    2      # UART identifier (1-7): 3 on STM32H723, 2 on STM32H562 (TX=PA2; RX=PA3)
   pixel:
-    pin:                      'A0' # pin for NeoPixel; 'E1' on STM32H723
+    pin:                      'A0'     # pin for NeoPixel; 'E1' on STM32H723
   display:
     enable:                 False
   motor_controller:
     use_closed_loop:         True
-    enable_m0:              False  # enable motor M0
-    enable_m1:              False  # enable motor M1
-    enable_m2:               True  # enable motor M2
-    enable_m3:              False  # enable motor M3
-    pwm_timer:                  4  # PWM timer number
-    rpm_timer_number:           2  # RPM timer number
-    rpm_timer_frequency:      100  # RPM timer frequency in Hz
-    pwm_frequency:          20000  # frequency for PWM to motors (20-30kHz)
-    log_timer_number:           6  # log timer number
-    log_timer_frequency:        1  # log timer frequency in 20Hz (50ms period)
-    pid_timer_number:           3  # log timer number
-    pid_timer_frequency:      100  # PID timer frequency
-    max_motor_speed:           55  # maximum stated motor speed (RPM)
+    enable_m0:              False      # enable motor M0
+    enable_m1:              False      # enable motor M1
+    enable_m2:               True      # enable motor M2
+    enable_m3:              False      # enable motor M3
+    pwm_timer:                  4      # PWM timer number
+    rpm_timer_number:           2      # RPM timer number
+    rpm_timer_frequency:      100      # RPM timer frequency in Hz
+    pwm_frequency:          20000      # frequency for PWM to motors (20-30kHz)
+    log_timer_number:           6      # log timer number
+    log_timer_frequency:        1      # log timer frequency in 20Hz (50ms period)
+    pid_timer_number:           3      # log timer number
+    pid_timer_frequency:      100      # PID timer frequency
+    max_motor_speed:           55      # maximum stated motor speed (RPM)
+    feedforward_gain:         0.99     # feed forward for PID controller
   slew_limiter:
-    enabled:                False    # use rpm and speed slew limiters
-    max_delta_rpm_per_sec:     30.0  # slew limiter for RPM
-    max_delta_speed_per_sec:   30.0  # slew limiter for speed
+    enabled:                False      # use rpm and speed slew limiters
+    max_delta_rpm_per_sec:     30.0    # slew limiter for RPM
+    max_delta_speed_per_sec:   30.0    # slew limiter for speed
     safe_threshold:            10.0
   zero_crossing_handler:
     verbose:                False
-    enabled:                False  # use zero-crossing handler for speed polarity transitions
+    enabled:                False      # use zero-crossing handler for speed polarity transitions
     decel_rate_rpm_per_sec:    50
     accel_rate_rpm_per_sec:    50
     transition_interval_ms:    20
@@ -51,15 +52,15 @@ kros:
     max_transition_time_ms:  5000
   pid:
       verbose:              False
-      kp:                       1.000  # proportional gain   0.51  (was: 0.60)
-      ki:                       0.050  # integral gain       0.050 (was: 0.050)
+      kp:                       0.450  # proportional gain   0.51  (was: 0.60)
+      ki:                       0.030  # integral gain       0.050 (was: 0.050)
       kd:                       0.001  # derivative gain     0.001 (was: 0.001)
-      setpoint:                 0.0
       enable_deadband:       True      # when True use deadband
       deadband:               5.0      # the deadband value
+      stop_threshold:         2.0      # below this motor is considered stopped
       min:                   -100
       max:                    100
-  motors:                          # stm32h562
+  motors:                              # stm32h562
     motor0:
       id:                    0
       name:                "M0"
