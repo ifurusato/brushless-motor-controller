@@ -32,9 +32,9 @@ class ZeroCrossingHandler(FiniteStateMachine):
     react to the motor's constantly-changing target speed.
 
     Args:
-        motor:     the instance of the Motor class
-        pid:       the instance of the PID controller
-        slew_limiter: optional, instance of SlewLimiter for rate limiting
+        motor:         instance of the Motor class
+        pid:           instance of the PID controller
+        slew_limiter:  required instance of SlewLimiter for rate limiting
     '''
     _ZC_TRANSITION_MAP = {
         ZeroCrossingState.IDLE:            {ZeroCrossingState.DECELERATING, ZeroCrossingState.IDLE},
@@ -57,6 +57,8 @@ class ZeroCrossingHandler(FiniteStateMachine):
         )
         self.motor        = motor
         self.pid          = pid
+        if slew_limiter is None:
+            raise RuntimeError('slew limiter is required for use with zero crossing handler.')
         self.slew_limiter = slew_limiter
         self.target_rpm   = 0
         self._log.info('ready.')
@@ -70,35 +72,40 @@ class ZeroCrossingHandler(FiniteStateMachine):
         target_direction = 1 if target_rpm > 0 else -1 if target_rpm < 0 else 0
         current_direction = 1 if current_rpm > 0 else -1 if current_rpm < 0 else 0
         state = self.state
+        deadband = self.pid.deadband
 
         # FSM logic for state transitions
         if state == ZeroCrossingState.IDLE:
             self._log.info(Fore.YELLOW + 'ZCH idle.')
-            if current_direction != target_direction and target_direction != 0:
+            # Only start crossing if motor is moving outside deadband and direction reverses
+            if (abs(current_rpm) > deadband
+                and current_direction != target_direction
+                and target_direction != 0):
                 self.transition(ZeroCrossingState.DECELERATING)
 
         elif state == ZeroCrossingState.DECELERATING:
             self._log.info(Fore.YELLOW + 'ZCH decelerating.')
-            # decelerate to zero (open/closed loop, slew limiter if present)
-            if abs(current_rpm) <= self.pid.deadband:
+            # Decelerate to zero (use deadband to determine zero)
+            if abs(current_rpm) <= deadband:
                 self.transition(ZeroCrossingState.CONFIRMING_STOP)
 
         elif state == ZeroCrossingState.CONFIRMING_STOP:
             self._log.info(Fore.YELLOW + 'ZCH confirming stop.')
-            # confirm physical stop (PID stop threshold)
+            # Confirm physical stop (PID stop threshold)
             if abs(current_rpm) <= self.pid._stop_threshold:
                 self.transition(ZeroCrossingState.STOPPED)
 
         elif state == ZeroCrossingState.STOPPED:
             self._log.info(Fore.YELLOW + 'ZCH stopped.')
-            if target_direction != 0:
+            # Accelerate if target direction is set and motor is stopped (within deadband)
+            if target_direction != 0 and abs(current_rpm) <= deadband:
                 self.transition(ZeroCrossingState.ACCELERATING)
 
         elif state == ZeroCrossingState.ACCELERATING:
             self._log.info(Fore.YELLOW + 'ZCH accelerating.')
-            # accelerate to final target RPM in new direction
+            # Accelerate to final target RPM in new direction (within deadband of target)
             if (target_direction == current_direction
-                    and abs(current_rpm - target_rpm) <= self.pid.deadband):
+                    and abs(current_rpm - target_rpm) <= deadband):
                 self.transition(ZeroCrossingState.COMPLETE)
 
         elif state == ZeroCrossingState.COMPLETE:
@@ -110,11 +117,20 @@ class ZeroCrossingHandler(FiniteStateMachine):
             # error/abort handling; can expand as needed
             pass
 
-        # if target direction changes abruptly during crossing, restart
+        # only restart crossing if motor is moving (outside deadband) and direction reverses
         if (self.state != ZeroCrossingState.IDLE
+                and abs(current_rpm) > deadband
                 and current_direction != target_direction
                 and target_direction != 0):
-            self.transition(ZeroCrossingState.DECELERATING)
+            # To avoid IllegalStateError, only request DECELERATING if allowed
+            allowed = self._ZC_TRANSITION_MAP[self.state]
+            if ZeroCrossingState.DECELERATING in allowed:
+                self.transition(ZeroCrossingState.DECELERATING)
+            else:
+                # Optionally, reset to IDLE first, then DECELERATING if desired
+                if ZeroCrossingState.IDLE in allowed:
+                    self.transition(ZeroCrossingState.IDLE)
+                    self.transition(ZeroCrossingState.DECELERATING)
 
     def get_state(self):
         return self.state
