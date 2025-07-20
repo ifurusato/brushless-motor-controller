@@ -48,12 +48,14 @@ class MotorController:
         _app_cfg         = config["kros"]["application"]
         _motors_cfg      = config["kros"]["motors"]
         _slew_cfg        = config["kros"]["slew_limiter"]
+        _zch_cfg         = config["kros"]["zero_crossing_handler"]
         _cfg             = config["kros"]["motor_controller"]
         self._verbose    = True # _app_cfg["verbose"]
         _pwm_frequency   = _cfg['pwm_frequency']
         self._max_motor_speed         = _cfg.get('max_motor_speed')
         self._use_closed_loop         = _cfg.get('use_closed_loop', True)
         self._enable_slew_limiter     = _slew_cfg['enabled']                  # True
+        self._enable_zc_handler       = _zch_cfg['enabled']                   # True
         self._max_delta_rpm_per_sec   = _slew_cfg['max_delta_rpm_per_sec']    # closed loop: 120.0
         self._max_delta_speed_per_sec = _slew_cfg['max_delta_speed_per_sec']  # open loop: 100.0
         # variables ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
@@ -61,6 +63,7 @@ class MotorController:
         self._motor_list = []
         self._motor_numbers = [0, 1, 2, 3]
         self._slew_limiters = {}
+        self._zc_handlers = {}
         self._hard_reset_delay_sec = 3
         self._enabled    = False
         if self._use_closed_loop:
@@ -122,6 +125,9 @@ class MotorController:
                 # instantiate SlewLimiter for each motor
                 if self._enable_slew_limiter:
                     self._slew_limiters[index] = SlewLimiter(name=_name, max_delta_per_sec=_max_delta_per_sec, safe_threshold=_safe_threshold)
+                # instantiate ZeroCrossingHandler
+                if self._enable_zc_handler:
+                    self._zc_handlers[index] = ZeroCrossingHandler(index, config, _motor, level=level)
             self._log.info('ready.')
         except ChannelUnavailableError:
             # hard reset if coms are down
@@ -145,16 +151,17 @@ class MotorController:
         self._log.info("starting asynchronous PID control task, driven by hardware timer.")
         while True:
             await self._pid_signal_flag.wait()
-            
             current_time = utime.ticks_us()
-            # calculate dt_us based on the consistent global cycle time
             global_cycle_dt_us = utime.ticks_diff(current_time, self._last_global_pid_cycle_time)
             self._last_global_pid_cycle_time = current_time # update for next cycle
-            
             for motor in self.motors:
                 if motor.id in self._pid_controllers:
                     pid_ctrl = self._pid_controllers[motor.id]
-                    target_rpm_signed = self._motor_target_rpms.get(motor.id, 0.0)
+                    # use ZCH if enabled and active for this motor
+                    if self._enable_zc_handler and motor.id in self._zc_handlers and self._zc_handlers[motor.id].is_active:
+                        target_rpm_signed = self._zc_handlers[motor.id].get_effective_pid_target_rpm
+                    else:
+                        target_rpm_signed = self._motor_target_rpms.get(motor.id, 0.0)
                     current_motor_rpm = motor.rpm
                     pid_ctrl.setpoint = target_rpm_signed
                     # call PID update, returns output in RPM (range: -motor.max_speed to +motor.max_speed)
@@ -296,6 +303,46 @@ class MotorController:
         return tuple(p * m for p, m in zip(base_power, mode.speeds))
 
     def go(self, payload):
+        '''
+        Set the navigation mode and speeds for all motors.
+
+        Args:
+            payload:  the transmitted payload, with mode and four motor speeds, in order: pfwd, sfwd, paft, saft
+        '''
+        mode = Mode.from_code(payload.code)
+        speeds = payload.speeds
+        transform = MotorController._apply_mode(speeds, mode)
+        self._status.motors(transform)
+        # slew limiter logic
+        if self._enable_slew_limiter:
+            transform = list(transform)  # convert to list for mutability
+            for i in range(len(transform)):
+                if i in self._slew_limiters:
+                    transform[i] = self._slew_limiters[i].limit(transform[i])
+            self._log.debug('slew-limited transform: {}'.format(transform))
+        # closed-loop logic
+        if self._use_closed_loop:
+            for i in self._pid_controllers:
+                target_rpm = transform[i]
+                pid = self._pid_controllers[i]
+                current_rpm = self._motors[i].rpm
+                self._motor_target_rpms[i] = float(target_rpm)
+                # ZeroCrossingHandler logic
+                if self._enable_zc_handler and i in self._zc_handlers:
+                    zc_handler = self._zc_handlers[i]
+                    zc_handler.handle_new_command(target_rpm, current_rpm, pid)
+                    # do not set self._motors[i].speed directly; handler/PID will manage transitions
+                else:
+                    # if ZCH is disabled, fallback to direct control as before
+                    if pid.deadband_enabled and abs(target_rpm) < pid.deadband:
+                        self._motors[i].speed = 0
+                    else:
+                        self._motors[i].speed = target_rpm
+            self._log.debug('setting target RPMs to {}'.format(transform))
+        else:
+            self._set_motor_speed(transform)
+
+    def x_go(self, payload):
         '''
         Set the navigation mode and speeds for all motors.
 

@@ -44,12 +44,12 @@ kros:
   zero_crossing_handler:
     verbose:                False
     enabled:                False      # use zero-crossing handler for speed polarity transitions
-    decel_rate_rpm_per_sec:    50
-    accel_rate_rpm_per_sec:    50
-    transition_interval_ms:    20
-    stop_rpm_threshold:         5.0
-    confirmation_time_ms:     100
-    max_transition_time_ms:  5000
+#   decel_rate_rpm_per_sec:    50
+#   accel_rate_rpm_per_sec:    50
+#   transition_interval_ms:    20
+#   stop_rpm_threshold:         5.0
+#   confirmation_time_ms:     100
+#   max_transition_time_ms:  5000
   pid:
       verbose:              False
       kp:                       0.450  # proportional gain   0.51  (was: 0.60)
