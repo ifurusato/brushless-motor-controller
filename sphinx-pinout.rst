@@ -18,13 +18,15 @@ print console communications over ``/dev/serial0`` when connected to the board
 as not built into MicroPython for the STM32H562. Therefore, only UART 2 or
 UART 3 are suitable: UART 2 is configured as the default.
 
-+--------+-------+-------+
-| UART   |  TX   |  RX   |
-+========+=======+=======+
-| UART1  |  PA9  | PA10  |
-+--------+-------+-------+
-| UART2  |  PA2  | PA3   |
-+--------+-------+-------+
++--------+--------+-------+
+| UART   |  TX    |  RX   |
++========+========+=======+
+| UART1  |  PA9   | PA10  |
++--------+--------+-------+
+| UART2  |  PA2   | PA3   |
++--------+--------+-------+
+| UART3  |  PB10  | PB11  |
++--------+--------+-------+
 
 .. note::
 
@@ -56,5 +58,6 @@ Timer to supply our PWM signals.
 
 {{PINOUT}}
 
-All four motors use the same PWM Timer ({{PWM_TIMER}}).
+All four motors use the same PWM Timer ({{PWM_TIMER}}). Note that if an Alternate
+Function (AF) is used for the Timer it will be specified in config.yaml.
 

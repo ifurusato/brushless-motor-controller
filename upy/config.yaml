@@ -15,18 +15,19 @@ kros:
   uart_slave_app:
     verbose:                False
     is_pyboard:              True
-    uart_id:                    2      # UART identifier (1-7): 3 on STM32H723, 2 on STM32H562 (TX=PA2; RX=PA3)
+    uart_id:                    3      # UART identifier (1-7): 3 on STM32H723, TX=B10, RX=B11
   pixel:
-    pin:                      'A0'     # pin for NeoPixel; 'E1' on STM32H723
+    pin:                      'E1'     # pin for NeoPixel
   display:
     enable:                 False
   motor_controller:
     use_closed_loop:         True
-    enable_m0:              False      # enable motor M0
-    enable_m1:              False      # enable motor M1
+    enable_m0:               True      # enable motor M0
+    enable_m1:               True      # enable motor M1
     enable_m2:               True      # enable motor M2
-    enable_m3:              False      # enable motor M3
-    pwm_timer:                  4      # PWM timer number
+    enable_m3:               True      # enable motor M3
+    pwm_timer_number:           5      # PWM timer number
+    pwm_timer_af:               2      # AF for PWM timer
     rpm_timer_number:           2      # RPM timer number
     rpm_timer_frequency:      100      # RPM timer frequency in Hz
     pwm_frequency:          20000      # frequency for PWM to motors (20-30kHz)
@@ -42,14 +43,8 @@ kros:
     max_delta_speed_per_sec:   30.0    # slew limiter for speed
     safe_threshold:            10.0
   zero_crossing_handler:
-    enabled:                 True      # use zero-crossing handler for speed polarity transitions
+    enabled:                False      # use zero-crossing handler for speed polarity transitions
     verbose:                False
-#   decel_rate_rpm_per_sec:    50
-#   accel_rate_rpm_per_sec:    50
-#   transition_interval_ms:    20
-#   stop_rpm_threshold:         5.0
-#   confirmation_time_ms:     100
-#   max_transition_time_ms:  5000
   pid:
       verbose:              False
       kp:                       0.450  # proportional gain   0.51  (was: 0.60)
@@ -60,52 +55,7 @@ kros:
       stop_threshold:         2.0      # below this motor is considered stopped
       min:                   -100
       max:                    100
-  motors:                              # stm32h562
-    motor0:
-      id:                    0
-      name:                "M0"
-      pwm_channel:           1
-      pwm_pin:             'B6'    # pink wire
-      pwm_pin_name:       'PB6'
-      direction_pin:      'B12'    # white wire
-      direction_pin_name: 'B12'
-      encoder_pin:         'C6'    # grey wire
-      encoder_pin_name:   'PC6'
-      reverse:           False
-    motor1:
-      id:                    1
-      name:                "M1"
-      pwm_channel:           2
-      pwm_pin:             'B7'
-      pwm_pin_name:       'PB7'
-      direction_pin:      'B14'
-      direction_pin_name: 'B14'
-      encoder_pin:         'C7'
-      encoder_pin_name:   'PC7'
-      reverse:            True
-    motor2:
-      id:                    2
-      name:                'M2'
-      pwm_channel:           3
-      pwm_pin:             'B8'
-      pwm_pin_name:       'PB8'
-      direction_pin:       'B3'
-      direction_pin_name:  'B3'
-      encoder_pin:         'C4'    # B0: Timer 3 CH3
-      encoder_pin_name:   'PC4'
-      reverse:            False
-    motor3:
-      id:                    3
-      name:                'M3'
-      pwm_channel:           4
-      pwm_pin:             'C2'    # B9 doesn't seem to work
-      pwm_pin_name:       'PC2'
-      direction_pin:       'B5'
-      direction_pin_name:  'B5'
-      encoder_pin:         'C5'    # B1: Timer 3 CH4
-      encoder_pin_name:   'PC5'
-      reverse:            True
-  motors_stm32h723:                # stm32h723
+  motors:                              # configuration for STM32H723
     motor0:
       id:                    0
       name:                "M0"

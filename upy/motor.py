@@ -50,10 +50,11 @@ class Motor:
     Args:
         config:      configuration specific to this motor
         pwm_timer:   the hardware Timer used for all motors
+        af:          the Alternate Function for the Pins (may be None)
         max_speed:   the maximum target speed permitted
         level:       the logging level
     '''
-    def __init__(self, config=None, pwm_timer=None, max_speed=None, level=Level.INFO):
+    def __init__(self, config=None, pwm_timer=None, af=None, max_speed=None, level=Level.INFO):
         try:
             self._log = None
             if config is None:
@@ -77,7 +78,10 @@ class Motor:
             self._soft_stop_threshold_rpm   = 6.0     # RPM below which motor is considered 'stopped enough' for direction change
             # setup PWM channel with pin
             pwm_pin = config["pwm_pin"]
-            self._pwm_pin         = Pin(pwm_pin)
+            if af is None:
+                self._pwm_pin     = Pin(pwm_pin)
+            else:
+                self._pwm_pin     = Pin(pwm_pin, mode=Pin.AF_PP, af=af)
             self._pwm_pin_name    = config["pwm_pin_name"]
             pwm_channel = config["pwm_channel"]
             self._pwm_channel = pwm_timer.channel(pwm_channel, Timer.PWM_INVERTED, pin=self._pwm_pin)

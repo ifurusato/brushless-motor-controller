@@ -52,7 +52,6 @@ class MotorController:
         _zch_cfg         = config["kros"]["zero_crossing_handler"]
         _cfg             = config["kros"]["motor_controller"]
         self._verbose    = True # _app_cfg["verbose"]
-        _pwm_frequency   = _cfg['pwm_frequency']
         self._max_motor_speed         = _cfg.get('max_motor_speed')
         self._use_closed_loop         = _cfg.get('use_closed_loop', True)
         self._enable_slew_limiter     = _slew_cfg['enabled']                  # True
@@ -106,8 +105,12 @@ class MotorController:
             motors_enabled = (enable_m0, enable_m1, enable_m2, enable_m3)
             self._log.info(Fore.MAGENTA + 'enable motors m0={}; m1={}; m2={}; m3={}'.format(enable_m0, enable_m1, enable_m2, enable_m3))
             # motors ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
-            _pwm_timer = Timer(_cfg["pwm_timer"], freq=_pwm_frequency)
-            _safe_threshold = _slew_cfg['safe_threshold'] # 10.0
+            _pwm_timer_number = _cfg["pwm_timer_number"]
+            _pwm_frequency    = _cfg['pwm_frequency']
+            _pwm_timer_af     = _cfg["pwm_timer_af"]
+            _pwm_timer = Timer(_pwm_timer_number, freq=_pwm_frequency)
+            self._log.info(Fore.MAGENTA + 'configured PWM on timer {}, af={} polling at {:,}Hz'.format(_pwm_timer_number, _pwm_timer_af, _pwm_frequency))
+            _safe_threshold   = _slew_cfg['safe_threshold'] # 10.0
             _max_delta_per_sec = self._max_delta_rpm_per_sec if self._use_closed_loop else self._max_delta_speed_per_sec
             for index in range(4):
                 if not motors_enabled[index]:
@@ -116,7 +119,7 @@ class MotorController:
                 _motor_cfg = _motors_cfg[_motor_key]
                 _name = _motor_cfg["name"]
                 self._log.info('configuring {}…'.format(_motor_key))
-                _motor = Motor(_motor_cfg, pwm_timer=_pwm_timer, max_speed=self._max_motor_speed if self._use_closed_loop else 100.0)
+                _motor = Motor(_motor_cfg, pwm_timer=_pwm_timer, af=_pwm_timer_af, max_speed=self._max_motor_speed if self._use_closed_loop else 100.0)
                 self._motors[index] = _motor
                 self._motor_list.append(_motor)
                 # instantiate PID controller for this motor if closed-loop enabled

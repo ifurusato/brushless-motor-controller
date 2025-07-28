@@ -227,10 +227,10 @@ class Display(Component):
 
 def main():
 
-    COLOR_TEST      = False
-    COLORS_TEST     = False
+    COLOR_TEST      = True
+    COLORS_TEST     = True
     CONSOLE_TEST    = True
-    HELLO_TEST      = False
+    HELLO_TEST      = True
     IP_ADDRESS_TEST = False
     FORMAT_TEST     = False
     MULTILINE_TEST  = False
@@ -300,7 +300,7 @@ def main():
             time.sleep(3)
 
         if HELLO_TEST:
-            display.hello()
+            display.hello(persist=True)
             time.sleep(3)
 
         if IP_ADDRESS_TEST:

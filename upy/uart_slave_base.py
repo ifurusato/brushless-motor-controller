@@ -37,7 +37,7 @@ class UartSlaveBase(Component):
             self._uart = UART(uart_id)
             self._uart.init(baudrate=baudrate, bits=8, parity=None, stop=1)
             self._status.ready()
-            self._log.info('UART{} slave ready at {:,} baud.'.format(uart_id, baudrate))
+            self._log.info(Fore.GREEN + 'UART{} slave ready at {:,} baud.'.format(uart_id, baudrate))
         except Exception as e:
             self._signal_error()
             self._log.info('{} raised setting up UART{} ready at {:,} baud: {}'.format(type(e), uart_id, baudrate, e))
