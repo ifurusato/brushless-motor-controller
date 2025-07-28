@@ -67,6 +67,7 @@ class MotorController:
         self._zc_handlers     = {}
         self._hard_reset_delay_sec = 3
         self._enabled    = False
+        self._feedforward_gain = 0.0
         if self._use_closed_loop:
             self._feedforward_gain = config['kros']['motor_controller']['feedforward_gain']
             self._motor_target_rpms = {}   # target RPM for each motor
@@ -421,30 +422,6 @@ class MotorController:
                     new_pwm = current_pwm + direction_change_step * min(step, abs(delta))
                     motor.speed = new_pwm
                 await asyncio.sleep_ms(delay_ms)
-
-    async def x_accelerate(self, target_speed, step=1, delay_ms=50):
-        '''
-        Gradually change speed of one or more motors toward a target
-        speed, starting from each motor's current speed.
-
-        Args:
-            target_speed:  The target speed (0–100).
-            step:          The speed increment per step.
-            delay_ms:      The delay in milliseconds between steps.
-        '''
-        done = False
-        while not done:
-            done = True
-            for motor in self._motor_list:
-                current = motor.speed
-                if current == target_speed:
-                    continue
-                done = False
-                delta = target_speed - current
-                direction = 1 if delta > 0 else -1
-                new_speed = current + direction * min(step, abs(delta))
-                motor.speed = new_speed
-            await asyncio.sleep_ms(delay_ms)
 
     async def decelerate_to_stop(self, step=1, delay_ms=50):
         '''

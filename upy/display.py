@@ -38,8 +38,10 @@ class Display(Component):
     }
     '''
     Supports an 80x160 TFT display.
+
+    The pins are hard-coded for this specific hardware.
     '''
-    def __init__(self):
+    def __init__(self, rotation=1):
         self._log = Logger('display', Level.INFO)
         Component.__init__(self, self._log, suppressed=False, enabled=False)
         self._spi = SPI(4, baudrate=31250000)
@@ -50,7 +52,7 @@ class Display(Component):
         self._tft.initr()
         self._last_text = ''
         self._tft.invertcolor(True)
-        self._tft.rotation(Display.ROTATION)
+        self._tft.rotation(rotation)
         self._console_buffer = []
         self._amber = Display.to_tft_color((255, 220, 0))
         self._apple = Display.to_tft_color((216, 255, 0))

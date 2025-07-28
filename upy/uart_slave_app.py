@@ -41,7 +41,8 @@ class UartSlaveApp:
         _display_enabled = _config['kros']['display']['enable']
         if _display_enabled:
             from display import Display
-            self._display  = Display()
+            _rotation = _config['kros']['display']['rotation']
+            self._display  = Display(_rotation)
         else:
             from mock_display import Display
             self._display  = Display()

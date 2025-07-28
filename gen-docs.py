@@ -30,7 +30,7 @@ from colorama import init, Fore, Style
 init()
 
 import yaml
-from sd.stringbuilder import StringBuilder
+from upy.stringbuilder import StringBuilder
 
 class MotorTableRenderer:
     def __init__(self, yaml_path):

@@ -148,7 +148,8 @@ class Motor:
 
     @direction.setter
     def direction(self, value):
-        physical_pin_state_to_set = value ^ self._reverse
+#       physical_pin_state_to_set = value ^ self._reverse
+        physical_pin_state_to_set = value
         current_physical_pin_state = self._direction_pin.value()
         if physical_pin_state_to_set == current_physical_pin_state:
             return

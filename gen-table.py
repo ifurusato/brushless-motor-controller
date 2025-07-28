@@ -10,7 +10,7 @@
 # modified: 2025-07-01
 
 import yaml
-from sd.stringbuilder import StringBuilder
+from upy.stringbuilder import StringBuilder
 
 # Load YAML configuration
 with open("upy/config.yaml", "r") as f:
