@@ -25,8 +25,6 @@ class UartSlaveBase(Component):
         self._log = Logger(name, Level.INFO)
         Component.__init__(self, self._log, suppressed=False, enabled=False)
         self.baudrate    = baudrate
-        if status is None:
-            raise ValueError('no status provided.')
         self._status      = status
         self._buffer     = bytearray()
         self._last_rx    = time.ticks_ms()
@@ -36,7 +34,8 @@ class UartSlaveBase(Component):
         try:
             self._uart = UART(uart_id)
             self._uart.init(baudrate=baudrate, bits=8, parity=None, stop=1)
-            self._status.ready()
+            if self._status:
+                self._status.ready()
             self._log.info(Fore.GREEN + 'UART{} slave ready at {:,} baud.'.format(uart_id, baudrate))
         except Exception as e:
             self._signal_error()
@@ -47,7 +46,8 @@ class UartSlaveBase(Component):
 
     def _signal_error(self):
         self._log.error('error.')
-        self._status.error()
+        if self._status:
+            self._status.error()
 
     async def receive_packet(self):
         if not self.enabled:

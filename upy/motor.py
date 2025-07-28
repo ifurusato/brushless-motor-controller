@@ -66,7 +66,6 @@ class Motor:
             self._log  = Logger('motor-{}'.format(self._name), level=level)
             self._log.info('initialising motor {}'.format(self._name))
             self._enabled         = False
-            self._direction       = Motor.DIRECTION_FORWARD
             self._reverse         = config["reverse"]
             self._tick_count      = 0
             self._rpm             = 0
@@ -90,7 +89,7 @@ class Motor:
             # setup direction GPIO pin
             direction_pin = config["direction_pin"]
             self._direction_pin = Pin(direction_pin, Pin.OUT)
-            self._direction_pin.value(1)
+            self._direction_pin.value(Motor.DIRECTION_FORWARD)
             self._direction_pin_name = config["direction_pin_name"]
             # setup encoder pin
             encoder_pin = config["encoder_pin"]
@@ -158,7 +157,6 @@ class Motor:
                 + Fore.CYAN + ': (pin {} -> {}); '.format(current_physical_pin_state, physical_pin_state_to_set)
                 + 'speed: {}'.format(self.speed))
         self._direction_pin.value(physical_pin_state_to_set)
-        self._direction = value
 
     @property
     def max_speed(self):
@@ -188,42 +186,13 @@ class Motor:
         # clip value to 0..100 percent
         value = Util.clip(value, 0, 100)
         # only allow direction change if RPM is near stopped, or if it's same direction
-        if (self._direction != intended_direction and abs(self.rpm) < self._soft_stop_threshold_rpm) \
-                or (self._direction == intended_direction):
+        if (self.direction != intended_direction and abs(self.rpm) < self._soft_stop_threshold_rpm) \
+                or (self.direction == intended_direction):
             self.direction = intended_direction
         else:
             self._log.debug('direction change ignored.')
             pass
         self._speed = value if intended_direction == Motor.DIRECTION_FORWARD else -value
-        self._duty_cycle = value
-        self._pwm_channel.pulse_width_percent(self._duty_cycle)
-
-    @speed.setter
-    def x_speed(self, value):
-        '''
-        Set the motor speed as a percentage between 0 and 100, or when in closed
-        loop mode the maximum motor speed in RPM. We also set the direction pin
-        depending on the value.
-
-        Do not change direction if not near stopped and a direction flip is implied by the value.
-        '''
-        if not self.enabled:
-            raise Exception('cannot set speed: motor {} not enabled.'.format(self._name))
-        if value < 0:
-            intended_direction = Motor.DIRECTION_REVERSE
-            value = abs(value)
-        else:
-            intended_direction = Motor.DIRECTION_FORWARD
-        value = Util.clip(value, 0, self._max_speed)
-        if not 0 <= value <= self._max_speed:
-            raise ValueError('speed must be between 0 and 100, not {}'.format(value))
-        if (self._direction != intended_direction and abs(self.rpm) < self._soft_stop_threshold_rpm) \
-                or (self._direction == intended_direction):
-            self.direction = intended_direction
-        else:
-            self._log.debug('direction change ignored.')
-            pass
-        self._speed  = value
         self._duty_cycle = value
         self._pwm_channel.pulse_width_percent(self._duty_cycle)
 
@@ -244,7 +213,7 @@ class Motor:
         pulses_per_second = 1_000_000 / self._last_calculated_interval_us
         revolutions_per_second = pulses_per_second / self._ticks_per_output_rev
         calculated_rpm_magnitude = revolutions_per_second * 60.0
-        if (self._direction_pin.value() == Motor.DIRECTION_REVERSE) ^ self._reverse:
+        if (self.direction == Motor.DIRECTION_REVERSE) ^ self._reverse:
             calculated_rpm_magnitude = -calculated_rpm_magnitude
         self._rpm = calculated_rpm_magnitude
         return self._rpm
@@ -256,7 +225,7 @@ class Motor:
         raw_interval_us = utime.ticks_diff(current_time_us, last_pulse_time)
         if raw_interval_us >= debounce_period:
             self._last_encoder_pulse_us = current_time_us
-            if self._direction == Motor.DIRECTION_FORWARD:
+            if self.direction == Motor.DIRECTION_FORWARD:
                 self._tick_count += 1
             else:
                 self._tick_count -= 1

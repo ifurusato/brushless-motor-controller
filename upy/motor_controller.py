@@ -47,17 +47,17 @@ class MotorController:
         self._status     = status
         # configuration ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
         _app_cfg         = config["kros"]["application"]
+        _cfg             = config["kros"]["motor_controller"]
         _motors_cfg      = config["kros"]["motors"]
         _slew_cfg        = config["kros"]["slew_limiter"]
         _zch_cfg         = config["kros"]["zero_crossing_handler"]
-        _cfg             = config["kros"]["motor_controller"]
-        self._verbose    = True # _app_cfg["verbose"]
+        self._verbose    = _app_cfg["verbose"]
         self._max_motor_speed         = _cfg.get('max_motor_speed')
         self._use_closed_loop         = _cfg.get('use_closed_loop', True)
         self._enable_slew_limiter     = _slew_cfg['enabled']                  # True
-        self._enable_zc_handler       = _zch_cfg['enabled']                   # True
         self._max_delta_rpm_per_sec   = _slew_cfg['max_delta_rpm_per_sec']    # closed loop: 120.0
         self._max_delta_speed_per_sec = _slew_cfg['max_delta_speed_per_sec']  # open loop: 100.0
+        self._enable_zc_handler       = _zch_cfg['enabled']                   # True
         # variables ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
         self._motors          = {}
         self._motor_list      = []
@@ -321,7 +321,8 @@ class MotorController:
         mode = Mode.from_code(payload.code)
         speeds = payload.speeds
         transform = MotorController._apply_mode(speeds, mode)
-        self._status.motors(transform)
+        if self._status:
+            self._status.motors(transform)
         # slew limiter logic
         if self._enable_slew_limiter:
             transform = list(transform)  # convert to list for mutability
@@ -365,7 +366,8 @@ class MotorController:
         speeds = payload.speeds
         transform = MotorController._apply_mode(speeds, mode)
 #       self._log.debug('go: {}; speeds: {}; type: {}; transform: {}'.format(mode, speeds, type(transform), transform))
-        self._status.motors(transform)
+        if self._status:
+            self._status.motors(transform)
         if self._enable_slew_limiter:
             transform = list(transform) # convert to list for mutability
             for i in range(len(transform)):

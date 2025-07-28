@@ -11,7 +11,8 @@
 
 import time
 import asyncio
-from machine import SPI, Pin
+from machine import SPI
+from pyb import Pin
 from sysfont import sysfont
 from st7735py import TFT, TFTColor
 

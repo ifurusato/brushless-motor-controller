@@ -102,7 +102,8 @@ class PayloadRouter:
         self._error_time = None
 
     def off(self):
-        self._status.off()
+        if self._status:
+            self._status.off()
 
     async def route(self, payload):
         '''
@@ -137,7 +138,8 @@ class PayloadRouter:
     def _handle_color(self, rgb):
         if self._verbose:
             self._log.info(Fore.MAGENTA + 'color: {}'.format(rgb))
-        self._status.rgb(color=rgb)
+        if self._status:
+            self._status.rgb(color=rgb)
 
     def _handle_ack(self):
         self._log.info(Fore.GREEN + 'ACK')

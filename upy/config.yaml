@@ -17,7 +17,8 @@ kros:
     is_pyboard:              True
     uart_id:                    3      # UART identifier (1-7): 3 on STM32H723, TX=B10, RX=B11
   pixel:
-    pin:                      'E1'     # pin for NeoPixel
+    enable:                 False
+    pin:                      'B7'     # pin for NeoPixel
   display:
     enable:                  True
     rotation:                   3      # 1 = landscape, upside down; 3 = landscape, rightside-up
@@ -47,7 +48,7 @@ kros:
     enabled:                False      # use zero-crossing handler for speed polarity transitions
     verbose:                False
   pid:
-      verbose:              False
+      verbose:               True
       kp:                       0.450  # proportional gain   0.51  (was: 0.60)
       ki:                       0.030  # integral gain       0.050 (was: 0.050)
       kd:                       0.001  # derivative gain     0.001 (was: 0.001)
@@ -74,8 +75,8 @@ kros:
       pwm_channel:           2
       pwm_pin:             'A1'
       pwm_pin_name:       'PA1'
-      direction_pin:       'D3'
-      direction_pin_name: 'PD3'
+      direction_pin:       'D1'
+      direction_pin_name: 'PD1'
       encoder_pin:         'C7'
       encoder_pin_name:   'PC7'
       reverse:            True
@@ -85,8 +86,8 @@ kros:
       pwm_channel:           3
       pwm_pin:             'A2'
       pwm_pin_name:       'PA2'
-      direction_pin:       'D4'
-      direction_pin_name: 'PD4'
+      direction_pin:       'E0'
+      direction_pin_name: 'PE0'
       encoder_pin:         'B0'
       encoder_pin_name:   'PB0'
       reverse:            False

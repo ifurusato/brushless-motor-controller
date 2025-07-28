@@ -46,8 +46,13 @@ class UartSlaveApp:
         else:
             from mock_display import Display
             self._display  = Display()
-        self._pixel    = Pixel(_config, pixel_count=8, brightness=0.1)
-        self._status   = Status(self._pixel)
+        _pixel_enabled = _config['kros']['pixel']['enable']
+        if _pixel_enabled:
+            self._pixel = Pixel(_config, pixel_count=8, brightness=0.1)
+            self._status   = Status(self._pixel)
+        else:
+            self._pixel = None
+            self._status = None
         self._slave    = None
         self._tx_count = 0
         self._baudrate = 1_000_000 # default
@@ -57,7 +62,8 @@ class UartSlaveApp:
         self._log.info('ready.')
 
     def rgb(self, color=None):
-        self._pixel.set_color(color)
+        if self._pixel:
+            self._pixel.set_color(color)
 
     async def _pyb_wait_a_bit(self):
         from pyb import LED
@@ -66,10 +72,12 @@ class UartSlaveApp:
             self.rgb()
             _led.on()
             await asyncio.sleep_ms(50)
-            self._status.off()
+            if self._status:
+                self._status.off()
             _led.off()
             await asyncio.sleep_ms(950)
-        self._status.off()
+        if self._status:
+            self._status.off()
         _led.off()
 
     async def _wait_a_bit(self):
@@ -79,10 +87,12 @@ class UartSlaveApp:
             self.rgb()
             _led.on()
             await asyncio.sleep_ms(50)
-            self._status.off()
+            if self._status:
+                self._status.off()
             _led.off()
             await asyncio.sleep_ms(950)
-        self._status.off()
+        if self._status:
+            self._status.off()
         _led.off()
 
     async def _setup_uart_slave(self):

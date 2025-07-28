@@ -13,6 +13,7 @@ import time
 import pyb
 from neopixel import NeoPixel
 
+from colorama import Fore, Style
 from logger import Logger, Level
 from colors import *
 
@@ -27,7 +28,7 @@ class Pixel:
         self._pixel_index = 0
         self._brightness = brightness
         self._neopixel = NeoPixel(pyb.Pin(pin, pyb.Pin.OUT), pixel_count, color_order=color_order, brightness=brightness)
-        self._log.info('neopixel ready on pin {}.'.format(pin))
+        self._log.info(Fore.GREEN + 'neopixel ready on pin {}.'.format(pin))
 
     @property
     def pixel_count(self):
